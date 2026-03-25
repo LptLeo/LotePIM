@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 
 export enum PerfilUsuario {
   OPERADOR = "operador",
@@ -11,13 +11,13 @@ export class Usuario {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   nome!: string;
 
-  @Column({ type: 'text', unique: true, nullable: false })
+  @Column({ type: 'varchar', unique: true, nullable: false })
   email!: string;
 
-  @Column({ type: 'text', select: false, nullable: false })
+  @Column({ type: 'varchar', select: false, nullable: false })
   senha!: string;
 
   @Column({
@@ -28,6 +28,9 @@ export class Usuario {
   })
   perfil!: PerfilUsuario;
 
-  @CreateDateColumn({ type: 'timestamp', nullable: false })
-  criado_em!: Date;
+  @Column({ type: 'boolean', default: true, nullable: false })
+  ativo!: boolean;
+
+  @OneToMany(() => Lote, (lote) => lote.usuario)
+  lotes!: Lote[];
 }
