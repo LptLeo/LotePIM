@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import { Lote } from "./Lote";
 
 export enum PerfilUsuario {
   OPERADOR = "operador",
