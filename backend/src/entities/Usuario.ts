@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { Lote } from "./Lote.js";
+import { InspecaoLote } from "./InspecaoLote.js";
 
 export enum PerfilUsuario {
   OPERADOR = "operador",
@@ -32,6 +33,9 @@ export class Usuario {
   @Column({ type: 'boolean', default: true, nullable: false })
   ativo!: boolean;
 
-  @OneToMany(() => Lote, (lote) => lote.usuario)
+  @OneToMany(() => Lote, (lote) => lote.operador_id)
   lotes!: Lote[];
+
+  @OneToMany(() => InspecaoLote, (inspecao) => inspecao.inspetor_id)
+  inspecoes!: InspecaoLote[];
 }
