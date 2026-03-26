@@ -59,6 +59,6 @@ export class Lote {
   @OneToMany(() => InsumoLote, (insumo) => insumo.lote)
   insumos!: InsumoLote[]
 
-  @OneToOne(() => InspecaoLote, (inspecao) => inspecao.lote)
+  @OneToOne(() => InspecaoLote, (inspecao) => inspecao.lote_id)
   inspecao!: InspecaoLote
 }
