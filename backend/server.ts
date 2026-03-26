@@ -1,19 +1,15 @@
-import express from 'express'
-import { AppDataSource } from './src/config/AppDataSource.js'
+import express from 'express';
+import loteRoutes from './src/routes/loteRoutes';
 
-const app = express()
+const app = express();
 
-const PORT = process.env.PORT || 3000
+// Permite que o Express entenda JSON no corpo das requisições
+app.use(express.json());
 
-app.use(express.json())
+// RF02 - Rotas protegidas (No futuro, você adicionará o Middleware de JWT aqui) [cite: 140, 144]
+app.use('/api/lotes', loteRoutes);
 
-AppDataSource.initialize()
-  .then(() => {
-    console.log("Banco de dados conectado com sucesso.")
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`)
-    })
-  })
-  .catch((error) => {
-    console.log(error)
-  })
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+});
