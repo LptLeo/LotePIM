@@ -22,6 +22,6 @@ export class Produto {
   ativo!: boolean
 
   // Relacionamento 1:N com Lote, um produto pode ter vários lotes
-  @OneToMany(() => Lote, (lote) => lote.produto)
+  @OneToMany(() => Lote, (lote) => lote.produto_id)
   lotes!: Lote[];
 }
