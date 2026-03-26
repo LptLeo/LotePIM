@@ -20,17 +20,23 @@ enum LoteStatus {
 
 @Entity("lote")
 export class Lote {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @Column({ type: "varchar", nullable: false })
+  @Column({ type: "text", unique: true, nullable: false })
   numero_lote!: string
+
+  @ManyToOne(() => Produto, (produto) => produto.lotes)
+  produto_id!: string
 
   @Column({ type: "date", nullable: false })
   data_producao!: Date
 
   @Column({ type: "enum", enum: Turno, nullable: false })
   turno!: Turno
+
+  @ManyToOne(() => Usuario, (usuario) => usuario.lotes)
+  operador_id!: string
 
   @Column({ type: "int", nullable: false })
   quantidade_produzida!: number
@@ -49,12 +55,6 @@ export class Lote {
 
   @Column({ type: "timestamp", nullable: true })
   encerrado_em?: Date
-
-  @ManyToOne(() => Produto, (produto) => produto.lotes)
-  produto!: Produto
-
-  @ManyToOne(() => Usuario, (usuario) => usuario.lotes)
-  usuario!: Usuario
 
   @OneToMany(() => InsumoLote, (insumo) => insumo.lote)
   insumos!: InsumoLote[]
