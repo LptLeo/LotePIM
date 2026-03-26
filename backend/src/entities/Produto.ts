@@ -1,8 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Lote } from "./Lote.js";
 
-@Entity('product')
-export class Product {
+@Entity('produto')
+export class Produto {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
