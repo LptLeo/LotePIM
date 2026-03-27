@@ -1,33 +1,83 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { LoteService } from '../services/LoteService.js';
+import type { LoteStatus } from '../entities/Lote.js';
 
 export class LoteController {
-  // Simulação de banco de dados para exemplo inicial
-private static lotes: any[] = [];
+  private loteService: LoteService;
 
-  // US01 - Abrir novo lote [cite: 137, 149, 150]
-async criar(req: Request, res: Response) {
-    const { produto_id, turno, quantidade_prod, operador_id } = req.body;
+  constructor() {
+    this.loteService = new LoteService();
+  }
 
-    // RNF01 - O número do lote deve ser gerado pelo backend [cite: 142]
-    const novoNumeroLote = `LOT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+  async create(req: Request, res: Response) {
+    try {
+      const novoLote = await this.loteService.createLote(req.body);
+      return res.status(201).json(novoLote);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
 
-    const novoLote = {
-    id: this.lotes.length + 1,
-    numero_lote: novoNumeroLote,
-    produto_id,
-    turno,
-    quantidade_prod,
-    operador_id,
-    status: 'em_producao', // Status inicial obrigatório [cite: 150, 154]
-    aberto_em: new Date()
-    };
+  async getAll(req: Request, res: Response) {
+    try {
+      const filtros = {
+        produto_id: req.query.produto_id as string,
+        status: req.query.status as LoteStatus,
+        dataInicio: req.query.dataInicio ? new Date(req.query.dataInicio as string) : undefined,
+        dataFim: req.query.dataFim ? new Date(req.query.dataFim as string) : undefined
+      }
 
-    this.lotes.push(novoLote);
-    return res.status(201).json(novoLote);
-}
+      const lotes = await this.loteService.getAllLotes(filtros);
+      return res.status(200).json(lotes);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
 
-  // Listagem com filtros [cite: 101, 140]
-async listar(req: Request, res: Response) {
-    return res.json(this.lotes);
-}
+  async vincularInsumos(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const loteEncerrado = await this.loteService.encerrarProducao(Number(id));
+
+      return res.json(loteEncerrado)
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
+
+  async encerrar(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const loteEncerrado = await this.loteService.encerrarProducao(Number(id));
+      return res.json(loteEncerrado);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
+
+  async getDetalhes(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const detalhes = await this.loteService.getLoteById(Number(id));
+      return res.json(detalhes);
+    } catch (error: any) {
+      return res.status(404).json({ message: error.message });
+    }
+  }
+
+  async reversa(req: Request, res: Response) {
+    try {
+      const { loteOrigem } = req.params;
+
+      if (!loteOrigem) {
+        return res.status(400).json({ message: 'Parâmetro loteOrigem é obrigatório' });
+      }
+
+      const lotesAfetados = await this.loteService.getRastreabilidadeReversa(loteOrigem as string);
+
+      return res.json(lotesAfetados);
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }

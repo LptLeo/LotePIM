@@ -4,7 +4,7 @@ import { Usuario } from "./Usuario.js";
 import { InsumoLote } from "./InsumoLote.js";
 import { InspecaoLote } from "./InspecaoLote.js";
 
-enum Turno {
+export enum Turno {
   manha = "manha",
   tarde = "tarde",
   noite = "noite",
@@ -20,8 +20,8 @@ export enum LoteStatus {
 
 @Entity("lote")
 export class Lote {
-  @PrimaryGeneratedColumn("uuid")
-  id!: string
+  @PrimaryGeneratedColumn()
+  id!: number
 
   @Column({ type: "text", unique: true, nullable: false })
   numero_lote!: string
@@ -36,7 +36,7 @@ export class Lote {
   turno!: Turno
 
   @ManyToOne(() => Usuario, (usuario) => usuario.lotes)
-  operador_id!: string
+  operador!: string
 
   @Column({ type: "int", nullable: false })
   quantidade_produzida!: number
