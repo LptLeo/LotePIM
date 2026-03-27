@@ -10,7 +10,7 @@ enum Turno {
   noite = "noite",
 }
 
-enum LoteStatus {
+export enum LoteStatus {
   em_producao = "em_producao",
   aguardando_inspecao = "aguardando_inspecao",
   aprovado = "aprovado",
