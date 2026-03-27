@@ -33,7 +33,7 @@ export class Usuario {
   @Column({ type: 'boolean', default: true, nullable: false })
   ativo!: boolean;
 
-  @OneToMany(() => Lote, (lote) => lote.operador_id)
+  @OneToMany(() => Lote, (lote) => lote.operador)
   lotes!: Lote[];
 
   @OneToMany(() => InspecaoLote, (inspecao) => inspecao.inspetor_id)
