@@ -23,4 +23,7 @@ export class InsumoLote {
 
   @ManyToOne(() => Lote, (lote) => lote.insumos)
   lote!: Lote
+
+  @Column({ type: "varchar", nullable: false })
+  lote_origem!: string;
 }
