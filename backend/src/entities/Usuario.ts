@@ -36,6 +36,6 @@ export class Usuario {
   @OneToMany(() => Lote, (lote) => lote.operador)
   lotes!: Lote[];
 
-  @OneToMany(() => InspecaoLote, (inspecao) => inspecao.inspetor_id)
+  @OneToMany(() => InspecaoLote, (inspecao) => inspecao.inspetor)
   inspecoes!: InspecaoLote[];
 }
