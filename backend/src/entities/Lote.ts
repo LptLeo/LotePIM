@@ -1,16 +1,16 @@
-import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Produto } from "./Produto.js";
 import { Usuario } from "./Usuario.js";
 import { InsumoLote } from "./InsumoLote.js";
 import { InspecaoLote } from "./InspecaoLote.js";
 
-enum Turno {
+export enum Turno {
   manha = "manha",
   tarde = "tarde",
   noite = "noite",
 }
 
-enum LoteStatus {
+export enum LoteStatus {
   em_producao = "em_producao",
   aguardando_inspecao = "aguardando_inspecao",
   aprovado = "aprovado",
@@ -20,14 +20,15 @@ enum LoteStatus {
 
 @Entity("lote")
 export class Lote {
-  @PrimaryGeneratedColumn("uuid")
-  id!: string
+  @PrimaryGeneratedColumn()
+  id!: number
 
   @Column({ type: "text", unique: true, nullable: false })
   numero_lote!: string
 
   @ManyToOne(() => Produto, (produto) => produto.lotes)
-  produto_id!: string
+  @JoinColumn({ name: "produto_id" })
+  produto!: Produto;
 
   @Column({ type: "date", nullable: false })
   data_producao!: Date
@@ -36,7 +37,8 @@ export class Lote {
   turno!: Turno
 
   @ManyToOne(() => Usuario, (usuario) => usuario.lotes)
-  operador_id!: string
+  @JoinColumn({ name: "operador_id" })
+  operador!: Usuario;
 
   @Column({ type: "int", nullable: false })
   quantidade_produzida!: number
@@ -59,6 +61,6 @@ export class Lote {
   @OneToMany(() => InsumoLote, (insumo) => insumo.lote)
   insumos!: InsumoLote[]
 
-  @OneToOne(() => InspecaoLote, (inspecao) => inspecao.lote)
+  @OneToOne(() => InspecaoLote, (inspecao) => inspecao.lote_id)
   inspecao!: InspecaoLote
 }

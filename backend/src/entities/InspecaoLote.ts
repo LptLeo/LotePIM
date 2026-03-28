@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Lote } from "./Lote.js";
 import { Usuario } from "./Usuario.js";
 
@@ -17,7 +17,8 @@ export class InspecaoLote {
   lote_id!: Lote
 
   @ManyToOne(() => Usuario, (usuario) => usuario.inspecoes)
-  inspetor_id!: Usuario
+  @JoinColumn({ name: "inspetor_id" })
+  inspetor!: Usuario
 
   @Column({ type: "enum", enum: Resultados, nullable: false })
   resultado!: Resultados
