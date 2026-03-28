@@ -3,13 +3,7 @@ import { Repository } from "typeorm";
 import { InsumoLote } from "../entities/InsumoLote.js";
 import { Lote, LoteStatus } from "../entities/Lote.js";
 
-export interface InsumoVinculoDTO {
-  nome: string;
-  codigo_insumo: string;
-  lote_origem: string;
-  quantidade: number;
-  unidade_medida: string;
-}
+import type { InsumoVinculoDTO } from "../dto/InsumoLoteDTO.js";
 
 export class InsumoLoteService {
   private insumoLoteRepo: Repository<InsumoLote>;
@@ -65,7 +59,7 @@ export class InsumoLoteService {
     const vinculos = await this.insumoLoteRepo.find({
       where: [
         { codigo_insumo: termo },
-        { lote_fornecedor: termo },
+        { lote_insumo: termo },
         { lote_origem: termo }
       ],
       relations: ["lote", "lote.produto"]
