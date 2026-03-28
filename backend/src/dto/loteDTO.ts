@@ -51,7 +51,7 @@ export const insumoVinculoSchema = z.object({
     .string()
     .optional(),
 
-  lote_fornecedor: z
+  lote_insumo: z
     .string()
     .optional(),
 
@@ -59,11 +59,11 @@ export const insumoVinculoSchema = z.object({
     .string()
     .optional(),
 
-  quantidade_usada: z
+  quantidade: z
     .number({ error: "A quantidade é obrigatória e deve ser um número." })
     .positive("A quantidade deve ser maior que zero."),
 
-  unidade_medida: z
+  unidade: z
     .string({ error: "A unidade de medida é obrigatória." })
     .min(1, "A unidade de medida não pode ser vazia."),
 });
