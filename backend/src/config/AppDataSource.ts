@@ -11,8 +11,13 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD || "postgres",
   database: process.env.DB_NAME || "postgres",
-  entities: ["src/entities/**/*.ts"],
-  migrations: ["src/migrations/**/*.ts"],
+  entities: [process.env.NODE_ENV === 'development'
+    ? "src/entities/**/*.{ts,js}"
+    : "dist/entities/**/*.{js}"],
+  migrations: [process.env.NODE_ENV === 'development'
+    ? "src/migrations/**/*.{ts,js}"
+    : "dist/migrations/**/*.{js}"],
   subscribers: [],
-  synchronize: true, // Ativo apenas em desenvolvimento
+  synchronize: process.env.NODE_ENV === "development",
+  logging: true,
 });
