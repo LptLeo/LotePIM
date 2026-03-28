@@ -6,23 +6,23 @@ export class InsumoLote {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @ManyToOne(() => Lote, (lote) => lote.insumos)
+  lote!: Lote
+
   @Column({ type: "varchar", nullable: false })
   nome_insumo!: string;
 
-  @Column({ type: "varchar", nullable: false })
-  codigo_insumo!: string;
+  @Column({ type: "varchar", nullable: true })
+  codigo_insumo?: string;
 
-  @Column({ type: "varchar", nullable: false })
-  lote_fornecedor!: string;
+  @Column({ type: "varchar", nullable: true })
+  lote_insumo?: string;
 
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
-  quantidade_usada!: number;
+  quantidade!: number;
 
   @Column({ type: "varchar", nullable: false })
-  unidade_medida!: string;
-
-  @ManyToOne(() => Lote, (lote) => lote.insumos)
-  lote!: Lote
+  unidade!: string;
 
   @Column({ type: "varchar", nullable: false })
   lote_origem!: string;
