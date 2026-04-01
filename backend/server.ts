@@ -1,14 +1,14 @@
 import express from 'express'
 import { AppDataSource } from './src/config/AppDataSource.js'
-import loteRouter from './src/routes/loteRoutes.js'
+import routes from './src/routes/index.js'
+import { errorHandler } from './src/middlewares/errorHandler.js'
 
 const app = express()
-
 const PORT = process.env.PORT || 3000
 
 app.use(express.json())
-
-app.use(loteRouter)
+app.use('/api', routes)
+app.use(errorHandler)
 
 AppDataSource.initialize()
   .then(() => {
