@@ -2,16 +2,26 @@ import { AppDataSource } from "../config/AppDataSource.js";
 import { type Repository, Like } from "typeorm";
 import { Produto } from "../entities/Produto.js";
 import type { CriarProdutoDTO, AtualizarProdutoDTO } from "../dto/ProdutoDTO.js";
+import { PerfilUsuario } from "../entities/Usuario.js";
+import { AppError } from "../errors/AppError.js";
 
 export class ProdutoService {
   private produtoRepo: Repository<Produto>;
+
+  private verificaPermissao(perfil: PerfilUsuario, permitidos: PerfilUsuario[]) {
+    if (!permitidos.includes(perfil)) {
+      throw new AppError(`Acesso negado: apenas usuários com perfil ${permitidos.join(", ")} podem realizar esta operação.`, 403);
+    }
+  }
 
   constructor() {
     this.produtoRepo = AppDataSource.getRepository(Produto);
   }
 
   // createProduto
-  async createProduto(produtoDTO: CriarProdutoDTO) {
+  createProduto = async (produtoDTO: CriarProdutoDTO, requisitante: { id: number, perfil: PerfilUsuario }) => {
+    this.verificaPermissao(requisitante.perfil, [PerfilUsuario.GESTOR]);
+
     const existeCodigo = await this.produtoRepo.findOneBy({ codigo: produtoDTO.codigo });
     if (existeCodigo) {
       throw new Error("Já existe um produto com este código.");
@@ -27,7 +37,9 @@ export class ProdutoService {
   }
 
   // getAllProdutos
-  async getAllProdutos(filtros?: { search?: string, ativo?: boolean }) {
+  getAllProdutos = async (requisitante: { id: number, perfil: PerfilUsuario }, filtros?: { search?: string, ativo?: boolean }) => {
+    this.verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR, PerfilUsuario.GESTOR]);
+
     const where: any = [];
 
     if (filtros?.search) {
@@ -47,7 +59,9 @@ export class ProdutoService {
   }
 
   // getProdutoById
-  async getProdutoById(id: string) {
+  getProdutoById = async (id: number, requisitante: { id: number, perfil: PerfilUsuario }) => {
+    this.verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR, PerfilUsuario.GESTOR]);
+
     const produto = await this.produtoRepo.findOneBy({ id });
 
     if (!produto) throw new Error("Produto não encontrado.");
@@ -56,8 +70,10 @@ export class ProdutoService {
   }
 
   // updateProduto
-  async updateProduto(id: string, produtoDTO: AtualizarProdutoDTO) {
-    const produto = await this.getProdutoById(id);
+  updateProduto = async (id: number, produtoDTO: AtualizarProdutoDTO, requisitante: { id: number, perfil: PerfilUsuario }) => {
+    this.verificaPermissao(requisitante.perfil, [PerfilUsuario.GESTOR]);
+
+    const produto = await this.getProdutoById(id, requisitante);
 
     if (produtoDTO.codigo && produtoDTO.codigo !== produto.codigo) {
       const existeCodigo = await this.produtoRepo.findOneBy({ codigo: produtoDTO.codigo });
@@ -70,8 +86,10 @@ export class ProdutoService {
   }
 
   // desativarProduto
-  async desativarProduto(id: string) {
-    const produto = await this.getProdutoById(id);
+  desativarProduto = async (id: number, requisitante: { id: number, perfil: PerfilUsuario }) => {
+    this.verificaPermissao(requisitante.perfil, [PerfilUsuario.GESTOR]);
+
+    const produto = await this.getProdutoById(id, requisitante);
 
     produto.ativo = false;
     return await this.produtoRepo.save(produto);

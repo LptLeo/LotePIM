@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
-import { ProdutoService } from '../services/ProdutoService.js';
+import { ProdutoService } from '../services/produto.service.js';
 import { criarProdutoSchema, atualizarProdutoSchema } from '../dto/ProdutoDTO.js';
 import { ZodError } from 'zod';
+import { getRequisitante } from '../utils/auth.utils.js';
 
 export class ProdutoController {
   private produtoService: ProdutoService;
@@ -10,10 +11,12 @@ export class ProdutoController {
     this.produtoService = new ProdutoService();
   }
 
-  async create(req: Request, res: Response) {
+  create = async (req: Request, res: Response) => {
     try {
+      const requisitante = getRequisitante(req);
       const validatedData = criarProdutoSchema.parse(req.body);
-      const novoProduto = await this.produtoService.createProduto(validatedData);
+
+      const novoProduto = await this.produtoService.createProduto(validatedData, requisitante);
 
       return res.status(201).json(novoProduto);
     } catch (error: any) {
@@ -24,13 +27,15 @@ export class ProdutoController {
     }
   }
 
-  async getAll(req: Request, res: Response) {
+  getAll = async (req: Request, res: Response) => {
     try {
+      const requisitante = getRequisitante(req);
       const filtros: any = {};
+
       if (req.query.search) filtros.search = String(req.query.search);
       if (req.query.ativo) filtros.ativo = req.query.ativo === 'true';
 
-      const produtos = await this.produtoService.getAllProdutos(filtros);
+      const produtos = await this.produtoService.getAllProdutos(requisitante, filtros);
 
       return res.status(200).json(produtos);
     } catch (error: any) {
@@ -38,10 +43,12 @@ export class ProdutoController {
     }
   }
 
-  async getById(req: Request, res: Response) {
+  getById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const produto = await this.produtoService.getProdutoById(id as string);
+      const requisitante = getRequisitante(req);
+
+      const produto = await this.produtoService.getProdutoById(Number(id), requisitante);
 
       return res.status(200).json(produto);
     } catch (error: any) {
@@ -49,12 +56,13 @@ export class ProdutoController {
     }
   }
 
-  async update(req: Request, res: Response) {
+  update = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const validatedData = atualizarProdutoSchema.parse(req.body);
+      const requisitante = getRequisitante(req);
 
-      const produto = await this.produtoService.updateProduto(id as string, validatedData);
+      const produto = await this.produtoService.updateProduto(Number(id), validatedData, requisitante);
 
       return res.status(200).json(produto);
     } catch (error: any) {
@@ -65,10 +73,13 @@ export class ProdutoController {
     }
   }
 
-  async delete(req: Request, res: Response) {
+  delete = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      await this.produtoService.desativarProduto(id as string);
+      const requisitante = getRequisitante(req);
+
+      await this.produtoService.desativarProduto(Number(id), requisitante);
+
       return res.status(204).send();
     } catch (error: any) {
       return res.status(404).json({ message: error.message });
