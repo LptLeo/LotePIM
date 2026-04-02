@@ -19,7 +19,7 @@ export class InsumoLoteService {
 
     if (!lote) throw new Error("Lote não encontrado.");
 
-    if (lote.status !== LoteStatus.em_producao) {
+    if (lote.status !== LoteStatus.EM_PRODUCAO) {
       throw new Error("Insumos só podem ser adicionados enquanto o lote está em produção.");
     }
 
@@ -41,7 +41,7 @@ export class InsumoLoteService {
 
     if (!insumo) throw new Error("Vínculo de insumo não encontrado.");
 
-    if (insumo.lote.status !== LoteStatus.em_producao) {
+    if (insumo.lote.status !== LoteStatus.EM_PRODUCAO) {
       throw new Error("Não é possível remover insumos de um lote que já saiu de produção.");
     }
 
@@ -53,27 +53,5 @@ export class InsumoLoteService {
       where: { lote: { id: loteId } },
       order: { nome_insumo: "ASC" }
     });
-  }
-
-  async getRastreabilidadeReversa(termo: string) {
-    const vinculos = await this.insumoLoteRepo.find({
-      where: [
-        { codigo_insumo: termo },
-        { lote_insumo: termo },
-        { lote_origem: termo }
-      ],
-      relations: ["lote", "lote.produto"]
-    });
-
-    if (vinculos.length === 0) return [];
-
-    const lotesAfetados = vinculos.map(v => ({
-      numero_lote: v.lote.numero_lote,
-      produto: v.lote.produto?.nome || "N/A",
-      data_producao: v.lote.data_producao,
-      status: v.lote.status
-    }));
-
-    return Array.from(new Map(lotesAfetados.map(l => [l.numero_lote, l])).values());
   }
 }
