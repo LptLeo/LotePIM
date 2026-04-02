@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { ProdutoController } from '../controllers/produto.controller.js';
 import { authGuard } from '../middlewares/authGuard.js';
 import { validateBody } from '../middlewares/validateBody.js';
-import { atualizarProdutoSchema, criarProdutoSchema } from '../dto/ProdutoDTO.js';
+import { atualizarProdutoSchema, criarProdutoSchema } from '../dto/Produto.dto.js';
 import { roleGuard } from '../middlewares/roleGuard.js';
 import { PerfilUsuario } from '../entities/Usuario.js';
 
