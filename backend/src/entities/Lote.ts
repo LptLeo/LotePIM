@@ -5,17 +5,17 @@ import { InsumoLote } from "./InsumoLote.js";
 import { InspecaoLote } from "./InspecaoLote.js";
 
 export enum Turno {
-  manha = "manha",
-  tarde = "tarde",
-  noite = "noite",
+  MANHA = "manha",
+  TARDE = "tarde",
+  NOITE = "noite",
 }
 
 export enum LoteStatus {
-  em_producao = "em_producao",
-  aguardando_inspecao = "aguardando_inspecao",
-  aprovado = "aprovado",
-  aprovado_restricao = "aprovado_restricao",
-  reprovado = "reprovado",
+  EM_PRODUCAO = "em_producao",
+  AGUARDANDO_INSPECAO = "aguardando_inspecao",
+  APROVADO = "aprovado",
+  APROVADO_RESTRICAO = "aprovado_restricao",
+  REPROVADO = "reprovado",
 }
 
 @Entity("lote")
@@ -27,8 +27,7 @@ export class Lote {
   numero_lote!: string
 
   @ManyToOne(() => Produto, (produto) => produto.lotes)
-  @JoinColumn({ name: "produto_id" })
-  produto!: Produto;
+  produto_id!: Produto;
 
   @Column({ type: "date", nullable: false })
   data_producao!: Date
@@ -37,25 +36,24 @@ export class Lote {
   turno!: Turno
 
   @ManyToOne(() => Usuario, (usuario) => usuario.lotes)
-  @JoinColumn({ name: "operador_id" })
-  operador!: Usuario;
+  operador_id!: Usuario;
 
   @Column({ type: "int", nullable: false })
-  quantidade_produzida!: number
+  quantidade_prod!: number
 
   @Column({ type: "int", nullable: false, default: 0 })
-  quantidade_reprovada!: number
+  quantidade_repr!: number
 
-  @Column({ type: "enum", enum: LoteStatus, nullable: false, default: LoteStatus.em_producao })
+  @Column({ type: "enum", enum: LoteStatus, nullable: false })
   status!: LoteStatus
 
   @Column({ type: "text", nullable: true })
   observacoes?: string
 
-  @Column({ type: "timestamp", nullable: false, default: () => "CURRENT_TIMESTAMP" })
+  @Column({ type: "timestamptz", nullable: false, default: () => "CURRENT_TIMESTAMP" })
   aberto_em!: Date
 
-  @Column({ type: "timestamp", nullable: true })
+  @Column({ type: "timestamptz", nullable: true })
   encerrado_em?: Date
 
   @OneToMany(() => InsumoLote, (insumo) => insumo.lote)

@@ -16,7 +16,7 @@ const resultadoInspecaoSchema = z.enum(
 );
 
 export const criarLoteSchema = z.object({
-  produto: z
+  produto_id: z
     .string({ error: "O produto é obrigatório." })
     .min(1, "O produto não pode ser vazio."),
 
@@ -25,7 +25,7 @@ export const criarLoteSchema = z.object({
 
   turno: turnoSchema,
 
-  operador: z
+  operador_id: z
     .string({ error: "O operador é obrigatório." })
     .min(1, "O operador não pode ser vazio."),
 
@@ -124,7 +124,7 @@ export type EncerrarLoteDTO = z.infer<typeof encerrarLoteSchema>;
 
 export const filtrosLoteSchema = z
   .object({
-    produto: z.string().optional(),
+    produto_id: z.string().optional(),
 
     status: loteStatusSchema.optional(),
 
