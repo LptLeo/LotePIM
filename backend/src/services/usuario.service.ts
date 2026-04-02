@@ -33,7 +33,8 @@ export class UsuarioService {
     }
   }
 
-  findAll = async (): Promise<UsuarioSemSenha[]> => {
+  findAll = async (requisitante: { id: number, perfil: PerfilUsuario }): Promise<UsuarioSemSenha[]> => {
+    this.verificaPermissao(0, requisitante, { gestor: true });
     const usuarios = await this.userRepo.find({ order: { nome: 'ASC' } });
 
     return usuarios.map(omitSenha);
