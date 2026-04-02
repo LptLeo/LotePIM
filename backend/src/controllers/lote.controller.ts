@@ -10,75 +10,53 @@ export class LoteController {
     this.loteService = new LoteService();
   }
 
-  async create(req: Request, res: Response) {
-    try {
-      const novoLote = await this.loteService.createLote(req.body, getRequisitante(req));
+  create = async (req: Request, res: Response) => {
+    const novoLote = await this.loteService.createLote(req.body, getRequisitante(req));
 
-      return res.status(201).json(novoLote);
-    } catch (error: any) {
-      return res.status(400).json({ message: error.message });
-    }
+    return res.status(201).json(novoLote);
   }
 
-  async getAll(req: Request, res: Response) {
-    try {
-      const filtros = {
-        produto_id: req.query.produto_id as string,
-        status: req.query.status as LoteStatus,
-        dataInicio: req.query.dataInicio ? new Date(req.query.dataInicio as string) : undefined,
-        dataFim: req.query.dataFim ? new Date(req.query.dataFim as string) : undefined
-      }
-
-      const lotes = await this.loteService.getAllLotes(getRequisitante(req), filtros);
-
-      return res.status(200).json(lotes);
-    } catch (error: any) {
-      return res.status(400).json({ message: error.message });
+  getAll = async (req: Request, res: Response) => {
+    const filtros = {
+      produto_id: req.query.produto_id as string,
+      status: req.query.status as LoteStatus,
+      dataInicio: req.query.dataInicio ? new Date(req.query.dataInicio as string) : undefined,
+      dataFim: req.query.dataFim ? new Date(req.query.dataFim as string) : undefined
     }
+
+    const lotes = await this.loteService.getAllLotes(getRequisitante(req), filtros);
+
+    return res.status(200).json(lotes);
   }
 
-  async vincularInsumos(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const insumos = req.body;
+  vincularInsumos = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const insumos = req.body;
 
-      const resultado = await this.loteService.vincularInsumos(Number(id), insumos, getRequisitante(req));
+    const resultado = await this.loteService.vincularInsumos(Number(id), insumos, getRequisitante(req));
 
-      return res.json(resultado);
-    } catch (error: any) {
-      return res.status(400).json({ message: error.message });
-    }
+    return res.json(resultado);
   }
 
-  async encerrar(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const loteEncerrado = await this.loteService.encerrarProducao(Number(id), getRequisitante(req));
-      return res.json(loteEncerrado);
-    } catch (error: any) {
-      return res.status(400).json({ message: error.message });
-    }
+  encerrar = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const loteEncerrado = await this.loteService.encerrarProducao(Number(id), getRequisitante(req));
+
+    return res.json(loteEncerrado);
   }
 
-  async getDetalhes(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const detalhes = await this.loteService.getLoteById(Number(id), getRequisitante(req));
-      return res.json(detalhes);
-    } catch (error: any) {
-      return res.status(404).json({ message: error.message });
-    }
+  getDetalhes = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const detalhes = await this.loteService.getLoteById(Number(id), getRequisitante(req));
+
+    return res.json(detalhes);
   }
 
-  async updateStatus(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
-      const loteAtualizado = await this.loteService.updateStatus(Number(id), status, getRequisitante(req));
+  updateStatus = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const loteAtualizado = await this.loteService.updateStatus(Number(id), status, getRequisitante(req));
 
-      return res.json(loteAtualizado);
-    } catch (error: any) {
-      return res.status(400).json({ message: error.message });
-    }
+    return res.json(loteAtualizado);
   }
 }
