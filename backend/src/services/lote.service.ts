@@ -1,10 +1,10 @@
 import { AppDataSource } from "../config/AppDataSource.js";
 import { Between, LessThanOrEqual, Like, MoreThanOrEqual, type Repository } from "typeorm";
 import { Lote, LoteStatus, Turno } from "../entities/Lote.js";
-import type { LoteDTO } from "../dto/loteDTO.js";
+import type { LoteDTO } from "../dto/lote.dto.js";
 import { InsumoLote } from "../entities/InsumoLote.js";
 import type { InsumoVinculoDTO } from "../dto/InsumoLoteDTO.js";
-import { PerfilUsuario } from "../entities/Usuario.js";
+import { PerfilUsuario, Usuario } from "../entities/Usuario.js";
 import { AppError } from "../errors/AppError.js";
 import { verificaPermissao, type Requisitante } from "../utils/auth.utils.js";
 
@@ -68,16 +68,21 @@ export class LoteService {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR]);
 
     const numeroGerado = await this.gerarNumeroLote(loteDTO.data_producao);
-    const { observacoes, ...restDTO } = loteDTO;
+
+    const produto = await this.loteRepo.findOneBy({ id: Number(loteDTO.produto) });
+    if (!produto) throw new Error("Produto não encontrado.");
+
+    const operador = await this.loteRepo.findOneBy({ id: Number(loteDTO.operador) });
+    if (!operador) throw new Error("Operador não encontrado.");
 
     const novoLote = this.loteRepo.create({
-      ...restDTO,
-      ...(observacoes != null && { observacoes }),
-      operador_id: { id: loteDTO.operador_id } as any,
-      produto_id: { id: loteDTO.produto_id } as any,
-      turno: loteDTO.turno as Turno,
+      ...loteDTO,
       numero_lote: numeroGerado,
+      produto: produto,
+      turno: loteDTO.turno as Turno,
+      operador: operador,
       status: LoteStatus.EM_PRODUCAO,
+      observacoes: (typeof loteDTO.observacoes === "string" ? loteDTO.observacoes : "")
     });
 
     return await this.loteRepo.save(novoLote);
