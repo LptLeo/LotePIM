@@ -76,7 +76,7 @@ export type InsumoVinculoDTO = z.infer<typeof insumoVinculoSchema>;
 
 export const registrarInspecaoSchema = z
   .object({
-    lote_id: z
+    lote: z
       .number({ error: "O ID do lote é obrigatório." })
       .int("O ID do lote deve ser um número inteiro.")
       .positive("O ID do lote deve ser positivo."),
