@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { LoteService } from '../services/lote.service.js';
 import type { LoteStatus } from '../entities/Lote.js';
 import { getRequisitante } from '../utils/auth.utils.js';
+import { AppError } from '../errors/AppError.js';
 
 export class LoteController {
   private loteService: LoteService;
@@ -33,6 +34,9 @@ export class LoteController {
     const { id } = req.params;
     const insumos = req.body;
 
+    if (!id) throw new AppError("ID do lote não fornecido.", 400);
+    if (!insumos) throw new AppError("Insumos não fornecidos.", 400);
+
     const resultado = await this.loteService.vincularInsumos(Number(id), insumos, getRequisitante(req));
 
     return res.json(resultado);
@@ -42,12 +46,18 @@ export class LoteController {
     const { id } = req.params;
     const loteEncerrado = await this.loteService.encerrarProducao(Number(id), getRequisitante(req));
 
+    if (!id) throw new AppError("ID do lote não fornecido.", 400);
+    if (!loteEncerrado) throw new AppError("Lote não encontrado.", 404);
+
     return res.json(loteEncerrado);
   }
 
   getDetalhes = async (req: Request, res: Response) => {
     const { id } = req.params;
     const detalhes = await this.loteService.getLoteById(Number(id), getRequisitante(req));
+
+    if (!id) throw new AppError("ID do lote não fornecido.", 400);
+    if (!detalhes) throw new AppError("Lote não encontrado.", 404);
 
     return res.json(detalhes);
   }
@@ -56,6 +66,10 @@ export class LoteController {
     const { id } = req.params;
     const { status } = req.body;
     const loteAtualizado = await this.loteService.updateStatus(Number(id), status, getRequisitante(req));
+
+    if (!id) throw new AppError("ID do lote não fornecido.", 400);
+    if (!status) throw new AppError("Status não fornecido.", 400);
+    if (!loteAtualizado) throw new AppError("Lote não encontrado.", 404);
 
     return res.json(loteAtualizado);
   }

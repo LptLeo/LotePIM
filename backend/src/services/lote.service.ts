@@ -1,5 +1,5 @@
 import { AppDataSource } from "../config/AppDataSource.js";
-import { Between, LessThanOrEqual, Like, MoreThanOrEqual, type Repository } from "typeorm";
+import { Between, In, LessThanOrEqual, MoreThanOrEqual, type Repository } from "typeorm";
 import { Lote, LoteStatus, Turno } from "../entities/Lote.js";
 import type { LoteDTO } from "../dto/lote.dto.js";
 import { InsumoLote } from "../entities/InsumoLote.js";
@@ -7,6 +7,7 @@ import type { InsumoVinculoDTO } from "../dto/InsumoLoteDTO.js";
 import { PerfilUsuario, Usuario } from "../entities/Usuario.js";
 import { AppError } from "../errors/AppError.js";
 import { verificaPermissao, type Requisitante } from "../utils/auth.utils.js";
+import { Produto } from "../entities/Produto.js";
 
 interface IFiltros {
   produto_id?: string;
@@ -15,21 +16,17 @@ interface IFiltros {
   dataFim?: Date | undefined;
 }
 
-export interface IDashboardMetrics {
-  produzidosHoje: number;
-  unidadesHoje: number;
-  taxaAprovacaoMes: number;
-  aguardandoInspecao: number;
-  ultimosLotes: Lote[];
-}
-
 export class LoteService {
   private loteRepo: Repository<Lote>;
   private insumoLoteRepo: Repository<InsumoLote>;
+  private produtoRepo: Repository<Produto>;
+  private usuarioRepo: Repository<Usuario>;
 
   constructor() {
     this.loteRepo = AppDataSource.getRepository(Lote);
     this.insumoLoteRepo = AppDataSource.getRepository(InsumoLote);
+    this.produtoRepo = AppDataSource.getRepository(Produto);
+    this.usuarioRepo = AppDataSource.getRepository(Usuario);
   }
 
   // // // // //
@@ -64,16 +61,16 @@ export class LoteService {
   }
 
   // createLote
-  createLote = async (loteDTO: LoteDTO, requisitante: Requisitante) => {
+  createLote = async (loteDTO: LoteDTO, requisitante: Requisitante): Promise<Lote> => {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR]);
 
     const numeroGerado = await this.gerarNumeroLote(loteDTO.data_producao);
 
-    const produto = await this.loteRepo.findOneBy({ id: Number(loteDTO.produto) });
-    if (!produto) throw new Error("Produto não encontrado.");
+    const produto = await this.produtoRepo.findOneBy({ id: Number(loteDTO.produto) });
+    if (!produto) throw new AppError("Produto não encontrado.", 404);
 
-    const operador = await this.loteRepo.findOneBy({ id: Number(loteDTO.operador) });
-    if (!operador) throw new Error("Operador não encontrado.");
+    const operador = await this.usuarioRepo.findOneBy({ id: Number(loteDTO.operador) });
+    if (!operador) throw new AppError("Operador não encontrado.", 404);
 
     const novoLote = this.loteRepo.create({
       ...loteDTO,
@@ -82,14 +79,14 @@ export class LoteService {
       turno: loteDTO.turno as Turno,
       operador: operador,
       status: LoteStatus.EM_PRODUCAO,
-      observacoes: (typeof loteDTO.observacoes === "string" ? loteDTO.observacoes : "")
+      observacoes: loteDTO.observacoes ?? ""
     });
 
     return await this.loteRepo.save(novoLote);
   }
 
   // vincularInsumos
-  vincularInsumos = async (loteId: number, insumos: InsumoVinculoDTO[], requisitante: Requisitante) => {
+  vincularInsumos = async (loteId: number, insumos: InsumoVinculoDTO[], requisitante: Requisitante): Promise<InsumoLote[]> => {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR]);
 
     const lote = await this.loteRepo.findOneBy({ id: loteId });
@@ -101,7 +98,6 @@ export class LoteService {
     const temDuplicatas = new Set(codigosArray).size !== codigosArray.length;
     if (temDuplicatas) throw new AppError("O formulário contém códigos de insumos duplicados.", 400);
 
-    const { In } = await import("typeorm");
     const insumosExistentes = await this.insumoLoteRepo.find({
       where: { codigo_insumo: In(codigosArray) },
       relations: ['lote']
@@ -112,7 +108,7 @@ export class LoteService {
       throw new AppError(`Os seguintes insumos já foram utilizados em outros lotes: ${codigosJaUsados}`, 409);
     }
 
-    const novosInsumos = insumos.map(insumo => {
+    const novosInsumos = insumos.map((insumo): InsumoLote => {
       return this.insumoLoteRepo.create({
         ...insumo,
         lote: lote
@@ -123,7 +119,7 @@ export class LoteService {
   }
 
   // encerrarProducao
-  encerrarProducao = async (loteId: number, requisitante: Requisitante) => {
+  encerrarProducao = async (loteId: number, requisitante: Requisitante): Promise<Lote> => {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR]);
 
     const lote = await this.loteRepo.findOneBy({ id: loteId });
@@ -151,7 +147,7 @@ export class LoteService {
   }
 
   // updateStatus
-  updateStatus = async (loteId: number, novoStatus: LoteStatus, requisitante: Requisitante) => {
+  updateStatus = async (loteId: number, novoStatus: LoteStatus, requisitante: Requisitante): Promise<Lote> => {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR]);
 
     const lote = await this.loteRepo.findOneBy({ id: loteId });
@@ -167,7 +163,7 @@ export class LoteService {
   // // // // //
 
   // getAllLotes
-  getAllLotes = async (requisitante: Requisitante, filtros?: IFiltros) => {
+  getAllLotes = async (requisitante: Requisitante, filtros?: IFiltros): Promise<Lote[]> => {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR]);
 
     if (filtros?.dataInicio && filtros?.dataFim && filtros.dataInicio > filtros.dataFim) {
@@ -178,7 +174,7 @@ export class LoteService {
 
     if (filtros) {
       if (filtros.produto_id) {
-        where.produto_id = { id: Like(`%${filtros.produto_id}%`) };
+        where.produto = { id: Number(filtros.produto_id) };
       }
 
       if (filtros.status) where.status = filtros.status;
@@ -195,17 +191,17 @@ export class LoteService {
     return await this.loteRepo.find({
       where,
       order: { aberto_em: "DESC" },
-      relations: ['operador_id', 'produto_id']
+      relations: ['operador', 'produto']
     });
   }
 
   // getLoteById
-  getLoteById = async (loteId: number, requisitante: Requisitante) => {
+  getLoteById = async (loteId: number, requisitante: Requisitante): Promise<Lote> => {
     verificaPermissao(requisitante.perfil, [PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR]);
 
     const lote = await this.loteRepo.findOne({
       where: { id: loteId },
-      relations: ['operador_id', 'produto_id', 'insumos', 'inspecao', 'inspecao.inspetor']
+      relations: ['operador', 'produto', 'insumos', 'inspecao', 'inspecao.inspetor']
     });
 
     if (!lote) throw new Error("Lote não encontrado.");
