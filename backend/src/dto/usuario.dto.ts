@@ -1,18 +1,20 @@
 import { z } from 'zod';
 import { PerfilUsuario } from '../entities/Usuario.js';
 
+const perfilUsuario = z.enum([PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR], "Perfil inválido");
+
 export const CreateUsuarioDto = z.object({
   email: z.email('E-mail inválido'),
   nome: z.string().min(1, 'Nome é obrigatório'),
   senha: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres'),
-  perfil: z.enum(PerfilUsuario, 'Perfil inválido'),
+  perfil: perfilUsuario,
   ativo: z.boolean().default(true),
 });
 
 export const UpdateUsuarioDto = z.object({
   nome: z.string().min(1).optional(),
   email: z.email().optional(),
-  perfil: z.enum(PerfilUsuario).optional(),
+  perfil: perfilUsuario.optional(),
   ativo: z.boolean().optional(),
 });
 

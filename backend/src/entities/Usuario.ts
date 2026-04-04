@@ -20,7 +20,7 @@ export class Usuario {
   @Column({ type: 'text', unique: true, nullable: false })
   email!: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text', nullable: false, select: false })
   senha_hash!: string;
 
   @Column({
