@@ -133,11 +133,11 @@ export class LoteService {
     const lote = await this.loteRepo.findOneBy({ id: loteId });
 
     if (!lote) {
-      throw new AppError("Lote não encontrado.", 404);
+      throw new AppError("Lote não encontrado.");
     }
 
     if (lote.status !== LoteStatus.EM_PRODUCAO) {
-      throw new AppError(`Não é possível encerrar um lote com status: ${lote.status}`, 400);
+      throw new AppError(`Não é possível encerrar um lote com status: ${lote.status}`);
     }
 
     const contagemInsumos = await this.insumoLoteRepo.count({
@@ -182,7 +182,11 @@ export class LoteService {
 
     if (filtros) {
       if (filtros.produto_id) {
-        where.produto = { id: Number(filtros.produto_id) };
+        const idNumerico = Number(filtros.produto_id);
+
+        if (isNaN(idNumerico)) throw new AppError("Produto inválido. ID deve ser um número.", 400);
+
+        where.produto = { id: idNumerico };
       }
 
       if (filtros.status) where.status = filtros.status;
