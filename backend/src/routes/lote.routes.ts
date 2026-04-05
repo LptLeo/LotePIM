@@ -14,9 +14,9 @@ loteRoutes.use(authGuard);
 
 loteRoutes.post("/", roleGuard(PerfilUsuario.OPERADOR), validateBody(criarLoteSchema), loteController.create);
 loteRoutes.get("/", roleGuard(PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), loteController.getAll);
-loteRoutes.post("/insumos/:id", roleGuard(PerfilUsuario.OPERADOR), validateBody(vincularInsumosSchema), loteController.vincularInsumos);
-loteRoutes.patch("/encerrar/:id", roleGuard(PerfilUsuario.OPERADOR), loteController.encerrar);
-loteRoutes.patch("/status/:id", roleGuard(PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), validateBody(transicaoStatusSchema), loteController.updateStatus);
+loteRoutes.post("/:id/insumos", roleGuard(PerfilUsuario.OPERADOR), validateBody(vincularInsumosSchema), loteController.vincularInsumos);
+loteRoutes.patch("/:id/encerrar", roleGuard(PerfilUsuario.OPERADOR), loteController.encerrar);
+loteRoutes.patch("/:id/status", roleGuard(PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), validateBody(transicaoStatusSchema), loteController.updateStatus);
 loteRoutes.get("/:id", roleGuard(PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), loteController.getDetalhes);
 
 export default loteRoutes;
