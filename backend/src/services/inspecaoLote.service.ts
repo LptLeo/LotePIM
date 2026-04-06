@@ -70,7 +70,7 @@ export class InspecaoLoteService {
     loteId: number,
     requisitante: Requisitante
   ): Promise<InspecaoLote> => {
-    verificaPermissao(requisitante, [PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR]);
+    verificaPermissao(requisitante, [PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR]);
 
     const inspecao = await this.inspecaoRepo.findOne({
       where: { lote: { id: loteId } },

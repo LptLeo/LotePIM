@@ -12,6 +12,6 @@ const inspecaoController = new InspecaoLoteController();
 inspecaoRoutes.use(authGuard);
 
 inspecaoRoutes.post("/lotes/:loteId/inspecao", roleGuard(PerfilUsuario.INSPETOR), validateBody(registrarInspecaoSchema), inspecaoController.registrar);
-inspecaoRoutes.get("/lotes/:loteId/inspecao", roleGuard(PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), inspecaoController.buscarPorLote);
+inspecaoRoutes.get("/lotes/:loteId/inspecao", roleGuard(PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), inspecaoController.buscarPorLote);
 
 export default inspecaoRoutes;
