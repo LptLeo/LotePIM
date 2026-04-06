@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { UsuarioController } from "../controllers/usuario.controller.js";
-import { authGuard } from "../middlewares/authGuard.js";
 import { roleGuard } from "../middlewares/roleGuard.js";
 import { PerfilUsuario } from "../entities/Usuario.js";
 import { validateBody } from "../middlewares/validateBody.js";
@@ -9,8 +8,6 @@ import { CreateUsuarioDto, UpdateSenhaDto, UpdateUsuarioDto } from "../dto/usuar
 const usuarioRoutes = Router();
 
 const usuarioController = new UsuarioController();
-
-usuarioRoutes.use(authGuard);
 
 usuarioRoutes.get('/', roleGuard(PerfilUsuario.GESTOR), usuarioController.findAll);
 usuarioRoutes.get('/:id', usuarioController.findById);
