@@ -17,8 +17,8 @@ routes.use(authGuard);
 routes.use('/usuarios', usuarioRoutes);
 routes.use('/produtos', produtoRoutes);
 routes.use('/lotes', loteRoutes);
-routes.use('/insumos', insumoRoutes);
+routes.use('/lotes/:loteId/insumos', insumoRoutes);
+routes.use('/lotes/:loteId/inspecao', inspecaoRoutes);
 routes.use('/rastreabilidade', rastreabilidadeRoutes);
-routes.use('/inspecao', inspecaoRoutes);
 
 export default routes;
