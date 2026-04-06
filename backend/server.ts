@@ -1,6 +1,6 @@
 import express from 'express'
 import { AppDataSource } from './src/config/AppDataSource.js'
-import routes from './src/routes/index.js'
+import routes from './src/routes/index.routes.js'
 import { errorHandler } from './src/middlewares/errorHandler.js'
 
 const app = express()
