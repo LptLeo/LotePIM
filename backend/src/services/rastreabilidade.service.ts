@@ -16,9 +16,7 @@ export class RastreabilidadeService {
   }
 
   // Consulta por número de lote — retorna dados do lote, insumos e inspeção
-  consultarPorLote = async (termo: string, requisitante: Requisitante) => {
-    verificaPermissao(requisitante, [PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR]);
-
+  private consultarPorLote = async (termo: string) => {
     const lote = await this.loteRepo.findOne({
       where: { numero_lote: termo },
       relations: ["produto", "operador", "insumos", "inspecao", "inspecao.inspetor"],
@@ -30,9 +28,7 @@ export class RastreabilidadeService {
   };
 
   // Consulta reversa por insumo
-  consultarPorInsumo = async (termo: string, requisitante: Requisitante) => {
-    verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
-
+  private consultarPorInsumo = async (termo: string) => {
     const insumos = await this.insumoLoteRepo.find({
       where: [
         { codigo_insumo: termo },
@@ -89,13 +85,13 @@ export class RastreabilidadeService {
     if (ehNumeroLote) {
       return {
         tipo: "lote" as const,
-        resultado: await this.consultarPorLote(termo, requisitante),
+        resultado: await this.consultarPorLote(termo),
       };
     }
 
     return {
       tipo: "insumo" as const,
-      resultado: await this.consultarPorInsumo(termo, requisitante),
+      resultado: await this.consultarPorInsumo(termo),
     };
   };
 }
