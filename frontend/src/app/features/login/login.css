@@ -1,0 +1,11 @@
+.header-title {
+  text-shadow: 0px 0px 1px #22d3ee;
+}
+
+.login-title {
+  text-shadow: 0px 0px 2px #f9fafb;
+}
+
+.login-title-line {
+  box-shadow: 0px 0px 2px #f9fafb;
+}
