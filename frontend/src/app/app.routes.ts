@@ -5,18 +5,22 @@ import { Dashboard } from './features/dashboard/dashboard';
 export const routes: Routes = [
   {
     path: 'login',
-    component: Login
+    component: Login,
+    pathMatch: 'full'
   },
   {
     path: '',
-    redirectTo: 'login'
+    redirectTo: 'login',
+    pathMatch: 'full'
   },
   {
     path: '**',
-    redirectTo: 'login'
+    redirectTo: 'login',
+    pathMatch: 'full'
   },
   {
     path: 'app/dashboard',
-    component: Dashboard
+    component: Dashboard,
+    pathMatch: 'full'
   }
 ];
