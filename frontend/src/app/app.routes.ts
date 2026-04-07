@@ -14,13 +14,13 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: '**',
-    redirectTo: 'login',
+    path: 'app/dashboard',
+    component: Dashboard,
     pathMatch: 'full'
   },
   {
-    path: 'app/dashboard',
-    component: Dashboard,
+    path: '**',
+    redirectTo: 'login',
     pathMatch: 'full'
   }
 ];
