@@ -2,9 +2,17 @@ import express from 'express'
 import { AppDataSource } from './src/config/AppDataSource.js'
 import routes from './src/routes/index.routes.js'
 import { errorHandler } from './src/middlewares/errorHandler.js'
+import cors from 'cors'
 
 const app = express()
 const PORT = process.env.PORT || 3000
+
+app.use(cors({
+  origin: 'http://localhost:4200',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}))
 
 app.use(express.json())
 app.use('/api', routes)
