@@ -1,8 +1,8 @@
 <div class="flex min-h-screen">
   <app-sidebar class="sticky top-0 h-screen block z-40"></app-sidebar>
-  <div class="flex flex-col w-full">
+  <div class="flex flex-col w-full min-h-screen">
     <app-header class="sticky top-0 z-50 block"></app-header>
-    <main class="bg-[#0E0E0E] p-8">
+    <main class="bg-[#0E0E0E] p-8 flex-1">
       <header class="flex justify-between">
         <div>
           <h2 class="font-bold text-[30px] leading-[36px] tracking-[-0.75px] text-[#FFFFFF]">
@@ -26,7 +26,7 @@
         </div>
       </header>
       <section class="grid grid-cols-4 gap-6 my-10">
-        <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#ADAAAA] rounded-[4px]">
+        <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-2 border-[#81ECFF]/20 rounded-[4px]">
           <div class="flex items-start">
             <div class="bg-[#81ECFF]/10 p-2 mr-auto">
               <img class="w-[18.03px] h-[18.51px]" src="assets/icons/lotes-prod-icon.svg" alt="">
@@ -37,14 +37,16 @@
             <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES PRODUZIDOS</h4>
           </div>
           <div>
-            <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">1,284</span>
+            <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
+              {{ lotesProduzidos()}}
+            </span>
           </div>
           <div>
             <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">Tendência positive este
               mês</span>
           </div>
         </div>
-        <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#ADAAAA] rounded-[4px]">
+        <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#484847]/10 rounded-[4px]">
           <div class="flex items-start">
             <div class="bg-[#81ECFF]/10 p-2 mr-auto">
               <img class="w-[18.03px] h-[18.51px]" src="assets/icons/products-prod-icon.svg" alt="">
@@ -55,7 +57,9 @@
             <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">UNIDADES PRODUZIDAS</h4>
           </div>
           <div>
-            <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">42,910</span>
+            <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
+              {{ unidadesProduzidas()}}
+            </span>
           </div>
           <div>
             <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
@@ -63,24 +67,31 @@
             </span>
           </div>
         </div>
-        <div class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 border-[#C3F400] rounded-[4px]">
+        <div class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 rounded-[4px]"
+          [style.border-color]="taxaDeAprovacaoMes() > 90 ? 'rgba(195, 244, 0, 0.2)' : 'rgba(255, 113, 108, 0.2)'">
           <div class="flex items-start">
+            <!-- Taxa de aprovação MENSAL -->
             <p class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mr-auto">TAXA DE APROVAÇÃO</p>
             <div>
               <img class="w-[22px] h-[21px]" src="assets/icons/approved-icon.svg" alt="">
             </div>
           </div>
           <div>
-            <h4 class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]">98.2%</h4>
+            <h4 class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]">
+              {{ taxaDeAprovacaoMes()}}
+            </h4>
           </div>
           <div class="w-full h-[4px] bg-[#262626] rounded-[12px]">
-            <div class="w-[98.2%] h-full bg-[#C3F400] rounded-l-[12px]"></div>
+            <div class="h-full rounded-l-[12px]" [style.width.%]="taxaDeAprovacaoMes()"
+              [style.background-color]="taxaDeAprovacaoMes() > 90 ? '#C3F400' : '#FF716C'"></div>
           </div>
           <div>
-            <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">Acima da média industrial</span>
+            <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">
+              {{ taxaDeAprovacaoMes() > 90 ? 'Acima da média industrial' : 'Abaixo da média industrial' }}
+            </span>
           </div>
         </div>
-        <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#ADAAAA] rounded-[4px]">
+        <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#FF716C]/20 rounded-[4px]">
           <div class="flex items-start">
             <div class="bg-[#FF716C]/10 p-2 mr-auto">
               <img class="w-[18.03px] h-[18.51px]" src="assets/icons/inspection-icon.svg" alt="">
@@ -88,10 +99,12 @@
             <div class="w-2 h-2 bg-[#FF716C] rounded-full"></div>
           </div>
           <div>
-            <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES EM INSPEÇÃO</h4>
+            <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES EM ABERTO</h4>
           </div>
           <div>
-            <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">14</span>
+            <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
+              {{ lotesEmAberto() }}
+            </span>
           </div>
           <div>
             <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
@@ -117,209 +130,37 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="flex w-full">
+            @for (lote of ultimosLotes(); track lote.id) {
+            <tr class="flex w-full border-b border-[#201F1F]/30 hover:bg-[#FFFFFF]/5 transition-all">
               <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88421
+                {{ lote.numero_lote }}
               </td>
               <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Conector Axial Pro G3
+                {{ lote.produto.nome }}
               </td>
               <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Carlos Mendes
+                {{ lote.operador.nome }}
               </td>
               <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                14:22:10
+                {{ lote.aberto_em | date:'HH:mm:ss' }}
               </td>
               <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
+                <div [class]="getStatusClass(lote.status)">
+                  {{ formatStatus(lote.status) }}
                 </div>
               </td>
             </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88420
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Módulo Sensor T-900
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Sarah Jenkins
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                13:58:45
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[160px] h-[20px] text-center rounded-xs bg-[#EAB308]/10 border border-[#EAB308]/20 py-0.5 px-2 text-[#EAB308] font-bold text-[10.4px] tracking-[0.52px]">
-                  AGUARDANDO INSPEÇÃO
-                </div>
+            } @empty {
+            <tr>
+              <td colspan="5" class="px-6 py-10 text-center text-[#ADAAAA] text-[14px]">
+                Nenhum lote encontrado no sistema.
               </td>
             </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88419
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Placa de Controle V4
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Roberto Silva
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                13:15:30
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full bg-linear-to-r from-[#211010] to-[#301111]">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88418
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Módulo Sensor T-900
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Carlos Mendes
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                12:44:12
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[84.55px] h-[20px] text-center rounded-xs bg-[#DC2626] border border-[#EF4444] py-0.5 px-2 text-[#FFFFFF] font-bold text-[10.4px] tracking-[0.52px]">
-                  REPROVADO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88417
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Conector Axial Pro G3
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Ana Paula M.
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                11:20:05
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88416
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Placa de Controle V4
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Roberto Silva
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                10:55:18
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88415
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Módulo Sensor T-900
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Sarah Jenkins
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                10:30:40
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[175px] h-[20px] text-center rounded-xs bg-[#F97316]/10 border border-[#F97316]/20 py-0.5 px-2 text-[#F97316] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO COM RESTRIÇÃO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88414
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Conector Axial Pro G3
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Carlos Mendes
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                09:45:00
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88413
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Placa de Controle V4
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Ana Paula M.
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                09:12:12
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
-                </div>
-              </td>
-            </tr>
-            <tr class="flex w-full">
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-                #LT-88412
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-                Conector Axial Pro G3
-              </td>
-              <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-                Roberto Silva
-              </td>
-              <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-                08:30:55
-              </td>
-              <td class="px-6 py-4 text-right w-[19.49%]">
-                <div
-                  class="ml-auto w-[78.06px] h-[20px] text-center rounded-xs bg-[#506600] border border-[#C3F400]/20 py-0.5 px-2 text-[#EFFFBC] font-bold text-[10.4px] tracking-[0.52px]">
-                  APROVADO
-                </div>
-              </td>
-            </tr>
+            }
           </tbody>
         </table>
       </section>
     </main>
+    <app-footer></app-footer>
   </div>
 </div>
