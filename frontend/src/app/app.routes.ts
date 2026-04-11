@@ -5,6 +5,7 @@ import { Lote } from './features/lote/lote';
 import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade';
 import { Configuracoes } from './features/configuracoes/configuracoes';
 import { authGuard } from './core/guards/auth/auth-guard';
+import { MainLayout } from './core/layouts/main-layout/main-layout';
 
 export const routes: Routes = [
   {
@@ -18,28 +19,32 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'app/dashboard',
-    component: Dashboard,
+    path: 'app',
+    component: MainLayout,
     canActivate: [authGuard],
-    pathMatch: 'full'
-  },
-  {
-    path: 'app/lote',
-    component: Lote,
-    canActivate: [authGuard],
-    pathMatch: 'full'
-  },
-  {
-    path: 'app/rastreabilidade',
-    component: Rastreabilidade,
-    canActivate: [authGuard],
-    pathMatch: 'full'
-  },
-  {
-    path: 'app/configuracoes',
-    component: Configuracoes,
-    canActivate: [authGuard],
-    pathMatch: 'full'
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        component: Dashboard,
+      },
+      {
+        path: 'lote',
+        component: Lote,
+      },
+      {
+        path: 'rastreabilidade',
+        component: Rastreabilidade,
+      },
+      {
+        path: 'configuracoes',
+        component: Configuracoes,
+      }
+    ]
   },
   {
     path: '**',

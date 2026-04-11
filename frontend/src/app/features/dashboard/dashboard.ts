@@ -1,14 +1,11 @@
 import { Component, inject, computed } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { Sidebar } from "../../shared/components/sidebar/sidebar";
-import { Header } from "../../shared/components/header/header";
-import { Footer } from "../../shared/components/footer/footer";
 import { DashboardService } from "./services/dashboard.service";
 import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [Sidebar, Header, Footer, DatePipe],
+  imports: [DatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

@@ -1,18 +1,17 @@
-<header class="flex bg-[#0E0E0E] min-w-full px-8 py-4 items-center justify-between">
+<header class="flex justify-between items-center px-4 py-4 min-w-full bg-[#0E0E0E] md:px-8">
   <nav class="flex">
     <div class="flex items-center pr-6">
       <img class="min-w-[18px] min-h-[18px]" src="assets/icons/dashboard-icon.svg" alt="">
     </div>
-    <div class="flex relative bg-[#000000] px-10 py-2 border border-b-2 border-[#484847]">
+    <div class="hidden relative px-10 py-2 bg-[#000000] border border-b-2 border-[#484847] md:flex">
       <img class="absolute left-[13.75px] top-1/2 -translate-y-1/2 min-w-[10.5px] min-h-[10.2px]"
         src="assets/icons/search-icon.svg" alt="">
-      <input class="placeholder:text-[#6B7280] placeholder:text-[12px] text-[12px]" type="text"
+      <input class="w-full bg-transparent text-[12px] text-[#ADAAAA] placeholder:text-[#6B7280] placeholder:text-[12px] focus:outline-none focus:ring-0" type="text"
         placeholder="PESQUISAR NO SISTEMA">
     </div>
   </nav>
   <div class="flex items-center">
     <div class="flex mr-2">
-      <!-- Notifications and Help -->
       <div class="mr-4">
         <img class="min-w-[16px] min-h-[20px]" src="assets/icons/notifications-icon.svg" alt="">
       </div>
@@ -21,14 +20,20 @@
       </div>
     </div>
     <div class="flex items-center">
-      <!-- Profile -->
-      <div class="flex flex-col justify-center items-end mr-3 min-w-25">
+      <div class="hidden flex-col justify-center items-end mr-3 min-w-25 md:flex">
         <span class="font-bold text-[12px] leading-[12px] tracking-[-0.35px] text-[#00E5FF]">Nome</span>
         <span class="text-[10.4px] leading-[20px] tracking-[0.52px] text-[#ADAAAA]">Cargo</span>
       </div>
       <div>
         <img class="w-[30px] h-[30px] rounded-sm" src="assets/icons/user-profile.svg" alt="">
       </div>
+      <button class="flex justify-center items-center ml-4 cursor-pointer md:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ADAAAA"
+          class="size-6 min-w-[24px] min-h-[24px]">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+      </button>
     </div>
   </div>
 </header>
