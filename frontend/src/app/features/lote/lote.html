@@ -16,281 +16,186 @@
   <div class="flex flex-col md:flex-row gap-4 mb-4">
     <div
       class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px]">
-      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[0.5px] mb-2">Total de Produtos</span>
+      <span class="text-[#6B7280] text-[10px] uppercase font-bold tracking-[1.5px] mb-2">Produção Total Acumulada</span>
       <div class="flex items-baseline gap-2">
-        <span class="text-3xl font-bold text-white">4,892</span>
-        <span class="text-[#ADAAAA] text-[10px] font-bold">UNIDADES</span>
+        <span class="text-3xl font-bold text-white">{{ producaoTotalAcumulada() | number:'1.0-0' }}</span>
+        <span class="text-[#ADAAAA] text-[10px] font-bold uppercase">Unidades</span>
       </div>
     </div>
 
     <div
       class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px]">
-      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[0.5px] mb-2">Carga do Sistema</span>
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[0.5px] mb-2">Atividade em Tempo Real</span>
       <div class="flex items-center gap-4">
-        <span class="text-3xl font-bold text-[#DFFF00]">82.4%</span>
+        <span class="text-3xl font-bold text-[#DFFF00]">{{ statsCargaSistema() }}%</span>
         <div class="flex gap-1 items-end h-[24px]">
-          <div class="w-1.5 h-3 bg-[#DFFF00]"></div>
-          <div class="w-1.5 h-4 bg-[#DFFF00]"></div>
-          <div class="w-1.5 h-5 bg-[#DFFF00]"></div>
-          <div class="w-1.5 h-6 bg-[#DFFF00]"></div>
-          <div class="w-1.5 h-4 bg-[#484847]/50"></div>
+          <div class="w-1.5 h-3" [style.background]="statsCargaSistema() >= 20 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-4" [style.background]="statsCargaSistema() >= 40 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-5" [style.background]="statsCargaSistema() >= 60 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-6" [style.background]="statsCargaSistema() >= 80 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-4" [style.background]="statsCargaSistema() >= 95 ? '#DFFF00' : '#484847'"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="flex gap-3 overflow-x-auto pb-2 min-w-full">
-    <style>
-      /* Hide scrollbar for cleaner tab look */
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    </style>
+  <!-- Tabs (Filtros) -->
+  <div class="flex gap-3 overflow-x-auto pb-2 min-w-full scrollbar-hide">
     <button
-      class="whitespace-nowrap px-6 py-2 rounded-md bg-[#00E5FF] text-black text-[12px] font-bold uppercase tracking-wider flex-shrink-0">
-      Todos os Lotes (24)
+      (click)="alterarFiltro('todos')"
+      [class.bg-[#00E5FF]]="filtroAtivo() === 'todos'"
+      [class.text-black]="filtroAtivo() === 'todos'"
+      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'todos'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'todos'"
+      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'todos'"
+      class="whitespace-nowrap px-6 py-2 rounded-md text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
+      Todos ({{ contagemPorStatus().todos }})
     </button>
     <button
-      class="whitespace-nowrap px-6 py-2 rounded-md bg-[#1A1A1A] text-[#ADAAAA] border border-[#484847]/30 hover:bg-[#484847]/20 text-[12px] font-bold uppercase tracking-wider transition-colors flex-shrink-0">
-      Em Produção (8)
+      (click)="alterarFiltro('em_producao')"
+      [class.bg-[#00E5FF]]="filtroAtivo() === 'em_producao'"
+      [class.text-black]="filtroAtivo() === 'em_producao'"
+      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'em_producao'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'em_producao'"
+      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'em_producao'"
+      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
+      Em Produção ({{ contagemPorStatus().em_producao }})
     </button>
     <button
-      class="whitespace-nowrap px-6 py-2 rounded-md bg-[#1A1A1A] text-[#ADAAAA] border border-[#484847]/30 hover:bg-[#484847]/20 text-[12px] font-bold uppercase tracking-wider transition-colors flex-shrink-0">
-      Aguardando Inspeção (14)
+      (click)="alterarFiltro('aguardando_inspecao')"
+      [class.bg-[#00E5FF]]="filtroAtivo() === 'aguardando_inspecao'"
+      [class.text-black]="filtroAtivo() === 'aguardando_inspecao'"
+      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aguardando_inspecao'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aguardando_inspecao'"
+      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aguardando_inspecao'"
+      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
+      Aguardando Inspeção ({{ contagemPorStatus().aguardando_inspecao }})
     </button>
     <button
-      class="whitespace-nowrap px-6 py-2 rounded-md bg-[#1A1A1A] text-[#ADAAAA] border border-[#484847]/30 hover:bg-[#484847]/20 text-[12px] font-bold uppercase tracking-wider transition-colors flex-shrink-0">
-      Aprovado
+      (click)="alterarFiltro('aprovado')"
+      [class.bg-[#00E5FF]]="filtroAtivo() === 'aprovado'"
+      [class.text-black]="filtroAtivo() === 'aprovado'"
+      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aprovado'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aprovado'"
+      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aprovado'"
+      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
+      Aprovado ({{ contagemPorStatus().aprovado }})
     </button>
     <button
-      class="whitespace-nowrap px-6 py-2 rounded-md bg-[#1A1A1A] text-[#ADAAAA] border border-[#484847]/30 hover:bg-[#484847]/20 text-[12px] font-bold uppercase tracking-wider transition-colors flex-shrink-0">
-      Reprovado
-    </button>
-    <button
-      class="whitespace-nowrap px-6 py-2 rounded-md bg-[#1A1A1A] text-[#ADAAAA] border border-[#484847]/30 hover:bg-[#484847]/20 text-[12px] font-bold uppercase tracking-wider transition-colors flex-shrink-0">
-      Com Restrição
+      (click)="alterarFiltro('reprovado')"
+      [class.bg-[#00E5FF]]="filtroAtivo() === 'reprovado'"
+      [class.text-black]="filtroAtivo() === 'reprovado'"
+      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'reprovado'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'reprovado'"
+      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'reprovado'"
+      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
+      Reprovado ({{ contagemPorStatus().reprovado }})
     </button>
   </div>
+
+  <!-- Loading State -->
+  @if (carregando()) {
+    <div class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="w-10 h-10 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Sincronizando lotes corporativos...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (erro()) {
+    <div class="bg-red-950/20 border border-red-500/30 p-8 rounded-md text-center">
+      <p class="text-red-400 text-sm">{{ erro() }}</p>
+      <button (click)="carregarLotes()" class="mt-4 text-[#00E5FF] text-xs font-bold uppercase underline">Tentar novamente</button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (lotes().length === 0) {
+    <div class="flex flex-col items-center justify-center py-24 border border-dashed border-[#484847]/40 rounded-lg bg-[#111]">
+      <div class="p-4 bg-[#1a1a1a] rounded-full mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#484847" class="size-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
+        </svg>
+      </div>
+      <h3 class="text-[#ADAAAA] font-bold uppercase tracking-widest text-sm">Nenhum lote localizado</h3>
+      <p class="text-[#6B7280] text-xs mt-1">Refine seus filtros ou realize uma nova busca</p>
+    </div>
+  }
 
   <!-- Cards List -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-    <div
-      class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 hover:border-[#00E5FF]/40">
-      <div
-        class="absolute w-1 h-0 left-0 top-1/2 -translate-y-1/2 bg-[#00E5FF] transition-all duration-300 group-hover:h-full">
-      </div>
-      <div class="flex justify-between items-start">
-        <div class="flex flex-col">
-          <h3 class="text-2xl font-bold text-white tracking-widest uppercase">#LT-88413</h3>
-          <span class="text-[#00E5FF] text-[12px] uppercase tracking-wider mt-1">Conector Axial Pro G3</span>
-        </div>
+      @for (lote of lotes(); track lote.id) {
+        @let config = getStatusConfig(lote.status);
+        @let progresso = getProgresso(lote);
+
         <div
-          class="px-3 py-1 bg-[#00E5FF]/10 border border-[#00E5FF] rounded text-[#00E5FF] text-[10px] font-bold uppercase tracking-wider flex-shrink-0">
-          Em Produção
-        </div>
-      </div>
+          (click)="irParaDetalhe(lote.id)"
+          class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 hover:border-[#00E5FF]/40 cursor-pointer group">
+          
+          <!-- Indicação lateral discreta -->
+          <div
+            class="absolute w-1 h-0 left-0 top-1/2 -translate-y-1/2 transition-all duration-300 group-hover:h-full"
+            [style.background-color]="config.cor">
+          </div>
 
-      <div class="grid grid-cols-2 mt-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Operador</span>
-          <span class="text-white text-[12px] uppercase">Ana Paula M.</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Abertura</span>
-          <span class="text-white text-[12px] uppercase">2024.10.12 | 09:12:12</span>
-        </div>
-        <div class="flex flex-col gap-1 col-span-2 mt-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Insumos Vinculados</span>
-          <span class="text-[#00E5FF] text-[12px] uppercase font-bold">18 itens</span>
-        </div>
-      </div>
+          <div class="flex justify-between items-start">
+          <div class="flex flex-col">
+            <h3 class="text-xl font-bold text-white tracking-wider uppercase truncate max-w-[200px]" [title]="lote.numero_lote">
+              #{{ lote.numero_lote }}
+            </h3>
+            <span class="text-[11px] uppercase tracking-wider mt-0.5 truncate max-w-[180px]" [style.color]="config.cor">
+              {{ lote.produto.nome }}
+            </span>
+          </div>
+            
+            <div
+              class="px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex-shrink-0 border"
+              [style.color]="config.cor"
+              [style.border-color]="config.corBorda"
+              [style.background]="config.corBg">
+              {{ config.label }}
+            </div>
+          </div>
 
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-          <span class="text-[#00E5FF]">Progresso</span>
-          <span class="text-[#00E5FF]">74%</span>
+          <div class="grid grid-cols-2 mt-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Responsável</span>
+              <span class="text-white text-[12px] uppercase truncate">{{ lote.operador.nome }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Referência</span>
+              <span class="text-white text-[12px] uppercase">{{ formatarDataHora(lote.aberto_em) }}</span>
+            </div>
+            <div class="flex flex-col gap-1 col-span-2 mt-1">
+              <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Rastreabilidade Insumos</span>
+              <span class="text-[12px] uppercase font-bold" [style.color]="config.cor">
+                {{ lote.insumos?.length || 0 }} itens vinculados
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-col gap-2">
+            <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+              <span [style.color]="config.cor">{{ lote.status === 'em_producao' ? 'Progresso' : 'Integridade' }}</span>
+              <span [style.color]="config.cor">{{ progresso }}%</span>
+            </div>
+            <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-1000" 
+                [style.width.%]="progresso"
+                [style.background-color]="config.cor"
+                [style.box-shadow]="'0 0 8px ' + config.cor">
+              </div>
+            </div>
+          </div>
+
+          <!-- Overlay hover visual -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-[#00E5FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
         </div>
-        <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
-          <div class="h-full bg-[#00E5FF] w-[74%] rounded-full shadow-[0_0_8px_#00E5FF]"></div>
-        </div>
-      </div>
+      }
+
     </div>
-
-    <div
-      class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#DFFF00]/40">
-      <div class="flex justify-between items-start">
-        <div class="flex flex-col">
-          <h3 class="text-2xl font-bold text-white tracking-widest uppercase">#LT-88420</h3>
-          <span class="text-[#DFFF00] text-[12px] uppercase tracking-wider mt-1">Módulo Sensor T-900</span>
-        </div>
-        <div
-          class="px-3 py-1 bg-[#DFFF00]/10 border border-[#DFFF00] rounded text-[#DFFF00] text-[10px] font-bold uppercase tracking-wider flex-shrink-0">
-          Aguardando Inspeção
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 mt-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Operador</span>
-          <span class="text-white text-[12px] uppercase">Sarah Jenkins</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Abertura</span>
-          <span class="text-white text-[12px] uppercase">2024.10.11 | 23:15:00</span>
-        </div>
-        <div class="flex flex-col gap-1 col-span-2 mt-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Insumos Vinculados</span>
-          <span class="text-[#DFFF00] text-[12px] uppercase font-bold">4 itens</span>
-        </div>
-      </div>
-
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-          <span class="text-[#DFFF00]">Concluído</span>
-          <span class="text-[#DFFF00]">100%</span>
-        </div>
-        <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
-          <div class="h-full bg-[#DFFF00] w-full rounded-full shadow-[0_0_8px_#DFFF00]"></div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#9EEE35]/40">
-      <div class="flex justify-between items-start">
-        <div class="flex flex-col">
-          <h3 class="text-2xl font-bold text-white tracking-widest uppercase">#LT-88419</h3>
-          <span class="text-[#ADAAAA] text-[12px] uppercase tracking-wider mt-1">Placa de Controle V4</span>
-        </div>
-        <div
-          class="px-3 py-1 bg-[#3A5D1F] text-[#9EEE35] rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 flex-shrink-0">
-          <img src="assets/icons/approved-icon.svg" class="w-3 h-3" alt="Aprovado" />
-          Aprovado
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 mt-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Operador</span>
-          <span class="text-white text-[12px] uppercase">Roberto Silva</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Conclusão</span>
-          <span class="text-white text-[12px] uppercase">2024.10.11 | 13:15:30</span>
-        </div>
-        <div class="flex flex-col gap-1 col-span-2 mt-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Insumos Vinculados</span>
-          <span class="text-[#9EEE35] text-[12px] uppercase font-bold">24 itens</span>
-        </div>
-      </div>
-
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-          <span class="text-[#9EEE35]">Concluído</span>
-          <span class="text-[#9EEE35]">100%</span>
-        </div>
-        <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
-          <div class="h-full bg-[#9EEE35] w-full rounded-full shadow-[0_0_8px_#9EEE35]"></div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#A0AEC0]/40">
-      <div class="flex justify-between items-start">
-        <div class="flex flex-col">
-          <h3 class="text-2xl font-bold text-white tracking-widest uppercase">#LT-88415</h3>
-          <span class="text-[#ADAAAA] text-[12px] uppercase tracking-wider mt-1">Módulo Sensor T-900</span>
-        </div>
-        <div
-          class="px-3 py-1 bg-[#4A5568]/40 border border-[#718096] text-[#A0AEC0] rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 flex-shrink-0">
-          Aprovado Com Restrição
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 mt-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Operador</span>
-          <span class="text-white text-[12px] uppercase">Sarah Jenkins</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Conclusão</span>
-          <span class="text-white text-[12px] uppercase">2024.10.11 | 10:30:40</span>
-        </div>
-        <div class="flex flex-col gap-1 col-span-2 mt-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Insumos Vinculados</span>
-          <span class="text-[#A0AEC0] text-[12px] uppercase font-bold">12 itens</span>
-        </div>
-      </div>
-
-      <div class="mt-2 flex gap-3 p-4 bg-[#1E293B]/40 border border-[#475569] rounded items-start">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#60A5FA"
-          class="w-5 h-5 shrink-0">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-        </svg>
-        <p class="text-[#94A3B8] text-[12px] leading-relaxed">
-          AVISO: Uso restrito. Integridade estrutural dentro da faixa padrão, mas abaixo do limite prime requerido para
-          áreas de alta pressão operacional.
-        </p>
-      </div>
-    </div>
-
-    <div
-      class="bg-[#161616] border border-red-900/50 rounded-md p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 hover:border-[#dc2626]/60">
-      <div class="absolute left-0 top-0 w-1 h-full bg-[#fca5a5]/70 shadow-[0_0_15px_red]"></div>
-
-      <div class="flex justify-between items-start">
-        <div class="flex flex-col">
-          <h3 class="text-2xl font-bold text-white tracking-widest uppercase">#LT-88418</h3>
-          <span class="text-[#ADAAAA] text-[12px] uppercase tracking-wider mt-1">Módulo Sensor T-900</span>
-        </div>
-        <div
-          class="px-3 py-1 bg-[#450a0a] border border-[#dc2626] text-[#fca5a5] rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 flex-shrink-0">
-          Reprovado
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 mt-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Operador</span>
-          <span class="text-white text-[12px] uppercase">Carlos Mendes</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Conclusão</span>
-          <span class="text-white text-[12px] uppercase">2024.10.11 | 12:44:12</span>
-        </div>
-        <div class="flex flex-col gap-1 col-span-2 mt-1">
-          <span class="text-[10px] text-[#ADAAAA] uppercase tracking-wider font-bold">Insumos Vinculados</span>
-          <span class="text-[#fca5a5] text-[12px] uppercase font-bold">7 itens</span>
-        </div>
-      </div>
-
-      <div class="mt-2 flex flex-col gap-4 p-4 border border-[#dc2626]/40 rounded items-start bg-red-950/10">
-        <div class="flex gap-3 items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#fca5a5"
-            class="w-5 h-5 flex-shrink-0">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" />
-          </svg>
-          <p class="text-[#fca5a5] text-[12px] uppercase font-bold leading-relaxed">
-            FALHA CRÍTICA: Variância superior a 15% detectada.
-          </p>
-        </div>
-
-        <button
-          class="w-full py-3 bg-[#dc2626] hover:bg-[#ef4444] text-white font-bold uppercase text-[12px] rounded tracking-widest transition-colors shadow-[0_0_10px_rgba(220,38,38,0.3)]">
-          Descartar Lote
-        </button>
-      </div>
-    </div>
-
-  </div>
+  }
 </div>
