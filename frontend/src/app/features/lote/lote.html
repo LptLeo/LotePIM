@@ -10,14 +10,16 @@
         Listagem de lotes corporativos em tempo real
       </p>
     </div>
-    <button (click)="irParaNovoLote()"
-      class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(0,229,255,0.2)]">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-        class="w-5 h-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-      Criar Novo Lote
-    </button>
+    @if (authService.usuario()?.perfil === 'operador') {
+      <button (click)="irParaNovoLote()"
+        class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(0,229,255,0.2)]">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Criar Novo Lote
+      </button>
+    }
   </header>
 
   <!-- Stats Cards -->

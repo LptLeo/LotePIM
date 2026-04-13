@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LoteFeatureService } from './services/lote.service';
 import { LoteDetalhe, STATUS_CONFIG, LoteStatus } from '../../shared/models/lote.models';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-lote',
@@ -16,6 +17,7 @@ export class Lote implements OnInit {
   private loteService = inject(LoteFeatureService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  authService = inject(AuthService);
 
   // Estados reativos (Signals)
   private lotesBase = signal<LoteDetalhe[]>([]); // Lista completa para contagens

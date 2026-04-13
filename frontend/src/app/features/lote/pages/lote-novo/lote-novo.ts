@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -23,12 +23,22 @@ export class LoteNovo implements OnInit {
   salvando = signal(false);
   erro = signal<string | null>(null);
 
+
   form = this.fb.nonNullable.group({
     produto: [0, [Validators.required, Validators.min(1)]],
     data_producao: [new Date().toISOString().split('T')[0], [Validators.required]],
     turno: ['manha', [Validators.required]],
     quantidade_prod: [0, [Validators.required, Validators.min(1)]],
     observacoes: ['']
+  });
+
+  // Sinal computado para exibir a data no formato brasileiro
+  // Declarado após o form para garantir acesso seguro durante a inicialização
+  dataFormatada = computed(() => {
+    const data = this.form.controls.data_producao.value;
+    if (!data) return 'DD/MM/AAAA';
+    const [ano, mes, dia] = data.split('-');
+    return `${dia}/${mes}/${ano}`;
   });
 
   ngOnInit(): void {
