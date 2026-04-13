@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -42,9 +42,15 @@ export class LoteDetail implements OnInit {
   // Controle de edição para OPERADORES
   processando = signal(false);
   insumosMaster = signal<InsumoMaster[]>([]);
-  
+
   // Lista temporária de insumos que serão enviados à API juntos (se preferir múltiplo) ou um a um
   novosInsumos = signal<{ nome_insumo: string, codigo_insumo: string, lote_insumo: string, quantidade: number, unidade: string }[]>([]);
+
+  totalInsumos = computed(() => {
+    const salvos = this.lote()?.insumos?.length || 0;
+    const pendentes = this.novosInsumos().length;
+    return salvos + pendentes;
+  });
 
   formInsumo = this.fb.nonNullable.group({
     nome_insumo: ['', Validators.required],
@@ -110,7 +116,7 @@ export class LoteDetail implements OnInit {
   onInsumoSelected(event: Event) {
     const id = Number((event.target as HTMLSelectElement).value);
     const insumo = this.insumosMaster().find(i => i.id === id);
-    
+
     if (insumo) {
       this.formInsumo.patchValue({
         nome_insumo: insumo.nome,

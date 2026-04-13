@@ -45,9 +45,9 @@ export class InsumoLoteService {
         nome_insumo: insumo.nome_insumo,
         codigo_insumo: insumo.codigo_insumo,
         lote_insumo: insumo.lote_insumo,
-        quantidade: insumo.quantidade,
+        quantidade: Number(insumo.quantidade),
         unidade: insumo.unidade,
-        lote: { id: lote.id },
+        lote: lote, // Usando a entidade completa em vez de apenas o ID
       } as DeepPartial<InsumoLote>)
     );
 

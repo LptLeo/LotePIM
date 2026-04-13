@@ -159,7 +159,7 @@ export class LoteService {
     return await this.loteRepo.find({
       where,
       order: { aberto_em: "DESC" },
-      relations: ['operador', 'produto']
+      relations: ['operador', 'produto', 'insumos']
     });
   }
 

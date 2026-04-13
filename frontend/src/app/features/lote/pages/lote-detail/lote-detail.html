@@ -145,10 +145,17 @@
   <!-- ── Insumos Vinculados ── -->
   <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
     <div class="flex items-center justify-between mb-4">
-      <span
-        class="text-[11px] font-bold text-[#00E5FF] bg-[rgba(0,229,255,0.1)] border border-[#00E5FF] px-2.5 py-1 rounded">
-        {{ (lote()!.insumos?.length || 0) }} {{ (lote()!.insumos?.length === 1 ? 'item' : 'itens') }}
-      </span>
+      <div class="flex items-center gap-3">
+        <span
+          class="text-[11px] font-bold text-[#00E5FF] bg-[rgba(0,229,255,0.1)] border border-[#00E5FF] px-2.5 py-1 rounded">
+          {{ totalInsumos() }} {{ (totalInsumos() === 1 ? 'item' : 'itens') }}
+        </span>
+        @if (novosInsumos().length > 0) {
+          <span class="text-[10px] text-[#DFFF00] font-medium italic animate-pulse">
+            + {{ novosInsumos().length }} aguardando salvamento
+          </span>
+        }
+      </div>
     </div>
 
     @if (!lote()?.insumos || (lote()?.insumos?.length === 0)) {
