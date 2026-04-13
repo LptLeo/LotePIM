@@ -44,24 +44,21 @@ export class LoteService {
   private gerarNumeroLote = async (dataInput: Date | string = new Date()) => {
     const data = typeof dataInput === 'string' ? new Date(dataInput) : dataInput;
 
-    const inicioDia = new Date(data);
-    inicioDia.setHours(0, 0, 0, 0);
+    // Usar UTC garante que '2026-04-12' não vire '2026-04-11' por causa do fuso horário
+    const ano = data.getUTCFullYear().toString();
+    const mes = (data.getUTCMonth() + 1).toString().padStart(2, '0');
+    const dia = data.getUTCDate().toString().padStart(2, '0');
+    
+    const prefixo = `LOTE-${ano}${mes}${dia}-`;
 
-    const fimDia = new Date(data);
-    fimDia.setHours(23, 59, 59, 999);
-
-    const totalHoje = await this.loteRepo.count({
+    const totalMesmaData = await this.loteRepo.count({
       where: {
-        aberto_em: Between(inicioDia, fimDia)
+        numero_lote: ILike(`${prefixo}%`)
       }
     });
 
-    const ano = data.getFullYear();
-    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-    const dia = data.getDate().toString().padStart(2, '0');
-    const sequencial = (totalHoje + 1).toString().padStart(3, '0');
-
-    const novoNumeroLote = `LOTE-${ano}${mes}${dia}-${sequencial}`;
+    const sequencial = (totalMesmaData + 1).toString().padStart(3, '0');
+    const novoNumeroLote = `${prefixo}${sequencial}`;
 
     return novoNumeroLote;
   }
