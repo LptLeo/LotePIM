@@ -56,7 +56,7 @@ export interface LoteDetalhe {
   observacoes?: string;
   aberto_em: string;
   encerrado_em?: string;
-  insumos: InsumoLote[];
+  insumos?: InsumoLote[];
   inspecao?: InspecaoLote;
 }
 

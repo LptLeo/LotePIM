@@ -41,28 +41,20 @@
 
   <!-- Tabs (Filtros) -->
   <div class="flex gap-3 overflow-x-auto pb-2 min-w-full scrollbar-hide">
-    <button
-      (click)="alterarFiltro('todos')"
-      [class.bg-[#00E5FF]]="filtroAtivo() === 'todos'"
-      [class.text-black]="filtroAtivo() === 'todos'"
-      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'todos'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'todos'"
-      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'todos'"
+    <button (click)="alterarFiltro('todos')" [class.bg-[#00E5FF]]="filtroAtivo() === 'todos'"
+      [class.text-black]="filtroAtivo() === 'todos'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'todos'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'todos'" [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'todos'"
       class="whitespace-nowrap px-6 py-2 rounded-md text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
       Todos ({{ contagemPorStatus().todos }})
     </button>
-    <button
-      (click)="alterarFiltro('em_producao')"
-      [class.bg-[#00E5FF]]="filtroAtivo() === 'em_producao'"
-      [class.text-black]="filtroAtivo() === 'em_producao'"
-      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'em_producao'"
+    <button (click)="alterarFiltro('em_producao')" [class.bg-[#00E5FF]]="filtroAtivo() === 'em_producao'"
+      [class.text-black]="filtroAtivo() === 'em_producao'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'em_producao'"
       [class.text-[#ADAAAA]]="filtroAtivo() !== 'em_producao'"
       [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'em_producao'"
       class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
       Em Produção ({{ contagemPorStatus().em_producao }})
     </button>
-    <button
-      (click)="alterarFiltro('aguardando_inspecao')"
+    <button (click)="alterarFiltro('aguardando_inspecao')"
       [class.bg-[#00E5FF]]="filtroAtivo() === 'aguardando_inspecao'"
       [class.text-black]="filtroAtivo() === 'aguardando_inspecao'"
       [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aguardando_inspecao'"
@@ -71,21 +63,14 @@
       class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
       Aguardando Inspeção ({{ contagemPorStatus().aguardando_inspecao }})
     </button>
-    <button
-      (click)="alterarFiltro('aprovado')"
-      [class.bg-[#00E5FF]]="filtroAtivo() === 'aprovado'"
-      [class.text-black]="filtroAtivo() === 'aprovado'"
-      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aprovado'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aprovado'"
-      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aprovado'"
+    <button (click)="alterarFiltro('aprovado')" [class.bg-[#00E5FF]]="filtroAtivo() === 'aprovado'"
+      [class.text-black]="filtroAtivo() === 'aprovado'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aprovado'"
+      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aprovado'" [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aprovado'"
       class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
       Aprovado ({{ contagemPorStatus().aprovado }})
     </button>
-    <button
-      (click)="alterarFiltro('reprovado')"
-      [class.bg-[#00E5FF]]="filtroAtivo() === 'reprovado'"
-      [class.text-black]="filtroAtivo() === 'reprovado'"
-      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'reprovado'"
+    <button (click)="alterarFiltro('reprovado')" [class.bg-[#00E5FF]]="filtroAtivo() === 'reprovado'"
+      [class.text-black]="filtroAtivo() === 'reprovado'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'reprovado'"
       [class.text-[#ADAAAA]]="filtroAtivo() !== 'reprovado'"
       [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'reprovado'"
       class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all flex-shrink-0">
@@ -95,107 +80,106 @@
 
   <!-- Loading State -->
   @if (carregando()) {
-    <div class="flex flex-col items-center justify-center py-20 gap-4">
-      <div class="w-10 h-10 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Sincronizando lotes corporativos...</p>
-    </div>
+  <div class="flex flex-col items-center justify-center py-20 gap-4">
+    <div class="w-10 h-10 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Sincronizando lotes corporativos...</p>
+  </div>
   }
 
   <!-- Error State -->
   @else if (erro()) {
-    <div class="bg-red-950/20 border border-red-500/30 p-8 rounded-md text-center">
-      <p class="text-red-400 text-sm">{{ erro() }}</p>
-      <button (click)="carregarLotes()" class="mt-4 text-[#00E5FF] text-xs font-bold uppercase underline">Tentar novamente</button>
-    </div>
+  <div class="bg-red-950/20 border border-red-500/30 p-8 rounded-md text-center">
+    <p class="text-red-400 text-sm">{{ erro() }}</p>
+    <button (click)="carregarLotes()" class="mt-4 text-[#00E5FF] text-xs font-bold uppercase underline">Tentar
+      novamente</button>
+  </div>
   }
 
   <!-- Empty State -->
   @else if (lotes().length === 0) {
-    <div class="flex flex-col items-center justify-center py-24 border border-dashed border-[#484847]/40 rounded-lg bg-[#111]">
-      <div class="p-4 bg-[#1a1a1a] rounded-full mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#484847" class="size-8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
-        </svg>
-      </div>
-      <h3 class="text-[#ADAAAA] font-bold uppercase tracking-widest text-sm">Nenhum lote localizado</h3>
-      <p class="text-[#6B7280] text-xs mt-1">Refine seus filtros ou realize uma nova busca</p>
+  <div
+    class="flex flex-col items-center justify-center py-24 border border-dashed border-[#484847]/40 rounded-lg bg-[#111]">
+    <div class="p-4 bg-[#1a1a1a] rounded-full mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#484847"
+        class="size-8">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
+      </svg>
     </div>
+    <h3 class="text-[#ADAAAA] font-bold uppercase tracking-widest text-sm">Nenhum lote localizado</h3>
+    <p class="text-[#6B7280] text-xs mt-1">Refine seus filtros ou realize uma nova busca</p>
+  </div>
   }
 
   <!-- Cards List -->
   @else {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-      @for (lote of lotes(); track lote.id) {
-        @let config = getStatusConfig(lote.status);
-        @let progresso = getProgresso(lote);
+    @for (lote of lotes(); track lote.id) {
+    @let config = getStatusConfig(lote.status);
+    @let progresso = getProgresso(lote);
 
-        <div
-          (click)="irParaDetalhe(lote.id)"
-          class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 hover:border-[#00E5FF]/40 cursor-pointer group">
-          
-          <!-- Indicação lateral discreta -->
-          <div
-            class="absolute w-1 h-0 left-0 top-1/2 -translate-y-1/2 transition-all duration-300 group-hover:h-full"
-            [style.background-color]="config.cor">
-          </div>
+    <div (click)="irParaDetalhe(lote.id)"
+      class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 hover:border-[#00E5FF]/40 cursor-pointer group">
 
-          <div class="flex justify-between items-start">
-          <div class="flex flex-col">
-            <h3 class="text-xl font-bold text-white tracking-wider uppercase truncate max-w-[200px]" [title]="lote.numero_lote">
-              #{{ lote.numero_lote }}
-            </h3>
-            <span class="text-[11px] uppercase tracking-wider mt-0.5 truncate max-w-[180px]" [style.color]="config.cor">
-              {{ lote.produto.nome }}
-            </span>
-          </div>
-            
-            <div
-              class="px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex-shrink-0 border"
-              [style.color]="config.cor"
-              [style.border-color]="config.corBorda"
-              [style.background]="config.corBg">
-              {{ config.label }}
-            </div>
-          </div>
+      <!-- Indicação lateral discreta -->
+      <div class="absolute w-1 h-0 left-0 top-1/2 -translate-y-1/2 transition-all duration-300 group-hover:h-full"
+        [style.background-color]="config.cor">
+      </div>
 
-          <div class="grid grid-cols-2 mt-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Responsável</span>
-              <span class="text-white text-[12px] uppercase truncate">{{ lote.operador.nome }}</span>
-            </div>
-            <div class="flex flex-col gap-1">
-              <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Referência</span>
-              <span class="text-white text-[12px] uppercase">{{ formatarDataHora(lote.aberto_em) }}</span>
-            </div>
-            <div class="flex flex-col gap-1 col-span-2 mt-1">
-              <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Rastreabilidade Insumos</span>
-              <span class="text-[12px] uppercase font-bold" [style.color]="config.cor">
-                {{ lote.insumos?.length || 0 }} itens vinculados
-              </span>
-            </div>
-          </div>
-
-          <div class="mt-4 flex flex-col gap-2">
-            <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-              <span [style.color]="config.cor">{{ lote.status === 'em_producao' ? 'Progresso' : 'Integridade' }}</span>
-              <span [style.color]="config.cor">{{ progresso }}%</span>
-            </div>
-            <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
-              <div 
-                class="h-full rounded-full transition-all duration-1000" 
-                [style.width.%]="progresso"
-                [style.background-color]="config.cor"
-                [style.box-shadow]="'0 0 8px ' + config.cor">
-              </div>
-            </div>
-          </div>
-
-          <!-- Overlay hover visual -->
-          <div class="absolute inset-0 bg-gradient-to-tr from-[#00E5FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+      <div class="flex justify-between items-start">
+        <div class="flex flex-col">
+          <h3 class="text-xl font-bold text-white tracking-wider uppercase truncate max-w-[200px]"
+            [title]="lote.numero_lote">
+            #{{ lote.numero_lote }}
+          </h3>
+          <span class="text-[11px] uppercase tracking-wider mt-0.5 truncate max-w-[180px]" [style.color]="config.cor">
+            {{ lote.produto.nome }}
+          </span>
         </div>
-      }
 
+        <div class="px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex-shrink-0 border"
+          [style.color]="config.cor" [style.border-color]="config.corBorda" [style.background]="config.corBg">
+          {{ config.label }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 mt-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Responsável</span>
+          <span class="text-white text-[12px] uppercase truncate">{{ lote.operador.nome }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Referência</span>
+          <span class="text-white text-[12px] uppercase">{{ formatarDataHora(lote.aberto_em) }}</span>
+        </div>
+        <div class="flex flex-col gap-1 col-span-2 mt-1">
+          <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Rastreabilidade Insumos</span>
+          <span class="text-[12px] uppercase font-bold" [style.color]="config.cor">
+            {{ (lote.insumos?.length || 0) }} itens vinculados
+          </span>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-2">
+        <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+          <span [style.color]="config.cor">{{ lote.status === 'em_producao' ? 'Progresso' : 'Integridade' }}</span>
+          <span [style.color]="config.cor">{{ progresso }}%</span>
+        </div>
+        <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-1000" [style.width.%]="progresso"
+            [style.background-color]="config.cor" [style.box-shadow]="'0 0 8px ' + config.cor">
+          </div>
+        </div>
+      </div>
+
+      <!-- Overlay hover visual -->
+      <div
+        class="absolute inset-0 bg-gradient-to-tr from-[#00E5FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+      </div>
     </div>
+    }
+
+  </div>
   }
 </div>
