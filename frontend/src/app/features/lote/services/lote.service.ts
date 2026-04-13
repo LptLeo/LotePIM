@@ -32,4 +32,24 @@ export class LoteFeatureService {
 
     return this.http.get<LoteDetalhe[]>(`${API_URL}/lotes`, { params });
   }
+
+  /** Busca lista de produtos ativos */
+  getProdutos(): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/produtos`);
+  }
+
+  /** Cria um novo lote */
+  createLote(loteDTO: any): Observable<any> {
+    return this.http.post<any>(`${API_URL}/lotes`, loteDTO);
+  }
+
+  /** Vincula múltiplos insumos a um lote */
+  vincularInsumos(loteId: number, insumos: any[]): Observable<any> {
+    return this.http.post<any>(`${API_URL}/lotes/${loteId}/insumos`, insumos);
+  }
+
+  /** Encerra a produção do lote */
+  encerrarProducao(loteId: number): Observable<any> {
+    return this.http.patch<any>(`${API_URL}/lotes/${loteId}/encerrar`, {});
+  }
 }

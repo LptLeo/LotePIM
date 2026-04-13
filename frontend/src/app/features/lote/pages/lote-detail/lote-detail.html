@@ -32,17 +32,26 @@
   <!-- Cabeçalho da Página -->
   <header class="flex flex-col gap-6">
     <!-- Barra de Ações Superior -->
-    <div class="flex items-center gap-4">
-      <button (click)="voltarParaLista()"
-        class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg"
-        title="Voltar para a lista">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-        </svg>
-      </button>
-      <div class="h-6 w-px bg-[#484847]/30"></div>
-      <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Gestão de Lotes / Detalhes</span>
+    <div class="flex items-center justify-between w-full">
+      <div class="flex items-center gap-4">
+        <button (click)="voltarParaLista()"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg"
+          title="Voltar para a lista">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+            class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+        </button>
+        <div class="h-6 w-px bg-[#484847]/30"></div>
+        <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Gestão de Lotes / Detalhes</span>
+      </div>
+
+      <!-- Ações do Operador -->
+      @if (lote()!.status === 'em_producao' && authService.usuario()?.perfil === 'operador') {
+        <button (click)="encerrarProducao()" [disabled]="processando()" class="bg-[#00E5FF] text-black px-4 py-2 font-bold uppercase text-[11px] tracking-wider rounded border border-[#00E5FF] hover:bg-transparent hover:text-[#00E5FF] transition-all disabled:opacity-50">
+          Finalizar Produção
+        </button>
+      }
     </div>
 
     <!-- Título e Status -->
@@ -181,6 +190,62 @@
         </tbody>
       </table>
     </div>
+    }
+
+    <!-- Seção de Vinculação de Insumo (Operador) -->
+    @if (lote()!.status === 'em_producao' && authService.usuario()?.perfil === 'operador') {
+      <div class="mt-8 border-t border-[#484847]/30 pt-6">
+        <h4 class="text-[12px] text-white font-bold uppercase tracking-wider mb-4">Vincular Novo Insumo</h4>
+        
+        <form [formGroup]="formInsumo" (ngSubmit)="adicionarInsumoNaLista()" class="flex flex-col md:flex-row items-end gap-4 p-4 border border-[#484847]/50 rounded bg-[#0E0E0E]">
+          <div class="flex-1 w-full">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Nome do Insumo *</label>
+            <input type="text" formControlName="nome_insumo" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
+          </div>
+          <div class="w-full md:w-32">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Código</label>
+            <input type="text" formControlName="codigo_insumo" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
+          </div>
+          <div class="w-full md:w-32">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Lote Insumo</label>
+            <input type="text" formControlName="lote_insumo" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
+          </div>
+          <div class="w-full md:w-24">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Qtd *</label>
+            <input type="number" formControlName="quantidade" step="0.01" min="0.01" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
+          </div>
+          <div class="w-full md:w-24">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Und *</label>
+            <select formControlName="unidade" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
+              <option value="UNID">UN</option>
+              <option value="KG">KG</option>
+              <option value="L">L</option>
+              <option value="M">M</option>
+            </select>
+          </div>
+          <button type="submit" [disabled]="formInsumo.invalid" class="w-full md:w-auto h-[34px] px-4 bg-[#484847]/50 hover:bg-[#00E5FF]/20 hover:text-[#00E5FF] text-[#ADAAAA] border border-[#484847] hover:border-[#00E5FF]/50 rounded text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-30">
+            Adicionar
+          </button>
+        </form>
+
+        <!-- Lista Temporária -->
+        @if (novosInsumos().length > 0) {
+          <div class="mt-4 p-4 rounded bg-[#1A1A1A]/50 border border-dashed border-[#00E5FF]/30">
+            <h5 class="text-[10px] font-bold uppercase text-[#00E5FF] mb-3">Insumos prontos para envio ({{ novosInsumos().length }})</h5>
+            <ul class="flex flex-col gap-2 mb-4">
+              @for (novo of novosInsumos(); track $index) {
+                <li class="flex items-center justify-between text-[11px] text-[#ADAAAA] bg-[#0E0E0E] px-3 py-2 rounded border border-[#484847]/30">
+                  <span>{{ novo.nome_insumo }} <span class="text-[#6B7280] ml-2">Qtd: {{ novo.quantidade }} {{ novo.unidade }}</span></span>
+                  <button type="button" (click)="removerInsumoDaLista($index)" class="text-[#fca5a5] hover:text-red-400">Remover</button>
+                </li>
+              }
+            </ul>
+            <button (click)="salvarInsumos()" [disabled]="processando()" class="w-full py-2 bg-[#00E5FF] text-black font-bold uppercase text-[11px] rounded transition-all hover:bg-[#00E5FF]/80 disabled:opacity-50">
+              Salvar Insumos no Sistema
+            </button>
+          </div>
+        }
+      </div>
     }
   </div>
 

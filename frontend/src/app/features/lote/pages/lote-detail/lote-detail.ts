@@ -1,10 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { switchMap } from 'rxjs/operators';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { switchMap, finalize } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 
 import { LoteFeatureService } from '../../services/lote.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import {
   LoteDetalhe,
   LoteStatus,
@@ -20,7 +22,8 @@ const TURNO_LABEL: Record<string, string> = {
 
 @Component({
   selector: 'app-lote-detail',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './lote-detail.html',
   styleUrl: './lote-detail.css',
 })
@@ -28,12 +31,32 @@ export class LoteDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private loteService = inject(LoteFeatureService);
+  authService = inject(AuthService);
+  private fb = inject(FormBuilder);
 
   lote = signal<LoteDetalhe | null>(null);
   carregando = signal(true);
   erro = signal<string | null>(null);
 
+  // Controle de edição para OPERADORES
+  processando = signal(false);
+  
+  // Lista temporária de insumos que serão enviados à API juntos (se preferir múltiplo) ou um a um
+  novosInsumos = signal<{ nome_insumo: string, codigo_insumo: string, lote_insumo: string, quantidade: number, unidade: string }[]>([]);
+
+  formInsumo = this.fb.nonNullable.group({
+    nome_insumo: ['', Validators.required],
+    codigo_insumo: [''],
+    lote_insumo: [''],
+    quantidade: [0, [Validators.required, Validators.min(0.01)]],
+    unidade: ['UNID', Validators.required]
+  });
+
   ngOnInit(): void {
+    this.carregarLote();
+  }
+
+  carregarLote() {
     this.route.paramMap.pipe(
       switchMap((params) => {
         const id = Number(params.get('id'));
@@ -56,6 +79,68 @@ export class LoteDetail implements OnInit {
         this.carregando.set(false);
       },
     });
+  }
+
+  adicionarInsumoNaLista() {
+    if (this.formInsumo.invalid) return;
+
+    const values = this.formInsumo.value;
+    const novo = {
+      nome_insumo: values.nome_insumo!,
+      codigo_insumo: values.codigo_insumo || '',
+      lote_insumo: values.lote_insumo || '',
+      quantidade: values.quantidade!,
+      unidade: values.unidade!
+    };
+
+    this.novosInsumos.update(lista => [...lista, novo]);
+    this.formInsumo.reset({ quantidade: 0, unidade: 'UNID' });
+  }
+
+  removerInsumoDaLista(index: number) {
+    this.novosInsumos.update(lista => lista.filter((_, i) => i !== index));
+  }
+
+  salvarInsumos() {
+    const arr = this.novosInsumos();
+    const l = this.lote();
+    if (!l || arr.length === 0) return;
+
+    this.processando.set(true);
+    this.loteService.vincularInsumos(l.id, arr)
+      .pipe(finalize(() => this.processando.set(false)))
+      .subscribe({
+        next: () => {
+          this.novosInsumos.set([]);
+          this.carregarLote(); // Recarrega os detalhes do backend
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Erro ao vincular insumos: ' + (err.error?.message || 'Erro desconhecido.'));
+        }
+      });
+  }
+
+  encerrarProducao() {
+    const l = this.lote();
+    if (!l) return;
+
+    if (!confirm('Tem certeza que deseja finalizar a produção deste lote? Não será possível adicionar ou remover insumos depois disso.')) {
+      return;
+    }
+
+    this.processando.set(true);
+    this.loteService.encerrarProducao(l.id)
+      .pipe(finalize(() => this.processando.set(false)))
+      .subscribe({
+        next: () => {
+          this.carregarLote(); // Recarrega para ver o novo status
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Erro ao encerrar produção: ' + (err.error?.message || 'Erro desconhecido.'));
+        }
+      });
   }
 
   voltarParaLista(): void {

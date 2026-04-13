@@ -1,0 +1,116 @@
+<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <header class="flex flex-col gap-6">
+    <div class="flex items-center gap-4">
+      <button (click)="voltarParaLista()"
+        class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg"
+        title="Voltar para a lista">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+      </button>
+      <div class="h-6 w-px bg-[#484847]/30"></div>
+      <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Gestão de Lotes / Criar Novo Lote</span>
+    </div>
+
+    <div>
+      <h2 class="font-bold text-[32px] leading-tight tracking-[-1px] text-white">
+        Abertura de Lote de Produção
+      </h2>
+      <p class="text-[14px] text-[#ADAAAA] mt-1 tracking-wide">
+        Preencha os dados iniciais do lote. Somente operadores podem abrir novos lotes.
+      </p>
+    </div>
+  </header>
+
+  <!-- Error Alert -->
+  @if (erro()) {
+  <div class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md">
+    <p class="text-[#fca5a5] text-[13px] font-semibold">{{ erro() }}</p>
+  </div>
+  }
+
+  <!-- Form -->
+  <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 sm:p-8">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+      
+      <!-- Linha 1: Numero Gerado / Produto -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Número do Lote</label>
+          <input type="text"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#ADAAAA] cursor-not-allowed focus:outline-none"
+            value="Gerado automaticamente ao salvar" disabled>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Produto *</label>
+          <select formControlName="produto"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+            <option [value]="0" disabled>Selecione um produto...</option>
+            @for (prod of produtos(); track prod.id) {
+            <option [value]="prod.id">{{ prod.nome }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Linha 2: Data Produção / Turno -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Data de Produção *</label>
+          <input type="date" formControlName="data_producao"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Turno *</label>
+          <select formControlName="turno"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+            <option value="manha">Manhã</option>
+            <option value="tarde">Tarde</option>
+            <option value="noite">Noite</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Linha 3: Quantidade Prevista -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Quantidade Produção *</label>
+          <div class="relative">
+            <input type="number" min="1" formControlName="quantidade_prod"
+              class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-12 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#ADAAAA]">UN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha 4: Observações -->
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Observações</label>
+        <textarea formControlName="observacoes" rows="3" placeholder="Informações adicionais da abertura..."
+          class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors resize-y"></textarea>
+      </div>
+
+      <!-- Ações -->
+      <div class="mt-4 pt-6 border-t border-[#484847]/30 flex justify-end gap-4">
+        <button type="button" (click)="voltarParaLista()"
+          class="px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="form.invalid || salvando()"
+          class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+          @if (salvando()) {
+            Salvando...
+          } @else {
+            Abrir Lote
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
