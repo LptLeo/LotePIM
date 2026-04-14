@@ -27,10 +27,17 @@ export class LoteNovo implements OnInit {
   form = this.fb.nonNullable.group({
     produto: [0, [Validators.required, Validators.min(1)]],
     data_producao: [new Date().toISOString().split('T')[0], [Validators.required]],
-    turno: ['manha', [Validators.required]],
+    turno: [this.getTurnoAtual(), [Validators.required]],
     quantidade_prod: [0, [Validators.required, Validators.min(1)]],
     observacoes: ['']
   });
+
+  private getTurnoAtual(): 'manha' | 'tarde' | 'noite' {
+    const hora = new Date().getHours();
+    if (hora >= 6 && hora < 14) return 'manha';
+    if (hora >= 14 && hora < 22) return 'tarde';
+    return 'noite';
+  }
 
   // Sinal computado para exibir a data no formato brasileiro
   // Declarado após o form para garantir acesso seguro durante a inicialização

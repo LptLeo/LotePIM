@@ -98,7 +98,7 @@ export const STATUS_CONFIG: Record<LoteStatus, StatusConfig> = {
     corBorda: '#9EEE35',
   },
   aprovado_restricao: {
-    label: 'Com Restrição',
+    label: 'Aprovado com Restrição',
     cor: '#A0AEC0',
     corBg: 'rgba(74,85,104,0.4)',
     corBorda: '#718096',

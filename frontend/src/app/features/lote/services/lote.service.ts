@@ -56,4 +56,9 @@ export class LoteFeatureService {
   encerrarProducao(loteId: number): Observable<any> {
     return this.http.patch<any>(`${API_URL}/lotes/${loteId}/encerrar`, {});
   }
+
+  /** Registra a inspeção do lote */
+  registrarInspecao(loteId: number, inspecao: any): Observable<any> {
+    return this.http.post<any>(`${API_URL}/lotes/${loteId}/inspecao`, inspecao);
+  }
 }

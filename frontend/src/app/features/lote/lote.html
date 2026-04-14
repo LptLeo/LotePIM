@@ -25,8 +25,20 @@
   <!-- Stats Cards -->
   <div class="flex flex-col md:flex-row gap-4 mb-4">
     <div
-      class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px]">
-      <span class="text-[#6B7280] text-[10px] uppercase font-bold tracking-[1.5px] mb-2">Produção Total Acumulada</span>
+      class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px] relative group">
+      
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px]">Produção Total Acumulada</span>
+        <div class="relative inline-block cursor-help">
+          <img class="w-3.5 h-3.5 opacity-40 group-hover/card:opacity-100 transition-opacity" src="assets/icons/help-icon.svg" alt="Ajuda">
+          <!-- Tooltip -->
+          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#1A1A1A] border border-[#484847] text-[10px] text-[#ADAAAA] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+            Soma de todas as unidades produzidas em todos os lotes que foram carregados no sistema.
+            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#484847]"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="flex items-baseline gap-2">
         <span class="text-3xl font-bold text-white">{{ producaoTotalAcumulada() | number:'1.0-0' }}</span>
         <span class="text-[#ADAAAA] text-[10px] font-bold uppercase">Unidades</span>
@@ -34,8 +46,20 @@
     </div>
 
     <div
-      class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px]">
-      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[0.5px] mb-2">Atividade em Tempo Real</span>
+      class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px] relative group">
+      
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[0.5px]">Atividade em Tempo Real</span>
+        <div class="relative inline-block cursor-help">
+          <img class="w-3.5 h-3.5 opacity-40 group-hover/card:opacity-100 transition-opacity" src="assets/icons/help-icon.svg" alt="Ajuda">
+          <!-- Tooltip -->
+          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#1A1A1A] border border-[#484847] text-[10px] text-[#ADAAAA] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+            Percentual baseado na quantidade de lotes atualmente com o status 'Em Produção' em relação ao total de lotes.
+            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#484847]"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="flex items-center gap-4">
         <span class="text-3xl font-bold text-[#DFFF00]">{{ statsCargaSistema() }}%</span>
         <div class="flex gap-1 items-end h-[24px]">

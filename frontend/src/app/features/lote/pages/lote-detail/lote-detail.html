@@ -271,53 +271,139 @@
   <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
     <h3 class="section-title mb-4">Inspeção de Qualidade</h3>
 
-    @if (!lote()!.inspecao) {
-    <div class="flex items-center gap-3 py-4">
-      <div class="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse"></div>
-      <p class="text-[13px] text-[#DFFF00]">Aguardando inspeção</p>
-    </div>
-    } @else {
-    @let insp = lote()!.inspecao!;
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-      <div>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider"
-            [style.color]="getStatusConfig(insp.resultado).cor"
-            [style.background]="getStatusConfig(insp.resultado).corBg"
-            [style.border]="'1px solid ' + getStatusConfig(insp.resultado).corBorda">
-            {{ getStatusConfig(insp.resultado).label }}
-          </div>
-        </div>
-        <div class="flex flex-col gap-3">
-          <div>
-            <span class="info-label">Inspetor</span>
-            <span class="info-value">{{ insp.inspetor.nome }}</span>
-          </div>
-          @if (insp.inspecionado_em) {
-          <div>
-            <span class="info-label">Data da Inspeção</span>
-            <span class="info-value text-[13px]">{{ formatarDataHora(insp.inspecionado_em) }}</span>
-          </div>
-          }
-        </div>
+    <!-- Lote ainda em produção: Mensagem para Inspetor -->
+    @if (lote()!.status === 'em_producao' && authService.usuario()?.perfil === 'inspetor') {
+      <div class="flex items-center gap-3 py-4">
+        <div class="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse"></div>
+        <p class="text-[13px] text-[#DFFF00]">Aguardando finalização da produção para liberar inspeção</p>
       </div>
+    }
+    
+    <!-- Formulário de Inspeção para o Inspetor (quando aguardando_inspecao) -->
+    @else if (!lote()!.inspecao && lote()!.status === 'aguardando_inspecao' && authService.usuario()?.perfil === 'inspetor') {
+      <form [formGroup]="formInspecao" (ngSubmit)="salvarInspecao()" class="mt-4 flex flex-col gap-5 p-5 border border-[#484847]/50 rounded bg-[#0E0E0E]">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+          
+          <!-- Número do Lote (Desabilitado) -->
+          <div class="w-full">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Número do Lote</label>
+            <input type="text" [value]="lote()!.numero_lote" disabled class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-[#ADAAAA] cursor-not-allowed h-[34px]">
+          </div>
 
-      @if (insp.descricao_desvio) {
-      <div class="p-4 rounded border" [style.border-color]="getStatusConfig(insp.resultado).corBorda + '60'"
-        [style.background]="getStatusConfig(insp.resultado).corBg">
-        <div class="flex items-center gap-2 mb-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-            class="w-4 h-4 shrink-0" [style.stroke]="getStatusConfig(insp.resultado).cor">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-          </svg>
-          <span class="text-[10px] font-bold uppercase tracking-wider"
-            [style.color]="getStatusConfig(insp.resultado).cor">Descrição do Desvio</span>
+          <!-- Resultado (obrigatório) -->
+          <div class="w-full">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Resultado *</label>
+            <select formControlName="resultado" class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] cursor-pointer h-[34px]">
+              <option value="" disabled selected>Selecione...</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="aprovado_restricao">Aprovado com Restrição</option>
+              <option value="reprovado">Reprovado</option>
+            </select>
+          </div>
+
+          <!-- Quantidade Reprovada (obrigatório) -->
+          <div class="w-full relative">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 flex justify-between">
+              <span>Qtd Reprovada *</span>
+              <span class="text-[#00E5FF]">UN</span>
+            </label>
+            <input type="number" formControlName="quantidade_repr" min="0" [max]="lote()!.quantidade_prod" class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] h-[34px]">
+            @if (formInspecao.get('quantidade_repr')?.errors?.['max']) {
+              <span class="text-[10px] text-[#fca5a5] mt-0.5 absolute left-0 top-full">Máximo: {{ lote()!.quantidade_prod }}</span>
+            }
+          </div>
+
+          <!-- Inspecionado Em (Desabilitado) -->
+          <div class="w-full">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Inspecionado Em</label>
+            <input type="text" [value]="formatarDataHora(dataAtual)" disabled class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-[#ADAAAA] cursor-not-allowed h-[34px]">
+          </div>
         </div>
-        <p class="text-[13px] text-[#ADAAAA] leading-relaxed">{{ insp.descricao_desvio }}</p>
+
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Descrição de Desvio -->
+          <div class="w-full">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">
+              Descrição de Desvio 
+              @if(formInspecao.value.resultado !== 'aprovado') { <span class="text-[#00E5FF]">*</span> }
+            </label>
+            <textarea formControlName="descricao_desvio" rows="2" class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] resize-none" placeholder="Detalhes de possíveis não conformidades..."></textarea>
+          </div>
+        </div>
+
+        <!-- Taxa de Aprovação Preview & Salvar -->
+        <div class="flex flex-col md:flex-row items-center justify-between border-t border-[#484847]/30 pt-4 mt-2 gap-4">
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider">Prev. Taxa de Aprovação:</span>
+            <span class="text-xl font-bold bg-[#131313] px-3 py-1 rounded border border-[#484847]/50" 
+              [style.color]="taxaAprovacaoPreview() >= 90 ? '#9EEE35' : taxaAprovacaoPreview() >= 70 ? '#DFFF00' : '#fca5a5'">
+              {{ taxaAprovacaoPreview() }}%
+            </span>
+          </div>
+          
+          <button type="submit" [disabled]="formInspecao.invalid || processando()" class="w-full md:w-auto px-6 py-2 bg-[#00E5FF] text-black font-bold uppercase text-[11px] tracking-wider rounded transition-all hover:bg-[#00E5FF]/80 disabled:opacity-50 flex items-center justify-center gap-2">
+            @if(processando()) {
+              <div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+              Processando
+            } @else {
+               Registrar Inspeção
+            }
+          </button>
+        </div>
+      </form>
+    }
+
+    <!-- Aviso Genérico se ainda não tem inspeção (Outras roles) -->
+    @else if (!lote()!.inspecao) {
+      <div class="flex items-center gap-3 py-4">
+        <div class="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse"></div>
+        <p class="text-[13px] text-[#DFFF00]">Aguardando inspeção</p>
       </div>
-      }
-    </div>
+    } 
+    
+    <!-- Relatório de Inspeção (Já Emitido) -->
+    @else {
+      @let insp = lote()!.inspecao!;
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider"
+              [style.color]="getStatusConfig(insp.resultado).cor"
+              [style.background]="getStatusConfig(insp.resultado).corBg"
+              [style.border]="'1px solid ' + getStatusConfig(insp.resultado).corBorda">
+              {{ getStatusConfig(insp.resultado).label }}
+            </div>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div>
+              <span class="info-label">Inspetor</span>
+              <span class="info-value">{{ insp.inspetor.nome }}</span>
+            </div>
+            @if (insp.inspecionado_em) {
+            <div>
+              <span class="info-label">Data da Inspeção</span>
+              <span class="info-value text-[13px]">{{ formatarDataHora(insp.inspecionado_em) }}</span>
+            </div>
+            }
+          </div>
+        </div>
+
+        @if (insp.descricao_desvio) {
+        <div class="p-4 rounded border" [style.border-color]="getStatusConfig(insp.resultado).corBorda + '60'"
+          [style.background]="getStatusConfig(insp.resultado).corBg">
+          <div class="flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              class="w-4 h-4 shrink-0" [style.stroke]="getStatusConfig(insp.resultado).cor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <span class="text-[10px] font-bold uppercase tracking-wider"
+              [style.color]="getStatusConfig(insp.resultado).cor">Descrição do Desvio</span>
+          </div>
+          <p class="text-[13px] text-[#ADAAAA] leading-relaxed">{{ insp.descricao_desvio }}</p>
+        </div>
+        }
+      </div>
     }
   </div>
   }
