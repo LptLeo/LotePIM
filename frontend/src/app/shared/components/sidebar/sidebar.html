@@ -30,6 +30,21 @@
       </svg>
       <span class="hidden text-[14px] leading-[20px] tracking-[1.4px] lg:block transition-all group-[.is-active]:font-bold group-[.is-active]:text-[#00E5FF]">LOTE</span>
     </button>
+    
+    @if (authService.usuario()?.perfil === 'gestor') {
+      <button routerLink="/app/produtos" routerLinkActive="is-active"
+        class="relative group flex justify-center items-center w-full px-4 py-3 rounded-lg cursor-pointer text-[#ADAAAA] hover:bg-[#ADAAAA]/5 md:rounded-none lg:justify-start transition-all overflow-hidden">
+        <!-- Indicador lateral animado -->
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-[#00E5FF] transition-all duration-300 group-hover:h-full group-[.is-active]:h-full shadow-[0_0_10px_#00E5FF]"></div>
+
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="size-6 min-w-[24px] min-h-[24px] lg:mr-4 transition-colors group-[.is-active]:text-[#00E5FF]">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+        </svg>
+        <span class="hidden text-[14px] leading-[20px] tracking-[1.4px] lg:block transition-all group-[.is-active]:font-bold group-[.is-active]:text-[#00E5FF]">PRODUTOS</span>
+      </button>
+    }
     <button routerLink="/app/rastreabilidade" routerLinkActive="is-active"
       class="relative group flex justify-center items-center w-full px-4 py-3 rounded-lg cursor-pointer text-[#ADAAAA] hover:bg-[#ADAAAA]/5 md:rounded-none lg:justify-start transition-all overflow-hidden">
       <!-- Indicador lateral animado -->

@@ -4,6 +4,8 @@ import { Dashboard } from './features/dashboard/dashboard';
 import { Lote } from './features/lote/lote';
 import { LoteDetail } from './features/lote/pages/lote-detail/lote-detail';
 import { LoteNovo } from './features/lote/pages/lote-novo/lote-novo';
+import { Produtos } from './features/produtos/produtos';
+import { ProdutoNovo } from './features/produtos/pages/produto-novo/produto-novo';
 import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade';
 import { Configuracoes } from './features/configuracoes/configuracoes';
 import { authGuard } from './core/guards/auth/auth-guard';
@@ -45,6 +47,14 @@ export const routes: Routes = [
       {
         path: 'lote/:id',
         component: LoteDetail,
+      },
+      {
+        path: 'produtos',
+        component: Produtos,
+      },
+      {
+        path: 'produtos/novo',
+        component: ProdutoNovo,
       },
       {
         path: 'rastreabilidade',

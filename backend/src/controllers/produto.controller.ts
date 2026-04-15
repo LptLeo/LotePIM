@@ -21,10 +21,28 @@ export class ProdutoController {
 
     if (req.query.search) filtros.search = String(req.query.search);
     if (req.query.ativo !== undefined) filtros.ativo = req.query.ativo === 'true';
+    if (req.query.sem_insumos !== undefined) filtros.sem_insumos = req.query.sem_insumos === 'true';
+    if (req.query.sort) filtros.sort = String(req.query.sort);
 
     const produtos = await this.produtoService.getAllProdutos(getRequisitante(req), filtros);
 
     return res.status(200).json(produtos);
+  }
+
+  getMetrics = async (req: Request, res: Response) => {
+    const metrics = await this.produtoService.getMetrics(getRequisitante(req));
+    return res.status(200).json(metrics);
+  }
+
+  getCategorias = async (req: Request, res: Response) => {
+    const categorias = await this.produtoService.getCategoriasAtivas(getRequisitante(req));
+    return res.status(200).json(categorias);
+  }
+
+  sugerirSku = async (req: Request, res: Response) => {
+    const { nome } = req.body;
+    const sugestao = await this.produtoService.sugerirSku(nome, getRequisitante(req));
+    return res.status(200).json(sugestao);
   }
 
   getById = async (req: Request, res: Response) => {

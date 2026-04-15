@@ -1,5 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, type Relation } from "typeorm";
+import { Column, Entity, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, type Relation } from "typeorm";
 import type { Lote } from "./Lote.js";
+import type { Insumo } from "./Insumo.js";
 
 @Entity('produto')
 export class Produto {
@@ -18,10 +19,28 @@ export class Produto {
   @Column({ type: 'text', nullable: false })
   linha!: string
 
+  @Column({ type: 'text', default: '1.0.0' })
+  versao!: string;
+
   @Column({ type: 'boolean', default: true })
   ativo!: boolean
 
-  // Relacionamento 1:N com Lote, um produto pode ter vários lotes
+  @CreateDateColumn()
+  criado_em!: Date;
+
+  @UpdateDateColumn()
+  atualizado_em!: Date;
+
+  // Relacionamento 1:N com Lote
   @OneToMany("Lote", "produto")
   lotes!: Relation<Lote>[];
+
+  // Relacionamento M:N com Insumo (Insumos Padrão)
+  @ManyToMany("Insumo")
+  @JoinTable({
+    name: "produto_insumos_padrao",
+    joinColumn: { name: "produto_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "insumo_id", referencedColumnName: "id" }
+  })
+  insumos_padrao!: Relation<Insumo>[];
 }

@@ -21,6 +21,16 @@ export const criarProdutoSchema = z.object({
     .boolean()
     .optional()
     .default(true),
+    
+  versao: z
+    .string()
+    .optional()
+    .default("1.0.0"),
+
+  insumos_padrao: z
+    .array(z.number().int().positive())
+    .optional()
+    .default([]),
 });
 
 export type CriarProdutoDTO = z.infer<typeof criarProdutoSchema>;

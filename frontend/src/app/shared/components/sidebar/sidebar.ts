@@ -9,7 +9,7 @@ import { AuthService } from "../../../core/services/auth.service";
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private router = inject(Router);
 
   logout(): void {
