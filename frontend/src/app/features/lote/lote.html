@@ -11,55 +11,31 @@
       </p>
     </div>
     @if (authService.usuario()?.perfil === 'operador') {
-      <button (click)="irParaNovoLote()"
-        class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(0,229,255,0.2)]">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-          class="w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Criar Novo Lote
-      </button>
+    <button (click)="irParaNovoLote()"
+      class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(0,229,255,0.2)]">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+        class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Criar Novo Lote
+    </button>
     }
   </header>
 
   <!-- Stats Cards -->
   <div class="flex flex-col md:flex-row gap-4 mb-4">
-    <div
-      class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px] relative group">
-      
-      <div class="flex items-center gap-2 mb-2">
-        <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px]">Produção Total Acumulada</span>
-        <div class="relative inline-block cursor-help">
-          <img class="w-3.5 h-3.5 opacity-40 group-hover/card:opacity-100 transition-opacity" src="assets/icons/help-icon.svg" alt="Ajuda">
-          <!-- Tooltip -->
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#1A1A1A] border border-[#484847] text-[10px] text-[#ADAAAA] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-            Soma de todas as unidades produzidas em todos os lotes que foram carregados no sistema.
-            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#484847]"></div>
-          </div>
-        </div>
-      </div>
-
+    <app-stat-card title="Produção Total Acumulada"
+      tooltip="Soma de todas as unidades produzidas em todos os lotes que foram carregados no sistema."
+      trackingClass="tracking-[1.5px]">
       <div class="flex items-baseline gap-2">
         <span class="text-3xl font-bold text-white">{{ producaoTotalAcumulada() | number:'1.0-0' }}</span>
         <span class="text-[#ADAAAA] text-[10px] font-bold uppercase">Unidades</span>
       </div>
-    </div>
+    </app-stat-card>
 
-    <div
-      class="flex flex-col bg-[#131313] p-6 rounded-lg border border-[#484847]/30 flex-1 justify-center min-h-[100px] relative group">
-      
-      <div class="flex items-center gap-2 mb-2">
-        <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[0.5px]">Atividade em Tempo Real</span>
-        <div class="relative inline-block cursor-help">
-          <img class="w-3.5 h-3.5 opacity-40 group-hover/card:opacity-100 transition-opacity" src="assets/icons/help-icon.svg" alt="Ajuda">
-          <!-- Tooltip -->
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#1A1A1A] border border-[#484847] text-[10px] text-[#ADAAAA] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-            Percentual baseado na quantidade de lotes atualmente com o status 'Em Produção' em relação ao total de lotes.
-            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#484847]"></div>
-          </div>
-        </div>
-      </div>
-
+    <app-stat-card title="Atividade em Tempo Real"
+      tooltip="Percentual baseado na quantidade de lotes atualmente com o status 'Em Produção' em relação ao total de lotes."
+      trackingClass="tracking-[0.5px]">
       <div class="flex items-center gap-4">
         <span class="text-3xl font-bold text-[#DFFF00]">{{ statsCargaSistema() }}%</span>
         <div class="flex gap-1 items-end h-[24px]">
@@ -70,53 +46,16 @@
           <div class="w-1.5 h-4" [style.background]="statsCargaSistema() >= 95 ? '#DFFF00' : '#484847'"></div>
         </div>
       </div>
-    </div>
+    </app-stat-card>
   </div>
 
   <!-- Tabs (Filtros) -->
-  <div class="flex gap-3 overflow-x-auto pb-2 min-w-full scrollbar-hide">
-    <button (click)="alterarFiltro('todos')" [class.bg-[#00E5FF]]="filtroAtivo() === 'todos'"
-      [class.text-black]="filtroAtivo() === 'todos'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'todos'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'todos'" [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'todos'"
-      class="whitespace-nowrap px-6 py-2 rounded-md text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
-      Todos ({{ contagemPorStatus().todos }})
-    </button>
-    <button (click)="alterarFiltro('em_producao')" [class.bg-[#00E5FF]]="filtroAtivo() === 'em_producao'"
-      [class.text-black]="filtroAtivo() === 'em_producao'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'em_producao'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'em_producao'"
-      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'em_producao'"
-      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
-      Em Produção ({{ contagemPorStatus().em_producao }})
-    </button>
-    <button (click)="alterarFiltro('aguardando_inspecao')"
-      [class.bg-[#00E5FF]]="filtroAtivo() === 'aguardando_inspecao'"
-      [class.text-black]="filtroAtivo() === 'aguardando_inspecao'"
-      [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aguardando_inspecao'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aguardando_inspecao'"
-      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aguardando_inspecao'"
-      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
-      Aguardando Inspeção ({{ contagemPorStatus().aguardando_inspecao }})
-    </button>
-    <button (click)="alterarFiltro('aprovado')" [class.bg-[#00E5FF]]="filtroAtivo() === 'aprovado'"
-      [class.text-black]="filtroAtivo() === 'aprovado'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aprovado'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aprovado'" [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aprovado'"
-      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
-      Aprovado ({{ contagemPorStatus().aprovado }})
-    </button>
-    <button (click)="alterarFiltro('aprovado_restricao')" [class.bg-[#00E5FF]]="filtroAtivo() === 'aprovado_restricao'"
-      [class.text-black]="filtroAtivo() === 'aprovado_restricao'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'aprovado_restricao'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'aprovado_restricao'" [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'aprovado_restricao'"
-      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
-      Aprovado com Restrição ({{ contagemPorStatus().aprovado_restricao }})
-    </button>
-    <button (click)="alterarFiltro('reprovado')" [class.bg-[#00E5FF]]="filtroAtivo() === 'reprovado'"
-      [class.text-black]="filtroAtivo() === 'reprovado'" [class.bg-[#1A1A1A]]="filtroAtivo() !== 'reprovado'"
-      [class.text-[#ADAAAA]]="filtroAtivo() !== 'reprovado'"
-      [class.hover:bg-[#484847]/20]="filtroAtivo() !== 'reprovado'"
-      class="whitespace-nowrap px-6 py-2 rounded-md border border-[#484847]/30 text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
-      Reprovado ({{ contagemPorStatus().reprovado }})
-    </button>
-  </div>
+  <app-filter-tabs 
+    [tabs]="filtrosTabs"
+    [filtroAtivo]="filtroAtivo()" 
+    [contagem]="contagemPorStatus()"
+    (filtroMudou)="alterarFiltro($event)">
+  </app-filter-tabs>
 
   <!-- Loading State -->
   @if (carregando()) {
@@ -156,68 +95,8 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
     @for (lote of lotes(); track lote.id) {
-    @let config = getStatusConfig(lote.status);
-    @let progresso = getProgresso(lote);
-
-    <div (click)="irParaDetalhe(lote.id)"
-      class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 hover:border-[#00E5FF]/40 cursor-pointer group">
-
-      <!-- Indicação lateral discreta -->
-      <div class="absolute w-1 h-0 left-0 top-1/2 -translate-y-1/2 transition-all duration-300 group-hover:h-full"
-        [style.background-color]="config.cor">
-      </div>
-
-      <div class="flex justify-between items-start">
-        <div class="flex flex-col">
-          <h3 class="text-xl font-bold text-white tracking-wider uppercase truncate max-w-[200px]"
-            [title]="lote.numero_lote">
-            #{{ lote.numero_lote }}
-          </h3>
-          <span class="text-[11px] uppercase tracking-wider mt-0.5 truncate max-w-[180px]" [style.color]="config.cor">
-            {{ lote.produto.nome }}
-          </span>
-        </div>
-
-        <div class="px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 border"
-          [style.color]="config.cor" [style.border-color]="config.corBorda" [style.background]="config.corBg">
-          {{ config.label }}
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 mt-2 gap-4">
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Responsável</span>
-          <span class="text-white text-[12px] uppercase truncate">{{ lote.operador.nome }}</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Referência</span>
-          <span class="text-white text-[12px] uppercase">{{ formatarDataHora(lote.aberto_em) }}</span>
-        </div>
-        <div class="flex flex-col gap-1 col-span-2 mt-1">
-          <span class="text-[10px] text-[#6B7280] uppercase tracking-wider font-bold">Rastreabilidade Insumos</span>
-          <span class="text-[12px] uppercase font-bold" [style.color]="config.cor">
-            {{ (lote.insumos?.length || 0) }} itens vinculados
-          </span>
-        </div>
-      </div>
-
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-          <span [style.color]="config.cor">{{ lote.status === 'em_producao' ? 'Progresso' : 'Integridade' }}</span>
-          <span [style.color]="config.cor">{{ progresso }}%</span>
-        </div>
-        <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
-          <div class="h-full rounded-full transition-all duration-1000" [style.width.%]="progresso"
-            [style.background-color]="config.cor" [style.box-shadow]="'0 0 8px ' + config.cor">
-          </div>
-        </div>
-      </div>
-
-      <!-- Overlay hover visual -->
-      <div
-        class="absolute inset-0 bg-linear-to-tr from-[#00E5FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-      </div>
-    </div>
+    <app-lote-card [lote]="lote" (cardClick)="irParaDetalhe($event)">
+    </app-lote-card>
     }
 
   </div>
