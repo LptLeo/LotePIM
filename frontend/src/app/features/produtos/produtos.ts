@@ -4,11 +4,14 @@ import { Router, RouterLink } from '@angular/router';
 import { ProdutosService, ProdutoMetrics } from './services/produtos.service';
 import { finalize, interval, Subscription, startWith } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { ProdutoFilterButtonComponent } from './components/produto-filter-button/produto-filter-button';
+import { ProdutoCardComponent } from './components/produto-card/produto-card';
+import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 
 @Component({
   selector: 'app-produtos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ProdutoFilterButtonComponent, ProdutoCardComponent, StatCardComponent],
   templateUrl: './produtos.html',
 })
 export class Produtos implements OnInit, OnDestroy {
