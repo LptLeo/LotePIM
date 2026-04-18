@@ -6,6 +6,9 @@ import { PerfilUsuario } from "../entities/Usuario.js";
 const rastreabilidadeRoutes = Router();
 const rastreabilidadeController = new RastreabilidadeController();
 
-rastreabilidadeRoutes.get("/", roleGuard(PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR), rastreabilidadeController.consultar);
+const guard = roleGuard(PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR);
+
+rastreabilidadeRoutes.get("/autocomplete", guard, rastreabilidadeController.autocomplete);
+rastreabilidadeRoutes.get("/", guard, rastreabilidadeController.consultar);
 
 export default rastreabilidadeRoutes;

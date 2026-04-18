@@ -1,7 +1,8 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { RastreabilidadeService } from "../services/rastreabilidade.service.js";
 import { queryRastreabilidadeSchema } from "../dto/rastreabilidade.dto.js";
 import { getRequisitante } from "../utils/auth.utils.js";
+import { z } from "zod";
 
 export class RastreabilidadeController {
   private rastreabilidadeService: RastreabilidadeService;
@@ -10,11 +11,23 @@ export class RastreabilidadeController {
     this.rastreabilidadeService = new RastreabilidadeService();
   }
 
-  consultar = async (req: Request, res: Response) => {
-    const { termo } = queryRastreabilidadeSchema.parse(req.query);
+  autocomplete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { q } = z.object({ q: z.string().min(2) }).parse(req.query);
+      const resultado = await this.rastreabilidadeService.autocomplete(q, getRequisitante(req));
+      return res.json(resultado);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-    const resultado = await this.rastreabilidadeService.consultar(termo, getRequisitante(req));
-
-    return res.json(resultado);
+  consultar = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { termo } = queryRastreabilidadeSchema.parse(req.query);
+      const resultado = await this.rastreabilidadeService.consultar(termo, getRequisitante(req));
+      return res.json(resultado);
+    } catch (error) {
+      next(error);
+    }
   };
 }

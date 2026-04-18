@@ -1,1 +1,316 @@
-<p>rastreabilidade works!</p>
+<div class="flex flex-col w-full min-h-screen text-white font-sans bg-[#0A0A0A] px-4 py-8 md:px-12">
+
+  <!-- ── MODO BUSCA (Omnibox) ── -->
+  @if (!modoResultado()) {
+  <div @searchBar class="flex flex-col items-center justify-center flex-1 min-h-[80vh] gap-8">
+
+    <!-- Header -->
+    <div class="flex flex-col items-center gap-3 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-center mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#00E5FF" class="w-8 h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253" />
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-white tracking-tight">Consulta de Rastreabilidade</h1>
+      <p class="text-[#6B7280] text-sm max-w-md">Digite o número de um lote de produção ou de um insumo para visualizar sua árvore de rastreabilidade.</p>
+    </div>
+
+    <!-- Omnibox -->
+    <div class="relative w-full max-w-2xl">
+      <div class="relative flex items-center bg-[#131313] border-2 border-[#484847]/60 rounded-2xl px-5 py-4 gap-4 transition-all focus-within:border-[#00E5FF]/60 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.08)]">
+        @if (buscandoSugestoes()) {
+          <div class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin flex-shrink-0"></div>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#6B7280" class="w-5 h-5 flex-shrink-0">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+        }
+        <input
+          type="text"
+          [value]="termoBusca()"
+          (input)="onInput($event)"
+          (focus)="onFocus()"
+          (blur)="fecharDropdown()"
+          (keyup.enter)="buscar()"
+          placeholder="LOT-20250418-001 ou INS-20250418-001..."
+          class="flex-1 bg-transparent text-white text-base focus:outline-none placeholder:text-[#484847]"
+          autocomplete="off"
+        >
+        @if (termoBusca()) {
+          <button (click)="novaBusca()" class="text-[#484847] hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+        <button (click)="buscar()"
+          class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[11px] font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] flex-shrink-0">
+          Buscar
+        </button>
+      </div>
+
+      <!-- Dropdown Autocomplete -->
+      @if (mostrarDropdown() && (sugestoes().length > 0 || buscandoSugestoes())) {
+      <div @fadeSlideDown class="absolute top-full left-0 right-0 mt-2 bg-[#131313] border border-[#484847]/60 rounded-xl shadow-2xl overflow-hidden z-50">
+        
+        @if (buscandoSugestoes()) {
+          <div class="flex items-center justify-center py-6 gap-3">
+            <div class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"></div>
+            <span class="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Buscando...</span>
+          </div>
+        } @else if (sugestoes().length > 0) {
+          @for (s of sugestoes(); track s.id) {
+          <button (click)="selecionarSugestao(s)"
+            class="w-full flex items-center gap-4 px-5 py-3 hover:bg-[#1A1A1A] transition-colors text-left border-b border-[#484847]/20 last:border-0">
+            <!-- Badge tipo -->
+            @if (s.tipo === 'LOTE_PRODUTO') {
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[#00E5FF]/40 text-[#00E5FF] bg-[rgba(0,229,255,0.07)] flex-shrink-0">PROD</span>
+            } @else {
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-orange-500/40 text-orange-400 bg-orange-500/07 flex-shrink-0">INSUMO</span>
+            }
+            <div class="flex flex-col min-w-0">
+              <span class="text-sm font-mono font-bold text-white">{{ s.texto_exibicao }}</span>
+              <span class="text-[11px] text-[#6B7280] truncate">{{ s.subtexto }}</span>
+            </div>
+            @if (s.status) {
+              <span class="ml-auto text-[9px] font-bold uppercase px-2 py-0.5 rounded flex-shrink-0"
+                [style.color]="STATUS_CONFIG[s.status].cor"
+                [style.background]="STATUS_CONFIG[s.status].corBg"
+                [style.border-color]="STATUS_CONFIG[s.status].corBorda"
+                style="border-width:1px;border-style:solid">
+                {{ STATUS_CONFIG[s.status].label }}
+              </span>
+            }
+          </button>
+          }
+        } @else {
+          <div class="flex items-center justify-center py-6">
+            <span class="text-[#6B7280] text-xs font-semibold">Nenhuma sugestão encontrada.</span>
+          </div>
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Erro no modo busca -->
+    @if (erro()) {
+      <div @fadeScale class="bg-red-950/20 border border-red-500/30 rounded-xl px-6 py-4 max-w-2xl w-full text-center">
+        <p class="text-red-400 text-sm font-semibold">{{ erro() }}</p>
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (buscando()) {
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-8 h-8 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"></div>
+        <span class="text-[#6B7280] text-xs uppercase tracking-wider">Rastreando...</span>
+      </div>
+    }
+
+    <!-- Dicas -->
+    <div class="flex gap-6 flex-wrap justify-center">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[#00E5FF]"></span>
+        <span class="text-[11px] text-[#6B7280]">Lotes de produção: <span class="text-[#ADAAAA] font-mono">LOT-AAAAMMDD-NNN</span></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-orange-400"></span>
+        <span class="text-[11px] text-[#6B7280]">Lotes de insumo: <span class="text-[#ADAAAA] font-mono">INS-AAAAMMDD-NNN</span></span>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ── MODO RESULTADO (Árvore) ── -->
+  @if (modoResultado() && resultado()) {
+  <div class="flex flex-col gap-8 max-w-6xl mx-auto w-full">
+
+    <!-- Topbar -->
+    <div class="flex items-center gap-4">
+      <button (click)="novaBusca()"
+        class="flex items-center gap-2 px-4 py-2 bg-[#131313] border border-[#484847]/40 rounded-lg text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/40 transition-all text-[11px] font-bold uppercase tracking-wider">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        Nova Busca
+      </button>
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-[#131313] border border-[#484847]/30 rounded-lg">
+        <span class="text-[#6B7280] text-[10px] uppercase font-bold tracking-wider">Resultado para</span>
+        <span class="text-white font-mono text-[11px] font-bold">{{ termoBusca() }}</span>
+      </div>
+    </div>
+
+    <!-- ─── CENÁRIO A: Lote de Produto ─── -->
+    @if (resultadoLote) {
+    <div class="flex flex-col items-center gap-0">
+
+      <!-- Nó Raiz: Lote de Produto -->
+      <div @treeRoot class="w-full max-w-2xl">
+        <div class="node-glow bg-[#131313] border-2 border-[#00E5FF]/60 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,229,255,0.1)] transition-all">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#00E5FF" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-[10px] font-bold uppercase tracking-[1.5px] text-[#00E5FF]">Lote de Produção · Nó Raiz</div>
+                <div class="text-xl font-bold text-white font-mono">{{ resultadoLote.numero_lote }}</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-lg border"
+              [style.color]="STATUS_CONFIG[resultadoLote.status].cor"
+              [style.background]="STATUS_CONFIG[resultadoLote.status].corBg"
+              [style.border-color]="STATUS_CONFIG[resultadoLote.status].corBorda">
+              {{ STATUS_CONFIG[resultadoLote.status].label }}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="flex flex-col">
+              <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider">Produto</span>
+              <span class="text-sm font-medium text-white mt-0.5">{{ resultadoLote.produto.nome }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider">Data Produção</span>
+              <span class="text-sm font-medium text-white mt-0.5">{{ formatarData(resultadoLote.data_producao) }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider">Operador</span>
+              <span class="text-sm font-medium text-white mt-0.5">{{ resultadoLote.operador.nome }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider">Qtd. Planejada</span>
+              <span class="text-sm font-bold text-[#00E5FF] mt-0.5">{{ resultadoLote.quantidade_planejada }} un.</span>
+            </div>
+          </div>
+          @if (resultadoLote.inspecao) {
+          <div class="mt-4 pt-4 border-t border-[#484847]/30 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ADAAAA" class="w-4 h-4 flex-shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
+            </svg>
+            <span class="text-[11px] text-[#ADAAAA]">Inspeção por <span class="text-white font-medium">{{ resultadoLote.inspecao.inspetor.nome }}</span> · Reprovadas: <span class="text-red-400 font-bold">{{ resultadoLote.inspecao.quantidade_reprovada }}</span></span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Conector vertical -->
+      @if (resultadoLote.consumos.length > 0) {
+      <div @lineGrow class="w-px h-12 bg-gradient-to-b from-[#00E5FF]/40 to-[#00E5FF]/10"></div>
+
+      <!-- Label -->
+      <div @fadeScale class="text-[9px] font-bold uppercase tracking-[2px] text-[#00E5FF]/60 mb-3">
+        {{ resultadoLote.consumos.length }} Insumo(s) Consumido(s)
+      </div>
+
+      <!-- Nós filhos: Insumos -->
+      <div @treeChildren class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+        @for (consumo of resultadoLote.consumos; track consumo.id) {
+        <div class="node-glow bg-[#131313] border border-[#484847]/50 hover:border-[#00E5FF]/40 rounded-xl p-5 transition-all relative">
+          <div class="absolute -top-3 left-4 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#0A0A0A] border border-[#484847]/40 text-[#6B7280]">
+            Insumo
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ADAAAA" class="w-4 h-4 flex-shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+            </svg>
+            <span class="text-sm font-bold text-white">{{ consumo.insumoEstoque.materiaPrima.nome }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Lote Interno</span>
+              <span class="font-mono text-[11px] text-[#00E5FF] font-bold">{{ consumo.insumoEstoque.numero_lote_interno }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Lote Fornecedor</span>
+              <span class="font-mono text-[11px] text-[#ADAAAA]">{{ consumo.insumoEstoque.numero_lote_fornecedor }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Fornecedor</span>
+              <span class="text-[11px] text-[#ADAAAA]">{{ consumo.insumoEstoque.fornecedor }}</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-[#484847]/20">
+              <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Qtd. Consumida</span>
+              <span class="text-sm font-bold text-white">{{ consumo.quantidade_consumida }} <span class="text-[#6B7280] text-[9px]">{{ consumo.insumoEstoque.materiaPrima.unidade_medida }}</span></span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ─── CENÁRIO B: Insumo (Recall) ─── -->
+    @if (resultadoInsumos) {
+    <div class="flex flex-col items-center gap-0">
+
+      <!-- Nó Raiz: Insumo -->
+      <div @treeRoot class="w-full max-w-2xl">
+        <div class="node-glow-red bg-[#0A0A0A] border-2 border-red-500/60 rounded-2xl p-6 shadow-[0_0_30px_rgba(220,38,38,0.12)] transition-all">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fca5a5" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-[1.5px] text-red-400">Alerta de Recall · Insumo Rastreado</div>
+              <div class="text-xl font-bold text-white font-mono">{{ termoBusca() }}</div>
+            </div>
+          </div>
+          <p class="text-[12px] text-[#ADAAAA]">
+            Este insumo foi utilizado em <span class="text-white font-bold">{{ resultadoInsumos.length }}</span> lote(s) de produção abaixo.
+          </p>
+        </div>
+      </div>
+
+      <!-- Conector -->
+      <div @lineGrow class="w-px h-12 bg-gradient-to-b from-red-500/40 to-red-500/10"></div>
+      <div @fadeScale class="text-[9px] font-bold uppercase tracking-[2px] text-red-400/60 mb-3">
+        Lotes Afetados
+      </div>
+
+      <!-- Lotes afetados -->
+      <div @treeChildren class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+        @for (lote of resultadoInsumos; track lote.numero_lote) {
+        <div class="node-glow-red bg-[#131313] border border-red-500/30 hover:border-red-500/60 rounded-xl p-5 transition-all">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <div class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Lote de Produção</div>
+              <div class="font-mono font-bold text-white text-sm">{{ lote.numero_lote }}</div>
+            </div>
+            <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded border"
+              [style.color]="STATUS_CONFIG[lote.status].cor"
+              [style.background]="STATUS_CONFIG[lote.status].corBg"
+              [style.border-color]="STATUS_CONFIG[lote.status].corBorda">
+              {{ STATUS_CONFIG[lote.status].label }}
+            </span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Produto</span>
+              <span class="text-[11px] text-white font-medium">{{ lote.produto }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Data Produção</span>
+              <span class="text-[11px] text-[#ADAAAA]">{{ formatarData(lote.data_producao) }}</span>
+            </div>
+            @for (ins of lote.insumos_correspondentes; track ins.lote_interno) {
+            <div class="flex justify-between items-center pt-2 border-t border-red-500/10">
+              <span class="text-[9px] text-red-400/70 uppercase font-bold tracking-wider">Qtd. Usada</span>
+              <span class="text-sm font-bold text-red-300">{{ ins.quantidade }} <span class="text-[#6B7280] text-[9px]">un.</span></span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+  </div>
+  }
+
+</div>
