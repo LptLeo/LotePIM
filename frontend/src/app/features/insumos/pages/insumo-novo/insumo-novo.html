@@ -1,0 +1,102 @@
+<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-8 p-4 md:p-8">
+    
+  <!-- Header / Nav -->
+  <div class="flex items-center gap-4">
+    <button (click)="voltarParaLista()" 
+      class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+    </button>
+    <div class="flex flex-col">
+      <h1 class="text-2xl font-bold text-white tracking-tight">Novo Lote de Insumo</h1>
+      <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Entrada de Material no Estoque</span>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="bg-[#131313] border border-[#484847]/30 rounded-lg shadow-2xl overflow-hidden p-6 md:p-8">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+      
+      <!-- Seção 1: Identificação (Catálogo) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-1.5 font-mono md:col-span-2">
+          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]">Tipo de Matéria-Prima (Catálogo) *</label>
+          <select formControlName="materia_prima_id"
+            class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer appearance-none">
+            <option [value]="0" disabled selected>Selecione a matéria-prima do catálogo...</option>
+            @for (mp of materiasPrimasExistentes(); track mp.id) {
+              <option [value]="mp.id">{{ mp.sku_interno }} - {{ mp.nome }} ({{ mp.unidade_medida }})</option>
+            }
+          </select>
+          <span class="text-[9px] text-[#6B7280]">Não encontrou? <a class="text-[#00E5FF] cursor-pointer hover:underline cursor-not-allowed">Cadastrar nova matéria-prima no catálogo (em breve)</a></span>
+        </div>
+      </div>
+
+      <!-- Seção 2: Origem e Rastreabilidade -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]">Fornecedor *</label>
+          <input type="text" formControlName="fornecedor" placeholder="Nome da Empresa"
+            class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]">Lote de Origem (Fabricante) *</label>
+          <input type="text" formControlName="lote_fabricante" placeholder="Código na Etiqueta"
+            class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
+      </div>
+
+      <!-- Seção 3: Quantidade e Unidade -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]">Quantidade Inicial Recebida *</label>
+          <div class="flex items-center gap-2 relative">
+            <input type="number" formControlName="quantidade_inicial" step="0.01"
+              class="w-full bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm focus:outline-none focus:border-[#00E5FF] transition-colors">
+          </div>
+        </div>
+      </div>
+
+      <div class="h-px bg-[#484847]/20 my-2"></div>
+
+      <!-- Seção 4: Datas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]">Data de Fabricação *</label>
+          <input type="date" formControlName="data_fabricacao"
+            class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors [color-scheme:dark]">
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]">Data de Validade *</label>
+          <input type="date" formControlName="data_validade"
+            class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors [color-scheme:dark]">
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      @if (erro()) {
+        <div class="bg-red-500/10 border border-red-500/50 p-4 rounded flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f87171" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <span class="text-red-400 text-xs font-bold">{{ erro() }}</span>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-4 mt-4">
+        <button type="button" (click)="voltarParaLista()"
+          class="px-6 py-2.5 border border-[#484847]/50 text-[#ADAAAA] text-[11px] font-bold uppercase tracking-wider hover:bg-[#1A1A1A] transition-all rounded">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="form.invalid || salvando()"
+          class="px-8 py-2.5 bg-[#00E5FF] disabled:bg-[#484847] disabled:text-[#6B7280] text-black text-[11px] font-bold uppercase tracking-wider rounded transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] hover:shadow-[0_0_25px_rgba(0,229,255,0.4)]">
+          {{ salvando() ? 'Salvando...' : 'Salvar Insumo' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

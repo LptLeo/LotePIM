@@ -8,6 +8,8 @@ import { Produtos } from './features/produtos/produtos';
 import { ProdutoNovo } from './features/produtos/pages/produto-novo/produto-novo';
 import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade';
 import { Configuracoes } from './features/configuracoes/configuracoes';
+import { Insumos } from './features/insumos/insumos';
+import { InsumoNovo } from './features/insumos/pages/insumo-novo/insumo-novo';
 import { authGuard } from './core/guards/auth/auth-guard';
 import { MainLayout } from './core/layouts/main-layout/main-layout';
 
@@ -57,8 +59,20 @@ export const routes: Routes = [
         component: ProdutoNovo,
       },
       {
+        path: 'produtos/:id',
+        loadComponent: () => import('./features/produtos/pages/produto-detail/produto-detail').then(c => c.ProdutoDetail),
+      },
+      {
         path: 'rastreabilidade',
         component: Rastreabilidade,
+      },
+      {
+        path: 'insumos',
+        component: Insumos,
+      },
+      {
+        path: 'insumos/novo',
+        component: InsumoNovo,
       },
       {
         path: 'configuracoes',

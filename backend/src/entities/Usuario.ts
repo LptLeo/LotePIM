@@ -1,11 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, type Relation } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+  type Relation,
+} from "typeorm";
+
 import type { Lote } from "./Lote.js";
-import type { InspecaoLote } from "./InspecaoLote.js";
+import type { InsumoEstoque } from "./InsumoEstoque.js";
+import type { Inspecao } from "./Inspecao.js";
 
 export enum PerfilUsuario {
   OPERADOR = "operador",
   INSPETOR = "inspetor",
-  GESTOR = "gestor"
+  GESTOR = "gestor",
 }
 
 @Entity("usuario")
@@ -13,33 +22,35 @@ export class Usuario {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: "text", nullable: false })
   nome!: string;
 
-  // Email e senha serão usados tanto para registro quanto para login
-  @Column({ type: 'text', unique: true, nullable: false })
+  @Column({ type: "text", unique: true, nullable: false })
   email!: string;
 
-  @Column({ type: 'text', nullable: false, select: false })
+  @Column({ type: "text", nullable: false, select: false })
   senha_hash!: string;
 
   @Column({
     type: "enum",
     enum: PerfilUsuario,
     default: PerfilUsuario.OPERADOR,
-    nullable: false
+    nullable: false,
   })
   perfil!: PerfilUsuario;
 
-  @Column({ type: 'boolean', default: true, nullable: false })
+  @Column({ type: "boolean", default: true, nullable: false })
   ativo!: boolean;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   criado_em!: Date;
 
   @OneToMany("Lote", "operador")
   lotes!: Relation<Lote>[];
 
-  @OneToMany("InspecaoLote", "inspetor")
-  inspecoes!: Relation<InspecaoLote>[];
+  @OneToMany("InsumoEstoque", "operador")
+  entradas_estoque!: Relation<InsumoEstoque>[];
+
+  @OneToMany("Inspecao", "inspetor")
+  inspecoes!: Relation<Inspecao>[];
 }

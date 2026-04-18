@@ -1,0 +1,472 @@
+<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-8 p-4 md:p-8 bg-[#0A0A0A]">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
+    <div class="flex flex-col mb-4 md:mb-0">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-white tracking-[-0.5px]">Gestão de Insumos</h1>
+      </div>
+      <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Matéria-Prima e Lotes
+        Internos</span>
+    </div>
+
+    <div class="flex items-center gap-4 w-full md:w-auto">
+      <div class="flex items-center bg-[#131313] border border-[#484847]/30 rounded-lg px-4 py-2 w-full md:w-64">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-4 h-4 text-[#ADAAAA] mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input type="text" [value]="termoPesquisa()" (input)="onSearch($event)" placeholder="Buscar..."
+          class="bg-transparent text-[11px] text-white focus:outline-none w-full placeholder:text-[#6B7280]">
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-8 border-b border-[#484847]/30">
+    <button (click)="setAba('estoque')"
+      class="pb-2 px-2 text-[11px] font-bold uppercase tracking-[1px] transition-colors relative"
+      [class.text-[#00E5FF]]="abaAtiva() === 'estoque'" [class.text-[#6B7280]]="abaAtiva() !== 'estoque'">
+      Estoque Físico
+      @if (abaAtiva() === 'estoque') {
+      <div class="absolute -bottom-px left-0 w-full h-0.5 bg-[#00E5FF] shadow-[0_0_5px_rgba(0,229,255,0.5)]"></div>
+      }
+    </button>
+    <button (click)="setAba('catalogo')"
+      class="pb-2 px-2 text-[11px] font-bold uppercase tracking-[1px] transition-colors relative"
+      [class.text-[#00E5FF]]="abaAtiva() === 'catalogo'" [class.text-[#6B7280]]="abaAtiva() !== 'catalogo'">
+      Catálogo (Tipos de MP)
+      @if (abaAtiva() === 'catalogo') {
+      <div class="absolute -bottom-px left-0 w-full h-0.5 bg-[#00E5FF] shadow-[0_0_5px_rgba(0,229,255,0.5)]"></div>
+      }
+    </button>
+  </div>
+
+  @if (abaAtiva() === 'estoque') {
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-white text-sm uppercase tracking-wider font-bold">Resumo do Estoque</h2>
+    <button (click)="abrirModalEstoque()"
+      class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
+      + Registrar Entrada
+    </button>
+  </div>
+
+  <!-- Metric Cards Estoque -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="flex flex-col bg-[#131313] p-5 rounded-lg border border-[#484847]/30">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px] mb-2">Total de Lotes</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl font-bold text-white">{{ totalRegistros() }}</span>
+        <span class="text-[#ADAAAA] text-[9px] uppercase font-bold">Lotes</span>
+      </div>
+    </div>
+    <div class="flex flex-col bg-[#131313] p-5 rounded-lg border border-[#484847]/30">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px] mb-2">Com Saldo</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl font-bold text-[#00E5FF]">{{ totalComSaldo() }}</span>
+        <span class="text-[#ADAAAA] text-[9px] uppercase font-bold">Lotes</span>
+      </div>
+    </div>
+    <div class="flex flex-col bg-[#131313] p-5 rounded-lg border border-[#484847]/30">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px] mb-2">Esgotados</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl font-bold text-[#dc2626]">{{ totalEsgotados() }}</span>
+        <span class="text-[#ADAAAA] text-[9px] uppercase font-bold">Lotes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content / Listing Estoque -->
+  @if (carregando()) {
+  <div class="flex justify-center items-center py-20 w-full col-span-full">
+    <div class="w-8 h-8 border-4 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"></div>
+  </div>
+  } @else if (insumos().length === 0) {
+  <div
+    class="flex flex-col justify-center items-center py-20 w-full col-span-full border border-dashed border-[#484847]/50 rounded-lg bg-[#131313]">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ADAAAA"
+      class="w-16 h-16 mb-4">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+    </svg>
+    <span class="text-[#ADAAAA] text-sm uppercase tracking-wider font-bold">Nenhum Lote em Estoque</span>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (item of insumos(); track item.id) {
+    <div
+      class="bg-[#131313] border border-[#484847]/30 flex flex-col rounded-lg overflow-hidden hover:border-[#00E5FF]/40 transition-all group shadow-lg">
+      <div class="bg-[#1A1A1A] p-4 flex justify-between items-start border-b border-[#484847]/30">
+        <div class="flex flex-col">
+          <span class="text-white font-bold text-base leading-tight">{{ item.materiaPrima.nome }}</span>
+          <span class="text-[#6B7280] text-[10px] font-bold font-mono mt-1">SKU: {{ item.materiaPrima.sku_interno
+            }}</span>
+        </div>
+
+        <div class="shrink-0 ml-2">
+          @if (item.quantidade_atual > 0) {
+          <span
+            class="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#00E5FF] text-[#00E5FF] bg-[rgba(0,229,255,0.1)]">ESTOQUE</span>
+          } @else {
+          <span
+            class="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#dc2626] text-[#fca5a5] bg-[rgba(69,10,10,0.6)]">ESGOTADO</span>
+          }
+        </div>
+      </div>
+
+      <div class="p-4 flex flex-col gap-3 flex-1">
+        <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+          <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Fornecedor</span>
+          <span class="text-white text-[11px] font-medium truncate max-w-[150px]" [title]="item.fornecedor">{{
+            item.fornecedor }}</span>
+        </div>
+        <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+          <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Lote Fornecedor</span>
+          <span class="text-[#00E5FF] text-[11px] font-mono font-bold">{{ item.numero_lote_fornecedor }}</span>
+        </div>
+        <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+          <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Lote Interno</span>
+          <span class="text-[11px] font-mono font-bold text-[#ADAAAA]">{{ item.numero_lote_interno }}</span>
+        </div>
+        <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+          <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Saldo</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-white text-sm font-bold">{{ item.quantidade_atual }} / {{ item.quantidade_inicial
+              }}</span>
+            <span class="text-[#6B7280] text-[9px] font-bold uppercase">{{ item.materiaPrima.unidade_medida }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-auto border-t border-[#484847]/30 p-4 bg-[#0A0A0A] flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Validade</span>
+          <div class="flex items-center gap-1.5">
+            @if (isVencido(item.data_validade)) {
+            <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+            <span class="text-[11px] font-bold text-red-400">{{ formatarData(item.data_validade) }}</span>
+            } @else if (isVencendo(item.data_validade)) {
+            <span class="w-1.5 h-1.5 bg-[#DFFF00] rounded-full animate-pulse"></span>
+            <span class="text-[11px] font-bold text-[#DFFF00]">{{ formatarData(item.data_validade) }}</span>
+            } @else {
+            <span class="text-[11px] font-bold text-[#ADAAAA]">{{ formatarData(item.data_validade) }}</span>
+            }
+          </div>
+        </div>
+        <div class="flex justify-between items-center border-t border-[#484847]/10 pt-2">
+          <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Recebimento</span>
+          <span class="text-[10px] text-[#6B7280]">{{ formatarData(item.recebido_em) }}</span>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+  }
+
+  @if (abaAtiva() === 'catalogo') {
+  <div class="flex justify-between items-center mb-4">
+    <div class="flex flex-col bg-[#131313] p-4 rounded-lg border border-[#484847]/30 min-w-[200px]">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px] mb-1">Tipos Cadastrados</span>
+      <span class="text-xl font-bold text-white">{{ totalCatalogo() }} <span
+          class="text-[#6B7280] text-[10px] uppercase font-bold">Matérias-Primas</span></span>
+    </div>
+    <button (click)="abrirModalNovaMp()"
+      class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
+      + Nova Matéria-Prima
+    </button>
+  </div>
+
+  @if (carregando()) {
+  <div class="flex justify-center items-center py-20 w-full">
+    <div class="w-8 h-8 border-4 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"></div>
+  </div>
+  } @else if (catalogo().length === 0) {
+  <div
+    class="flex flex-col justify-center items-center py-20 w-full border border-dashed border-[#484847]/50 rounded-lg bg-[#131313]">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ADAAAA"
+      class="w-16 h-16 mb-4">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+    </svg>
+    <span class="text-[#ADAAAA] text-sm uppercase tracking-wider font-bold">Nenhuma Matéria-Prima Encontrada</span>
+  </div>
+  } @else {
+  <div class="bg-[#131313] border border-[#484847]/30 rounded-lg overflow-hidden">
+    <table class="w-full text-left">
+      <thead>
+        <tr class="bg-[#1A1A1A] border-b border-[#484847]/30">
+          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Nome da MP</th>
+          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">SKU Interno</th>
+          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Categoria</th>
+          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Unidade Medida
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (mp of catalogo(); track mp.id) {
+        <tr class="border-b border-[#1e1e1e] hover:bg-[#1a1a1a] transition-colors">
+          <td class="py-4 px-4 text-[13px] font-medium text-white">{{ mp.nome }}</td>
+          <td class="py-4 px-4">
+            <span
+              class="font-mono text-[11px] text-[#00E5FF] bg-[rgba(0,229,255,0.05)] px-2 py-0.5 rounded border border-[#00E5FF]/20">
+              {{ mp.sku_interno }}
+            </span>
+          </td>
+          <td class="py-4 px-4 text-[12px] text-[#ADAAAA]">{{ mp.categoria }}</td>
+          <td class="py-4 px-4 text-right">
+            <span class="text-[11px] font-bold text-[#6B7280] bg-[#1a1a1a] px-2 py-1 rounded">{{ mp.unidade_medida
+              }}</span>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+  }
+</div>
+
+<!-- Modal Nova Matéria-Prima -->
+@if (modalAberto()) {
+<div class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
+  <div
+    class="w-full max-w-md bg-[#0A0A0A] h-full border-l border-[#484847]/40 shadow-2xl flex flex-col animate-slide-in-right">
+
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#484847]/40 bg-[#131313]">
+      <div>
+        <h2 class="text-lg font-bold text-white tracking-tight">Nova Matéria-Prima</h2>
+        <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Adicionar ao Catálogo</span>
+      </div>
+      <button (click)="fecharModalNovaMp()"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-white hover:bg-red-900/20 hover:border-red-500/50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+      @if (erroMp()) {
+      <div class="bg-red-950/20 border border-[#dc2626]/40 p-4 rounded-md mb-6">
+        <p class="text-[#fca5a5] text-[12px] font-semibold whitespace-pre-line">{{ erroMp() }}</p>
+      </div>
+      }
+
+      <form [formGroup]="formMp" class="flex flex-col gap-6">
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Nome da Matéria-Prima *</label>
+          <input type="text" formControlName="nome" placeholder="Ex: Painel LED 14 polegadas"
+            class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">SKU (Auto)</label>
+          <input type="text" [value]="skuPreviewMp()" disabled
+            class="w-full bg-[#1A1A1A] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#00E5FF] font-mono cursor-not-allowed focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Categoria *</label>
+          <input type="text" formControlName="categoria" list="categoriasMpDatalist"
+            placeholder="Ex: Componentes Eletrônicos"
+            class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+          <datalist id="categoriasMpDatalist">
+            @for (cat of categoriasMp(); track cat) {
+            <option [value]="cat"></option>
+            }
+          </datalist>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Unidade de Medida *</label>
+          <div class="relative">
+            <select formControlName="unidade_medida"
+              class="w-full bg-[#131313] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer transition-colors">
+              <option value="UN">Unidade (UN)</option>
+              <option value="KG">Quilograma (KG)</option>
+              <option value="L">Litro (L)</option>
+              <option value="M">Metro (M)</option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor"
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-6 border-t border-[#484847]/40 bg-[#131313] flex justify-end gap-3">
+      <button type="button" (click)="fecharModalNovaMp()" [disabled]="salvandoMp()"
+        class="px-5 py-2.5 border border-[#484847] text-[#ADAAAA] text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#1A1A1A] disabled:opacity-50">
+        Cancelar
+      </button>
+      <button type="button" (click)="salvarNovaMp()" [disabled]="formMp.invalid || salvandoMp()"
+        class="px-5 py-2.5 bg-[#00E5FF] text-black text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#00cce6] disabled:opacity-50 flex items-center gap-2 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
+        @if (salvandoMp()) {
+        <div class="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+        Salvando...
+        } @else {
+        Salvar Matéria-Prima
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Modal Registrar Entrada de Estoque -->
+@if (modalEstoqueAberto()) {
+<div class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
+  <div
+    class="w-full max-w-lg bg-[#0A0A0A] h-full border-l border-[#484847]/40 shadow-2xl flex flex-col animate-slide-in-right">
+
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#484847]/40 bg-[#131313]">
+      <div>
+        <h2 class="text-lg font-bold text-white tracking-tight">Registrar Entrada</h2>
+        <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Novo Lote no Estoque Físico</span>
+      </div>
+      <button (click)="fecharModalEstoque()"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-white hover:bg-red-900/20 hover:border-red-500/50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+      @if (erroEstoque()) {
+      <div class="bg-red-950/20 border border-[#dc2626]/40 p-4 rounded-md mb-6">
+        <p class="text-[#fca5a5] text-[12px] font-semibold whitespace-pre-line">{{ erroEstoque() }}</p>
+      </div>
+      }
+
+      <form [formGroup]="formEstoque" class="flex flex-col gap-6">
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Matéria-Prima *</label>
+          <div class="relative">
+            <select formControlName="materia_prima_id" (change)="formEstoque.controls.quantidade_inicial.setValue(null)"
+              class="w-full bg-[#131313] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer transition-colors">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              @for (mp of catalogoBase(); track mp.id) {
+              <option [value]="mp.id">{{ mp.nome }} ({{ mp.sku_interno }})</option>
+              }
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor"
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Lote do Fornecedor *</label>
+            <input type="text" formControlName="numero_lote_fornecedor" placeholder="Ex: LOTE-ABC"
+              class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Fornecedor *</label>
+            <input type="text" formControlName="fornecedor" placeholder="Ex: Samsung"
+              class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Quantidade Inicial *</label>
+            <div class="flex">
+              <input type="number" formControlName="quantidade_inicial" placeholder="0" min="0"
+                [attr.step]="unidadeSelecionada() === 'UN' ? '1' : '0.01'"
+                (keydown)="unidadeSelecionada() === 'UN' ? ($event.key === '.' || $event.key === ',' ? $event.preventDefault() : null) : null"
+                class="w-full bg-[#131313] border border-[#484847]/80 rounded-l px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+              <span
+                class="flex items-center justify-center bg-[#1A1A1A] border border-l-0 border-[#484847]/80 px-3 rounded-r text-[#ADAAAA] text-xs font-bold">{{
+                unidadeSelecionada() }}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Turno de Recebimento
+              *</label>
+            <div class="relative">
+              <select formControlName="turno"
+                class="w-full bg-[#131313] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer transition-colors">
+                <option value="manha">Manhã</option>
+                <option value="tarde">Tarde</option>
+                <option value="noite">Noite</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Data de Validade</label>
+          <div class="flex flex-col gap-3">
+            <div class="relative h-[42px] cursor-pointer"
+              [class.opacity-50]="formEstoque.controls.naoAplicaValidade.value"
+              [class.pointer-events-none]="formEstoque.controls.naoAplicaValidade.value"
+              (click)="!formEstoque.controls.naoAplicaValidade.value && datePickerValidade.showPicker()">
+              <div class="w-full h-full bg-[#131313] border border-[#484847]/80 rounded px-4 flex justify-between items-center transition-colors hover:border-[#00E5FF]">
+                <span class="text-sm font-medium" 
+                  [class.text-white]="formEstoque.controls.data_validade.value"
+                  [class.text-[#ADAAAA]]="!formEstoque.controls.data_validade.value">
+                  {{ dataValidadeFormatada() }}
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                  class="w-5 h-5 text-[#00E5FF]">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                </svg>
+              </div>
+              <input #datePickerValidade type="date" formControlName="data_validade"
+                class="absolute inset-0 opacity-0 cursor-pointer pointer-events-none">
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" formControlName="naoAplicaValidade"
+                class="w-4 h-4 bg-[#131313] border border-[#484847]/80 rounded text-[#00E5FF] focus:ring-[#00E5FF] focus:ring-offset-0 focus:ring-offset-transparent">
+              <span class="text-xs text-[#ADAAAA] font-medium">N/A (Não se aplica)</span>
+            </label>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-6 border-t border-[#484847]/40 bg-[#131313] flex justify-end gap-3">
+      <button type="button" (click)="fecharModalEstoque()" [disabled]="salvandoEstoque()"
+        class="px-5 py-2.5 border border-[#484847] text-[#ADAAAA] text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#1A1A1A] disabled:opacity-50">
+        Cancelar
+      </button>
+      <button type="button" (click)="salvarEstoque()" [disabled]="formEstoque.invalid || salvandoEstoque()"
+        class="px-5 py-2.5 bg-[#00E5FF] text-black text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#00cce6] disabled:opacity-50 flex items-center gap-2 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
+        @if (salvandoEstoque()) {
+        <div class="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+        Salvando...
+        } @else {
+        Registrar Entrada
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
