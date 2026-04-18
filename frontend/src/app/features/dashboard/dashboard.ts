@@ -2,10 +2,11 @@ import { Component, inject, computed } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { DashboardService } from "./services/dashboard.service";
 import { DatePipe } from '@angular/common';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DatePipe],
+  imports: [DatePipe, PageHeaderComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

@@ -1,193 +1,188 @@
-<header class="flex flex-col gap-4 lg:gap-0 lg:flex-row lg:justify-between">
-  <div class="flex flex-col">
-    <h2 class="font-bold text-[24px] lg:text-[30px] leading-[36px] tracking-[-0.75px] text-[#00E5FF] lg:text-[#FFFFFF]">
-      <span class="lg:hidden">Dashboard</span>
-      <span class="hidden lg:inline">Relatório de Desempenho</span>
-    </h2>
-    <p class="text-[10px] lg:text-[16px] leading-[24px] tracking-[1px] lg:tracking-[0px] text-[#ADAAAA] uppercase lg:normal-case font-bold lg:font-normal mt-1 lg:mt-0">
-      <span class="lg:hidden">TERMINAL STATUS: ACTIVE // V1.0.4</span>
-      <span class="hidden lg:inline">Análise em tempo real do ecosistema de produção LOTE PIM</span>
-    </p>
-  </div>
-  <div class="hidden lg:flex items-center">
-    <button
-      class="bg-[#201F1F] text-[11.2px] leading-[16.8px] tracking-[1.12px] text-[#FFFFFF] border-b-2 border-[#484847] px-4 py-2 mr-4"
-      type="button">
-      EXPORTAR PDF
-    </button>
-    <button
-      class="bg-linear-[19deg] from-[#81ECFF] to-[#00E3FD] font-bold text-[11.2px] leading-[16.8px] tracking-[1.12px] text-[#004D57] px-4 py-2 rounded-[6px]"
-      type="button">
-      NOVO LOTE
-    </button>
-  </div>
-</header>
-<section class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 my-6 lg:my-10">
-  <div
-    class="flex flex-col gap-1 bg-[#1A1919] p-6 border-2 border-[#81ECFF]/20 rounded-[4px] order-1 col-span-2 lg:col-span-1">
-    <div class="flex items-start">
-      <div class="bg-[#81ECFF]/10 p-2 mr-auto">
-        <img class="w-[18.03px] h-[18.51px]" src="assets/icons/lotes-prod-icon.svg" alt="">
-      </div>
-      <p class="font-bold text-[11.2px] leading-[16.8px] tracking-[0px] text-[#C3F400]">+12.4% ↑</p>
+<div class="flex flex-col w-full max-w-7xl mx-auto space-y-6 lg:space-y-8 font-sans text-white">
+  <app-page-header title="Relatório de Desempenho" subtitle="Análise em tempo real do ecosistema de produção LOTE PIM"
+    mobileTitle="Dashboard" mobileSubtitle="TERMINAL STATUS: ACTIVE // V1.0.4">
+    <div actions class="hidden lg:flex items-center">
+      <button
+        class="bg-[#201F1F] text-[11.2px] leading-[16.8px] tracking-[1.12px] text-[#FFFFFF] border-b-2 border-[#484847] px-4 py-2 mr-4"
+        type="button">
+        EXPORTAR PDF
+      </button>
+      <button
+        class="bg-linear-[19deg] from-[#81ECFF] to-[#00E3FD] font-bold text-[11.2px] leading-[16.8px] tracking-[1.12px] text-[#004D57] px-4 py-2 rounded-[6px]"
+        type="button">
+        NOVO LOTE
+      </button>
     </div>
-    <div>
-      <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES PRODUZIDOS</h4>
-    </div>
-    <div>
-      <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
-        {{ lotesProduzidos()}}
-      </span>
-    </div>
-    <div>
-      <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">Tendência positive este
-        mês</span>
-    </div>
-  </div>
-  <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#484847]/10 rounded-[4px] order-2 col-span-1">
-    <div class="flex items-start">
-      <div class="bg-[#81ECFF]/10 p-2 mr-auto">
-        <img class="w-[18.03px] h-[18.51px]" src="assets/icons/products-prod-icon.svg" alt="">
-      </div>
-      <p class="font-bold text-[11.2px] leading-[16.8px] tracking-[0px] text-[#C3F400]">+5.2% ↑</p>
-    </div>
-    <div>
-      <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">UNIDADES PRODUZIDAS</h4>
-    </div>
-    <div>
-      <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
-        {{ unidadesProduzidas()}}
-      </span>
-    </div>
-    <div>
-      <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
-        Meta mensal: 50.0k
-      </span>
-    </div>
-  </div>
-  <div
-    class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 rounded-[4px] order-4 lg:order-3 col-span-2 lg:col-span-1"
-    [style.border-color]="taxaDeAprovacaoMes() > 90 ? 'rgba(195, 244, 0, 0.2)' : 'rgba(255, 113, 108, 0.2)'">
-    <div class="flex items-start">
-      <!-- Taxa de aprovação MENSAL -->
-      <p class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mr-auto">TAXA DE APROVAÇÃO</p>
-      <div>
-        <img class="w-[22px] h-[21px]" src="assets/icons/approved-icon.svg" alt="">
-      </div>
-    </div>
-    <div>
-      <h4 class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]">
-        {{ taxaDeAprovacaoMes()}}
-      </h4>
-    </div>
-    <div class="w-full h-[4px] bg-[#262626] rounded-[12px]">
-      <div class="h-full rounded-l-[12px]" [style.width.%]="taxaDeAprovacaoMes()"
-        [style.background-color]="taxaDeAprovacaoMes() > 90 ? '#C3F400' : '#FF716C'"></div>
-    </div>
-    <div>
-      <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">
-        {{ taxaDeAprovacaoMes() > 90 ? 'Acima da média industrial' : 'Abaixo da média industrial' }}
-      </span>
-    </div>
-  </div>
-  <div
-    class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#FF716C]/20 rounded-[4px] order-3 lg:order-4 col-span-1">
-    <div class="flex items-start">
-      <div class="bg-[#FF716C]/10 p-2 mr-auto">
-        <img class="w-[18.03px] h-[18.51px]" src="assets/icons/inspection-icon.svg" alt="">
-      </div>
-      <div class="w-2 h-2 bg-[#FF716C] rounded-full"></div>
-    </div>
-    <div>
-      <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES EM ABERTO</h4>
-    </div>
-    <div>
-      <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
-        {{ lotesEmAberto() }}
-      </span>
-    </div>
-    <div>
-      <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
-        Aguardando aprovação
-      </span>
-    </div>
-  </div>
-</section>
-<section class="w-full rounded-sm mb-20 lg:mb-0">
-  <div class="flex justify-between items-center px-4 md:px-6 py-4 bg-[#201F1F]/50 rounded-t-sm">
-    <h5 class="font-bold text-[12px] leading-[18px] tracking-[1.2px] text-[#FFFFFF] lg:text-[#81ECFF]">ÚLTIMOS 10 LOTES
-    </h5>
-    <img class="w-[18px] h-[18px]" src="assets/icons/filters-icon.svg" alt="">
-  </div>
-
-  <!-- Tabela Desktop -->
-  <div class="hidden lg:block overflow-x-auto w-full">
-    <table class="w-full">
-      <thead>
-        <tr class="flex w-full text-[#ADAAAA] bg-[#201F1F]/50 font-bold text-[10.4px] leading-[20px] tracking-[1.04px]">
-          <th class="px-6 py-4 text-left w-[20.62%]">NÚMERO DO LOTE</th>
-          <th class="px-6 py-4 text-left w-[26.08%]">PRODUTO</th>
-          <th class="px-6 py-4 text-left w-[20.10%]">OPERADOR</th>
-          <th class="px-6 py-4 text-left w-[13.71%]">HORÁRIO</th>
-          <th class="px-6 py-4 text-right w-[19.49%]">STATUS</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (lote of ultimosLotes(); track lote.id) {
-        <tr class="flex w-full border-b border-[#201F1F]/30 hover:bg-[#FFFFFF]/5 transition-all">
-          <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
-            {{ lote.numero_lote }}
-          </td>
-          <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
-            {{ lote.produto.nome }}
-          </td>
-          <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
-            {{ lote.operador.nome }}
-          </td>
-          <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
-            {{ lote.aberto_em | date:'HH:mm:ss' }}
-          </td>
-          <td class="px-6 py-4 text-right w-[19.49%] flex justify-end items-center">
-            <div [class]="getStatusClass(lote.status)">
-              {{ formatStatus(lote.status) }}
-            </div>
-          </td>
-        </tr>
-        } @empty {
-        <tr>
-          <td colspan="5" class="px-6 py-10 text-center text-[#ADAAAA] text-[14px] w-full">
-            Nenhum lote encontrado no sistema.
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Lista Mobile -->
-  <div class="flex flex-col lg:hidden">
-    @for (lote of ultimosLotes(); track lote.id) {
+  </app-page-header>
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-4">
     <div
-      class="flex justify-between items-center px-4 py-6 border-b border-[#201F1F]/50 hover:bg-[#FFFFFF]/5 transition-all cursor-pointer">
-      <div class="flex flex-col gap-1 w-1/2">
-        <h4 class="font-bold text-[14px] leading-[18px] text-white overflow-hidden text-ellipsis whitespace-nowrap">
-          {{ lote.numero_lote }}</h4>
-        <span class="text-[12px] text-[#ADAAAA] mt-1">{{ lote.produto.nome }}</span>
-      </div>
-      <div class="flex items-center gap-3 w-1/2 justify-end">
-        <div [class]="getStatusClass(lote.status) + ' text-right shrink-0'">
-          {{ formatStatus(lote.status) }}
+      class="flex flex-col gap-1 bg-[#1A1919] p-6 border-2 border-[#81ECFF]/20 rounded-[4px] order-1 col-span-2 lg:col-span-1">
+      <div class="flex items-start">
+        <div class="bg-[#81ECFF]/10 p-2 mr-auto">
+          <img class="w-[18.03px] h-[18.51px]" src="assets/icons/lotes-prod-icon.svg" alt="">
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ADAAAA"
-          class="w-4 h-4 flex-shrink-0">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
+        <p class="font-bold text-[11.2px] leading-[16.8px] tracking-[0px] text-[#C3F400]">+12.4% ↑</p>
+      </div>
+      <div>
+        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES PRODUZIDOS</h4>
+      </div>
+      <div>
+        <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
+          {{ lotesProduzidos()}}
+        </span>
+      </div>
+      <div>
+        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">Tendência positive este
+          mês</span>
       </div>
     </div>
-    } @empty {
-    <div class="px-6 py-10 text-center text-[#ADAAAA] text-[12px]">
-      Nenhum lote encontrado no sistema.
+    <div class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#484847]/10 rounded-[4px] order-2 col-span-1">
+      <div class="flex items-start">
+        <div class="bg-[#81ECFF]/10 p-2 mr-auto">
+          <img class="w-[18.03px] h-[18.51px]" src="assets/icons/products-prod-icon.svg" alt="">
+        </div>
+        <p class="font-bold text-[11.2px] leading-[16.8px] tracking-[0px] text-[#C3F400]">+5.2% ↑</p>
+      </div>
+      <div>
+        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">UNIDADES PRODUZIDAS</h4>
+      </div>
+      <div>
+        <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
+          {{ unidadesProduzidas()}}
+        </span>
+      </div>
+      <div>
+        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
+          Meta mensal: 50.0k
+        </span>
+      </div>
     </div>
-    }
-  </div>
-</section>
+    <div
+      class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 rounded-[4px] order-4 lg:order-3 col-span-2 lg:col-span-1"
+      [style.border-color]="taxaDeAprovacaoMes() > 90 ? 'rgba(195, 244, 0, 0.2)' : 'rgba(255, 113, 108, 0.2)'">
+      <div class="flex items-start">
+        <!-- Taxa de aprovação MENSAL -->
+        <p class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mr-auto">TAXA DE APROVAÇÃO</p>
+        <div>
+          <img class="w-[22px] h-[21px]" src="assets/icons/approved-icon.svg" alt="">
+        </div>
+      </div>
+      <div>
+        <h4 class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]">
+          {{ taxaDeAprovacaoMes()}}
+        </h4>
+      </div>
+      <div class="w-full h-[4px] bg-[#262626] rounded-[12px]">
+        <div class="h-full rounded-l-[12px]" [style.width.%]="taxaDeAprovacaoMes()"
+          [style.background-color]="taxaDeAprovacaoMes() > 90 ? '#C3F400' : '#FF716C'"></div>
+      </div>
+      <div>
+        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">
+          {{ taxaDeAprovacaoMes() > 90 ? 'Acima da média industrial' : 'Abaixo da média industrial' }}
+        </span>
+      </div>
+    </div>
+    <div
+      class="flex flex-col gap-1 bg-[#1A1919] p-6 border-b-2 border-[#FF716C]/20 rounded-[4px] order-3 lg:order-4 col-span-1">
+      <div class="flex items-start">
+        <div class="bg-[#FF716C]/10 p-2 mr-auto">
+          <img class="w-[18.03px] h-[18.51px]" src="assets/icons/inspection-icon.svg" alt="">
+        </div>
+        <div class="w-2 h-2 bg-[#FF716C] rounded-full"></div>
+      </div>
+      <div>
+        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES EM ABERTO</h4>
+      </div>
+      <div>
+        <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
+          {{ lotesEmAberto() }}
+        </span>
+      </div>
+      <div>
+        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
+          Aguardando aprovação
+        </span>
+      </div>
+    </div>
+  </section>
+  <section class="w-full rounded-sm mb-20 lg:mb-0">
+    <div class="flex justify-between items-center px-4 md:px-6 py-4 bg-[#201F1F]/50 rounded-t-sm">
+      <h5 class="font-bold text-[12px] leading-[18px] tracking-[1.2px] text-[#FFFFFF] lg:text-[#81ECFF]">ÚLTIMOS 10
+        LOTES
+      </h5>
+      <img class="w-[18px] h-[18px]" src="assets/icons/filters-icon.svg" alt="">
+    </div>
+
+    <!-- Tabela Desktop -->
+    <div class="hidden lg:block overflow-x-auto w-full">
+      <table class="w-full">
+        <thead>
+          <tr
+            class="flex w-full text-[#ADAAAA] bg-[#201F1F]/50 font-bold text-[10.4px] leading-[20px] tracking-[1.04px]">
+            <th class="px-6 py-4 text-left w-[20.62%]">NÚMERO DO LOTE</th>
+            <th class="px-6 py-4 text-left w-[26.08%]">PRODUTO</th>
+            <th class="px-6 py-4 text-left w-[20.10%]">OPERADOR</th>
+            <th class="px-6 py-4 text-left w-[13.71%]">HORÁRIO</th>
+            <th class="px-6 py-4 text-right w-[19.49%]">STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (lote of ultimosLotes(); track lote.id) {
+          <tr class="flex w-full border-b border-[#201F1F]/30 hover:bg-[#FFFFFF]/5 transition-all">
+            <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.62%] text-[#FFFFFF]">
+              {{ lote.numero_lote }}
+            </td>
+            <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[26.08%] text-[#ADAAAA]">
+              {{ lote.produto.nome }}
+            </td>
+            <td class="text-[14px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[20.10%] text-[#ADAAAA]">
+              {{ lote.operador.nome }}
+            </td>
+            <td class="text-[11.2px] leading-[20px] tracking-[0px] px-6 py-4 text-left w-[13.71%] text-[#FFFFFF]">
+              {{ lote.aberto_em | date:'HH:mm:ss' }}
+            </td>
+            <td class="px-6 py-4 text-right w-[19.49%] flex justify-end items-center">
+              <div [class]="getStatusClass(lote.status)">
+                {{ formatStatus(lote.status) }}
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-[#ADAAAA] text-[14px] w-full">
+              Nenhum lote encontrado no sistema.
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Lista Mobile -->
+    <div class="flex flex-col lg:hidden">
+      @for (lote of ultimosLotes(); track lote.id) {
+      <div
+        class="flex justify-between items-center px-4 py-6 border-b border-[#201F1F]/50 hover:bg-[#FFFFFF]/5 transition-all cursor-pointer">
+        <div class="flex flex-col gap-1 w-1/2">
+          <h4 class="font-bold text-[14px] leading-[18px] text-white overflow-hidden text-ellipsis whitespace-nowrap">
+            {{ lote.numero_lote }}</h4>
+          <span class="text-[12px] text-[#ADAAAA] mt-1">{{ lote.produto.nome }}</span>
+        </div>
+        <div class="flex items-center gap-3 w-1/2 justify-end">
+          <div [class]="getStatusClass(lote.status) + ' text-right shrink-0'">
+            {{ formatStatus(lote.status) }}
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ADAAAA"
+            class="w-4 h-4 flex-shrink-0">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </div>
+      </div>
+      } @empty {
+      <div class="px-6 py-10 text-center text-[#ADAAAA] text-[12px]">
+        Nenhum lote encontrado no sistema.
+      </div>
+      }
+    </div>
+  </section>
+</div>

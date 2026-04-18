@@ -1,0 +1,15 @@
+<div class="flex gap-3 overflow-x-auto pb-2 min-w-full scrollbar-hide">
+    @for (tab of tabs; track tab.id) {
+    <button (click)="onFiltroClick(tab.id)"
+        [class.bg-[#00E5FF]]="filtroAtivo === tab.id"
+        [class.text-black]="filtroAtivo === tab.id"
+        [class.bg-[#1A1A1A]]="filtroAtivo !== tab.id"
+        [class.text-[#ADAAAA]]="filtroAtivo !== tab.id"
+        [class.hover:bg-[#484847]/20]="filtroAtivo !== tab.id"
+        [class.border]="!tab.hideBorder"
+        [class.border-[#484847]/30]="!tab.hideBorder"
+        class="whitespace-nowrap px-6 py-2 rounded-md text-[12px] font-bold uppercase tracking-wider transition-all shrink-0">
+        {{ tab.label }} ({{ contagem[tab.id] || 0 }})
+    </button>
+    }
+</div>

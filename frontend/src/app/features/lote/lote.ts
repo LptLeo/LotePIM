@@ -5,11 +5,15 @@ import { LoteFeatureService } from './services/lote.service';
 import { LoteDetalhe, STATUS_CONFIG, LoteStatus } from '../../shared/models/lote.models';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
+import { LoteCardComponent } from '../../shared/components/lote-card/lote-card';
+import { FilterTabsComponent, FilterTab } from '../../shared/components/filter-tabs/filter-tabs';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 
 @Component({
   selector: 'app-lote',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StatCardComponent, LoteCardComponent, FilterTabsComponent, PageHeaderComponent],
   templateUrl: './lote.html',
   styleUrl: './lote.css',
 })
@@ -18,6 +22,15 @@ export class Lote implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   authService = inject(AuthService);
+
+  filtrosTabs: FilterTab[] = [
+    { id: 'todos', label: 'Todos', hideBorder: true },
+    { id: 'em_producao', label: 'Em Produção' },
+    { id: 'aguardando_inspecao', label: 'Aguardando Inspeção' },
+    { id: 'aprovado', label: 'Aprovado' },
+    { id: 'aprovado_restricao', label: 'Aprovado com Restrição' },
+    { id: 'reprovado', label: 'Reprovado' }
+  ];
 
   // Estados reativos (Signals)
   private lotesBase = signal<LoteDetalhe[]>([]); // Lista completa para contagens
@@ -29,7 +42,7 @@ export class Lote implements OnInit {
   lotes = computed(() => {
     const lista = this.lotesBase();
     const filtro = this.filtroAtivo();
-    
+
     if (filtro === 'todos') return lista;
     return lista.filter(l => l.status === filtro);
   });
@@ -80,14 +93,14 @@ export class Lote implements OnInit {
 
     // Buscamos SEMPRE todos os lotes para manter as contagens das abas precisas
     // O filtro de status agora é aplicado localmente via Signal Computed
-    this.loteService.getLotes({}) 
+    this.loteService.getLotes({})
       .pipe(finalize(() => this.carregando.set(false)))
       .subscribe({
         next: (data) => {
           if (busca) {
             const termo = busca.toLowerCase();
-            const filtrados = data.filter(l => 
-              l.numero_lote.toLowerCase().includes(termo) || 
+            const filtrados = data.filter(l =>
+              l.numero_lote.toLowerCase().includes(termo) ||
               l.produto.nome.toLowerCase().includes(termo)
             );
             this.lotesBase.set(filtrados);
@@ -121,25 +134,4 @@ export class Lote implements OnInit {
     this.router.navigate(['/app/lote/novo']);
   }
 
-  getStatusConfig(status: LoteStatus) {
-    return STATUS_CONFIG[status];
-  }
-
-  // Helper para formatar a data (Ex: 2024.10.12 | 09:12:12)
-  formatarDataHora(dataISO?: string): string {
-    if (!dataISO) return '—';
-    const date = new Date(dataISO);
-    const d = date.toLocaleDateString('pt-BR').replace(/\//g, '.');
-    const t = date.toLocaleTimeString('pt-BR');
-    return `${d} | ${t}`;
-  }
-
-  // Cálculo de progresso (fictício para ilustração)
-  getProgresso(lote: LoteDetalhe): number {
-    if (lote.status === 'em_producao') {
-      // Usa um hash do ID para gerar um progresso fixo entre 10 e 90 para demonstração
-      return 10 + (lote.id % 80);
-    }
-    return 100;
-  }
 }

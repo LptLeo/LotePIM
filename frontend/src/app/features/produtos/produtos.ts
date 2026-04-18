@@ -4,14 +4,10 @@ import { Router, RouterLink } from '@angular/router';
 import { ProdutosService } from './services/produtos.service';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-<<<<<<< Updated upstream
 import { ProdutoFilterButtonComponent } from './components/produto-filter-button/produto-filter-button';
 import { ProdutoCardComponent } from './components/produto-card/produto-card';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-=======
-import type { Produto } from '../../shared/models/lote.models';
->>>>>>> Stashed changes
 
 @Component({
   selector: 'app-produtos',
