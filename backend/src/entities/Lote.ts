@@ -1,14 +1,20 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, type Relation } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  type Relation,
+} from "typeorm";
+
 import type { Produto } from "./Produto.js";
 import type { Usuario } from "./Usuario.js";
-import type { InsumoLote } from "./InsumoLote.js";
-import type { InspecaoLote } from "./InspecaoLote.js";
+import type { ConsumoInsumo } from "./ConsumoInsumo.js";
+import type { Inspecao } from "./Inspecao.js";
 
-export enum Turno {
-  MANHA = "manha",
-  TARDE = "tarde",
-  NOITE = "noite",
-}
+export { Turno } from "./InsumoEstoque.js";
 
 export enum LoteStatus {
   EM_PRODUCAO = "em_producao",
@@ -18,49 +24,57 @@ export enum LoteStatus {
   REPROVADO = "reprovado",
 }
 
+/**
+ * Ordem de produção que transforma matéria-prima em produto acabado.
+ * O status progride automaticamente via Job de progressão.
+ */
 @Entity("lote")
 export class Lote {
   @PrimaryGeneratedColumn()
-  id!: number
+  id!: number;
 
   @Column({ type: "text", unique: true, nullable: false })
-  numero_lote!: string
+  numero_lote!: string;
 
   @ManyToOne("Produto", "lotes")
   @JoinColumn({ name: "produto_id" })
   produto!: Relation<Produto>;
 
-  @Column({ type: "date", nullable: false })
-  data_producao!: Date
+  @Column({ type: "int", nullable: false })
+  quantidade_planejada!: number;
 
-  @Column({ type: "enum", enum: Turno, nullable: false })
-  turno!: Turno
+  @Column({ type: "enum", enum: LoteStatus, nullable: false })
+  status!: LoteStatus;
+
+  @Column({
+    type: "enum",
+    enum: ["manha", "tarde", "noite"],
+    nullable: false,
+  })
+  turno!: string;
 
   @ManyToOne("Usuario", "lotes")
   @JoinColumn({ name: "operador_id" })
   operador!: Relation<Usuario>;
 
-  @Column({ type: "int", nullable: false })
-  quantidade_prod!: number
+  @Column({ type: "date", nullable: false })
+  data_producao!: Date;
 
-  @Column({ type: "int", nullable: false, default: 0 })
-  quantidade_repr!: number
-
-  @Column({ type: "enum", enum: LoteStatus, nullable: false })
-  status!: LoteStatus
+  @Column({ type: "date", nullable: true })
+  data_validade!: Date | null;
 
   @Column({ type: "text", nullable: true })
-  observacoes?: string
+  observacoes!: string;
 
   @Column({ type: "timestamptz", nullable: false, default: () => "CURRENT_TIMESTAMP" })
-  aberto_em!: Date
+  aberto_em!: Date;
 
   @Column({ type: "timestamptz", nullable: true })
-  encerrado_em?: Date
+  encerrado_em!: Date | null;
 
-  @OneToMany("InsumoLote", "lote")
-  insumos!: Relation<InsumoLote>[]
+  @OneToMany("ConsumoInsumo", "lote")
+  consumos!: Relation<ConsumoInsumo>[];
 
-  @OneToOne("InspecaoLote", "lote")
-  inspecao!: Relation<InspecaoLote>
+  @OneToOne("Inspecao", "lote")
+  inspecao!: Relation<Inspecao>;
 }

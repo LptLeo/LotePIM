@@ -1,9 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { LoteDetalhe } from '../../../shared/models/lote.models';
+import type { LoteDetalhe } from '../../../shared/models/lote.models';
 
 const API_URL = 'http://localhost:3000/api';
+
+export interface LoteConfig {
+  tempo_producao_minutos: number;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -11,50 +15,40 @@ const API_URL = 'http://localhost:3000/api';
 export class LoteFeatureService {
   private http = inject(HttpClient);
 
-  /** Busca os detalhes completos de um lote (insumos + inspeção). */
   getLoteById(id: number): Observable<LoteDetalhe> {
     return this.http.get<LoteDetalhe>(`${API_URL}/lotes/${id}`);
   }
 
-  /** Busca a listagem de lotes com filtros opcionais. */
-  getLotes(filtros?: any): Observable<LoteDetalhe[]> {
+  getLotes(filtros?: Record<string, string>): Observable<LoteDetalhe[]> {
     let params = new HttpParams();
 
     if (filtros) {
-      if (filtros.status && filtros.status !== 'todos') {
-        params = params.set('status', filtros.status);
-      }
-      if (filtros.produto_id) {
-        params = params.set('produto_id', filtros.produto_id);
-      }
-      // Adicionar outros filtros se necessário (datas, etc)
+      Object.entries(filtros).forEach(([key, value]) => {
+        if (value) params = params.set(key, value);
+      });
     }
 
     return this.http.get<LoteDetalhe[]>(`${API_URL}/lotes`, { params });
   }
 
-  /** Busca lista de produtos ativos */
   getProdutos(): Observable<any[]> {
     return this.http.get<any[]>(`${API_URL}/produtos`);
   }
 
-  getInsumosMaster(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/insumos`);
+  /** Busca o tempo de produção configurado no backend para cálculo da barra de progresso */
+  getConfig(): Observable<LoteConfig> {
+    return this.http.get<LoteConfig>(`${API_URL}/lotes/config`);
   }
 
-  /** Cria um novo lote */
+  /** Busca insumos em estoque filtrados por matérias-primas (IDs separados por vírgula) */
+  getInsumosDisponiveis(materiaPrimaIds: number[]): Observable<any[]> {
+    const params = new HttpParams().set('ids', materiaPrimaIds.join(','));
+    return this.http.get<any[]>(`${API_URL}/insumos-estoque/disponiveis`, { params });
+  }
+
+  /** Cria um novo lote com consumos inline (transação atômica no backend) */
   createLote(loteDTO: any): Observable<any> {
     return this.http.post<any>(`${API_URL}/lotes`, loteDTO);
-  }
-
-  /** Vincula múltiplos insumos a um lote */
-  vincularInsumos(loteId: number, insumos: any[]): Observable<any> {
-    return this.http.post<any>(`${API_URL}/lotes/${loteId}/insumos`, insumos);
-  }
-
-  /** Encerra a produção do lote */
-  encerrarProducao(loteId: number): Observable<any> {
-    return this.http.patch<any>(`${API_URL}/lotes/${loteId}/encerrar`, {});
   }
 
   /** Registra a inspeção do lote */

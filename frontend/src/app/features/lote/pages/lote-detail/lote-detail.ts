@@ -10,7 +10,6 @@ import { AuthService } from '../../../../core/services/auth.service';
 import {
   LoteDetalhe,
   LoteStatus,
-  InsumoMaster,
   STATUS_CONFIG,
   StatusConfig,
 } from '../../../../shared/models/lote.models';
@@ -38,203 +37,109 @@ export class LoteDetail implements OnInit {
   lote = signal<LoteDetalhe | null>(null);
   carregando = signal(true);
   erro = signal<string | null>(null);
-
-  // Controle de edição para OPERADORES
   processando = signal(false);
-  insumosMaster = signal<InsumoMaster[]>([]);
 
-  // Lista temporária de insumos que serão enviados à API juntos (se preferir múltiplo) ou um a um
-  novosInsumos = signal<{ nome_insumo: string, codigo_insumo: string, lote_insumo: string, quantidade: number, unidade: string }[]>([]);
-
-  totalInsumos = computed(() => {
-    const salvos = this.lote()?.insumos?.length || 0;
-    const pendentes = this.novosInsumos().length;
-    return salvos + pendentes;
-  });
-
-  formInsumo = this.fb.nonNullable.group({
-    nome_insumo: ['', Validators.required],
-    codigo_insumo: [''],
-    lote_insumo: [''],
-    quantidade: [0, [Validators.required, Validators.min(0.01)]],
-    unidade: ['UNID', Validators.required]
-  });
-
-  // Controle de edição para INSPETORES
-  qtdReprovadaInput = signal(0);
-  
+  /** Formulário de inspeção — o resultado é calculado automaticamente no backend */
   formInspecao = this.fb.nonNullable.group({
-    resultado: ['' as LoteStatus | '', Validators.required],
-    quantidade_repr: [0, [Validators.required, Validators.min(0)]],
-    descricao_desvio: ['']
+    quantidade_reprovada: [0, [Validators.required, Validators.min(0)]],
+    descricao_desvio: [''],
   });
 
+  qtdReprovadaInput = signal(0);
+
+  /**
+   * Preview da taxa de aprovação para feedback visual ao inspetor.
+   * O cálculo definitivo acontece no backend.
+   */
   taxaAprovacaoPreview = computed(() => {
-    const prod = this.lote()?.quantidade_prod || 0;
-    const repr = this.qtdReprovadaInput();
-    if (prod === 0) return 0;
-    const taxa = ((prod - repr) / prod) * 100;
+    const planejada = this.lote()?.quantidade_planejada || 0;
+    const reprovada = this.qtdReprovadaInput();
+    if (planejada === 0) return 0;
+
+    const taxa = ((planejada - reprovada) / planejada) * 100;
     return Math.max(0, Math.min(100, Math.round(taxa)));
+  });
+
+  /** Preview do resultado para mostrar o badge correto ao inspetor */
+  resultadoPreview = computed((): string => {
+    const loteAtual = this.lote();
+    if (!loteAtual) return '';
+
+    const planejada = loteAtual.quantidade_planejada;
+    const reprovada = this.qtdReprovadaInput();
+    const pctRessalva = Number(loteAtual.produto.percentual_ressalva);
+
+    if (reprovada === 0) return 'APROVADO';
+
+    const taxaFalha = (reprovada / planejada) * 100;
+    if (taxaFalha <= pctRessalva) return 'APROVADO COM RESTRIÇÃO';
+    return 'REPROVADO';
   });
 
   dataAtual = new Date().toISOString();
 
   ngOnInit(): void {
     this.carregarLote();
-    this.carregarInsumosMaster();
 
-    this.formInspecao.get('quantidade_repr')?.valueChanges.subscribe(val => {
+    this.formInspecao.get('quantidade_reprovada')?.valueChanges.subscribe((val) => {
       this.qtdReprovadaInput.set(Number(val) || 0);
     });
-
-    // Validação condicional para descrição de desvio
-    this.formInspecao.get('resultado')?.valueChanges.subscribe(res => {
-      const descCtrl = this.formInspecao.get('descricao_desvio');
-      if (res === 'reprovado' || res === 'aprovado_restricao') {
-        descCtrl?.setValidators([Validators.required]);
-      } else {
-        descCtrl?.clearValidators();
-      }
-      descCtrl?.updateValueAndValidity();
-    });
   }
 
-  carregarInsumosMaster() {
-    this.loteService.getInsumosMaster().subscribe({
-      next: (insumos) => this.insumosMaster.set(insumos),
-      error: (err) => console.error('Erro ao carregar insumos mestre:', err)
-    });
-  }
-
-  carregarLote() {
-    this.route.paramMap.pipe(
-      switchMap((params) => {
-        const id = Number(params.get('id'));
-        if (!id || isNaN(id)) {
-          this.erro.set('ID do lote inválido.');
+  carregarLote(): void {
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const id = Number(params.get('id'));
+          if (!id || isNaN(id)) {
+            this.erro.set('ID do lote inválido.');
+            this.carregando.set(false);
+            return EMPTY;
+          }
+          this.carregando.set(true);
+          this.erro.set(null);
+          return this.loteService.getLoteById(id);
+        })
+      )
+      .subscribe({
+        next: (lote) => {
+          this.lote.set(lote);
           this.carregando.set(false);
-          return EMPTY;
-        }
-        this.carregando.set(true);
-        this.erro.set(null);
-        return this.loteService.getLoteById(id);
-      }),
-    ).subscribe({
-      next: (lote) => {
-        this.lote.set(lote);
-        this.carregando.set(false);
-        
-        // Aplica o limite máximo de reprovação com base no que foi produzido
-        const qtyCtrl = this.formInspecao.get('quantidade_repr');
-        qtyCtrl?.setValidators([Validators.required, Validators.min(0), Validators.max(lote.quantidade_prod)]);
-        qtyCtrl?.updateValueAndValidity();
-      },
-      error: () => {
-        this.erro.set('Não foi possível carregar os dados do lote. Verifique sua conexão e tente novamente.');
-        this.carregando.set(false);
-      },
-    });
-  }
 
-  adicionarInsumoNaLista() {
-    if (this.formInsumo.invalid) return;
-
-    const values = this.formInsumo.value;
-    const novo = {
-      nome_insumo: values.nome_insumo!,
-      codigo_insumo: values.codigo_insumo || '',
-      lote_insumo: values.lote_insumo || '',
-      quantidade: values.quantidade!,
-      unidade: values.unidade!
-    };
-
-    this.novosInsumos.update(lista => [...lista, novo]);
-    this.formInsumo.reset({ quantidade: 0, unidade: 'UNID' });
-  }
-
-  onInsumoSelected(event: Event) {
-    const id = Number((event.target as HTMLSelectElement).value);
-    const insumo = this.insumosMaster().find(i => i.id === id);
-
-    if (insumo) {
-      this.formInsumo.patchValue({
-        nome_insumo: insumo.nome,
-        codigo_insumo: insumo.codigo,
-        unidade: insumo.unidade_padrao
-      });
-    }
-  }
-
-  removerInsumoDaLista(index: number) {
-    this.novosInsumos.update(lista => lista.filter((_, i) => i !== index));
-  }
-
-  salvarInsumos() {
-    const arr = this.novosInsumos();
-    const l = this.lote();
-    if (!l || arr.length === 0) return;
-
-    this.processando.set(true);
-    this.loteService.vincularInsumos(l.id, arr)
-      .pipe(finalize(() => this.processando.set(false)))
-      .subscribe({
-        next: () => {
-          this.novosInsumos.set([]);
-          this.carregarLote(); // Recarrega os detalhes do backend
+          /** Limita a quantidade reprovada ao total planejado */
+          const qtyCtrl = this.formInspecao.get('quantidade_reprovada');
+          qtyCtrl?.setValidators([
+            Validators.required,
+            Validators.min(0),
+            Validators.max(lote.quantidade_planejada),
+          ]);
+          qtyCtrl?.updateValueAndValidity();
         },
-        error: (err) => {
-          console.error(err);
-          alert('Erro ao vincular insumos: ' + (err.error?.message || 'Erro desconhecido.'));
-        }
-      });
-  }
-
-  encerrarProducao() {
-    const l = this.lote();
-    if (!l) return;
-
-    if (!confirm('Tem certeza que deseja finalizar a produção deste lote? Não será possível adicionar ou remover insumos depois disso.')) {
-      return;
-    }
-
-    this.processando.set(true);
-    this.loteService.encerrarProducao(l.id)
-      .pipe(finalize(() => this.processando.set(false)))
-      .subscribe({
-        next: () => {
-          this.carregarLote(); // Recarrega para ver o novo status
+        error: () => {
+          this.erro.set('Não foi possível carregar os dados do lote.');
+          this.carregando.set(false);
         },
-        error: (err) => {
-          console.error(err);
-          alert('Erro ao encerrar produção: ' + (err.error?.message || 'Erro desconhecido.'));
-        }
       });
   }
 
-  salvarInspecao() {
+  salvarInspecao(): void {
     const l = this.lote();
-    const u = this.authService.usuario();
-    if (!l || !u || this.formInspecao.invalid) return;
+    if (!l || this.formInspecao.invalid) return;
 
     this.processando.set(true);
 
     const payload = {
-      inspetor_id: u.id, // pegando pelo auth service local
-      resultado: this.formInspecao.value.resultado,
-      quantidade_repr: this.formInspecao.value.quantidade_repr,
-      descricao_desvio: this.formInspecao.value.descricao_desvio
+      quantidade_reprovada: this.formInspecao.value.quantidade_reprovada,
+      descricao_desvio: this.formInspecao.value.descricao_desvio,
     };
 
-    this.loteService.registrarInspecao(l.id, payload)
+    this.loteService
+      .registrarInspecao(l.id, payload)
       .pipe(finalize(() => this.processando.set(false)))
       .subscribe({
-        next: () => {
-          this.carregarLote(); // Recarrega para ver o relatório
-        },
-        error: (err) => {
-          console.error(err);
-          alert('Erro ao registrar inspeção: ' + (err.error?.message || 'Erro desconhecido.'));
-        }
+        next: () => this.carregarLote(),
+        error: (err) =>
+          alert('Erro: ' + (err.error?.message || 'Erro desconhecido.')),
       });
   }
 
@@ -242,43 +147,28 @@ export class LoteDetail implements OnInit {
     this.router.navigate(['/app/lote']);
   }
 
-  // ── Utilitários de template ─────────────────────────────────────────────
-
   getStatusConfig(status?: LoteStatus): StatusConfig {
-    return STATUS_CONFIG[status!] ?? {
-      label: status ?? '',
-      cor: '#ADAAAA',
-      corBg: 'transparent',
-      corBorda: '#484847',
-    };
+    return (
+      STATUS_CONFIG[status!] ?? {
+        label: status ?? '',
+        cor: '#ADAAAA',
+        corBg: 'transparent',
+        corBorda: '#484847',
+      }
+    );
   }
 
   getTurnoLabel(turno?: string): string {
     return TURNO_LABEL[turno ?? ''] ?? turno ?? '—';
   }
 
-  formatarData(data?: string): string {
+  formatarData(data?: string | null): string {
     if (!data) return '—';
-    return new Date(data).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    return new Date(data).toLocaleDateString('pt-BR');
   }
 
-  formatarDataHora(data?: string): string {
+  formatarDataHora(data?: string | null): string {
     if (!data) return '—';
-    return new Date(data).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
-  calcularTaxaAprovacao(prod: number, repr: number): number {
-    if (!prod) return 0;
-    return Math.round(((prod - repr) / prod) * 100);
+    return new Date(data).toLocaleString('pt-BR');
   }
 }

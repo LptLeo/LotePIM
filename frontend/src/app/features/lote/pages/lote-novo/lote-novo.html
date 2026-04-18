@@ -20,7 +20,7 @@
         Abertura de Lote de Produção
       </h2>
       <p class="text-[14px] text-[#ADAAAA] mt-1 tracking-wide">
-        Preencha os dados iniciais do lote. Somente operadores podem abrir novos lotes.
+        Selecione o produto, vincule os insumos e inicie a produção em uma única etapa.
       </p>
     </div>
   </header>
@@ -35,7 +35,7 @@
   <!-- Form -->
   <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 sm:p-8">
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
-      
+
       <!-- Linha 1: Numero Gerado / Produto -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
@@ -48,14 +48,14 @@
         <div class="flex flex-col gap-2">
           <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Produto *</label>
           <div class="relative group">
-            <select formControlName="produto"
+            <select formControlName="produto_id"
               class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer">
               <option [value]="0" disabled>Selecione um produto...</option>
               @for (prod of produtos(); track prod.id) {
-              <option [value]="prod.id">{{ prod.nome }}</option>
+              <option [value]="prod.id">{{ prod.nome }} ({{ prod.sku }})</option>
               }
             </select>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors">
               <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
             </svg>
@@ -63,25 +63,20 @@
         </div>
       </div>
 
-      <!-- Linha 2: Data Produção / Turno -->
+      <!-- Linha 2: Data / Turno -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
           <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Data de Produção *</label>
           <div class="relative date-container cursor-pointer h-[42px]" (click)="datePicker.showPicker()">
-            <!-- Campo Visual (Formato Brasileiro Forçado) -->
             <div class="w-full h-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 flex justify-between items-center transition-colors hover:border-[#00E5FF] group">
               <span class="text-sm font-medium" [class.text-[#ADAAAA]]="!form.value.data_producao">
-                {{ dataFormatada() }}
+                {{ dataFormatada }}
               </span>
-              
-              <!-- Ícone Único (Ciano Stylized) no Lado Direito -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
-                class="w-5 h-5 text-[#00E5FF] calendar-icon transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                class="w-5 h-5 text-[#00E5FF] transition-all">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
               </svg>
             </div>
-
-            <!-- Input Nativo Escondido (Mantém a Funcionalidade e o Valor do Form) -->
             <input #datePicker type="date" formControlName="data_producao"
               class="absolute inset-0 opacity-0 cursor-pointer pointer-events-none">
           </div>
@@ -96,7 +91,7 @@
               <option value="tarde">Tarde</option>
               <option value="noite">Noite</option>
             </select>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors">
               <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
             </svg>
@@ -104,14 +99,27 @@
         </div>
       </div>
 
-      <!-- Linha 3: Quantidade Prevista -->
+      <!-- Linha 3: Quantidade / Validade -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Quantidade Produção *</label>
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Quantidade Planejada *</label>
           <div class="relative">
-            <input type="number" min="1" formControlName="quantidade_prod"
+            <input type="number" min="1" formControlName="quantidade_planejada"
               class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-12 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#ADAAAA]">UN</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Data de Validade</label>
+          <div class="flex items-center gap-3">
+            <input type="date" formControlName="data_validade" style="color-scheme: dark;"
+              class="flex-1 bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            <label class="flex items-center gap-2 text-[11px] text-[#ADAAAA] cursor-pointer select-none whitespace-nowrap">
+              <input type="checkbox" formControlName="sem_validade"
+                class="accent-[#00E5FF] w-4 h-4 cursor-pointer">
+              N/A
+            </label>
           </div>
         </div>
       </div>
@@ -119,9 +127,90 @@
       <!-- Linha 4: Observações -->
       <div class="flex flex-col gap-2">
         <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Observações</label>
-        <textarea formControlName="observacoes" rows="3" placeholder="Informações adicionais da abertura..."
+        <textarea formControlName="observacoes" rows="2" placeholder="Informações adicionais da abertura..."
           class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors resize-y"></textarea>
       </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- Seção de Consumos (gerada dinamicamente pela receita) -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+
+      @if (receitaAtual().length > 0) {
+      <div class="border-t border-[#484847]/30 pt-6 mt-2">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse"></div>
+          <h3 class="text-[12px] font-bold uppercase tracking-[1.5px] text-[#00E5FF]">
+            Vinculação de Insumos (Receita)
+          </h3>
+        </div>
+
+        <p class="text-[12px] text-[#6B7280] mb-4">
+          Selecione quais lotes de insumo em estoque serão consumidos para fabricar este lote.
+        </p>
+
+        @if (carregandoInsumos()) {
+          <div class="flex items-center gap-3 py-4">
+            <div class="w-4 h-4 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-[12px] text-[#6B7280]">Carregando insumos disponíveis...</span>
+          </div>
+        }
+
+        <div formArrayName="consumos" class="flex flex-col gap-4">
+          @for (consumo of consumosArray.controls; track consumo; let i = $index) {
+          <div [formGroupName]="i"
+            class="bg-[#0E0E0E] border border-[#484847]/40 rounded-md p-4 flex flex-col gap-3">
+            <!-- Header do item -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-[#00E5FF]"></div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-white">
+                  {{ consumo.get('materia_prima_nome')?.value }}
+                </span>
+              </div>
+              <span class="text-[10px] font-bold text-[#6B7280] uppercase">
+                {{ consumo.get('quantidade_necessaria')?.value }} {{ consumo.get('unidade')?.value }} / unidade
+              </span>
+            </div>
+
+            <!-- Dropdown de lote de insumo + Quantidade -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2 flex flex-col gap-1">
+                <label class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]">Lote de Estoque *</label>
+                <div class="relative group">
+                  <select formControlName="insumo_estoque_id"
+                    class="w-full bg-[#131313] border border-[#484847]/60 rounded pl-3 pr-10 py-2 text-[12px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer">
+                    <option [value]="0" disabled>Selecione um lote...</option>
+                    @for (insumo of getInsumosParaMP(consumo.get('materia_prima_id')?.value); track insumo.id) {
+                    <option [value]="insumo.id">
+                      {{ insumo.numero_lote_interno }} — {{ insumo.fornecedor }} (Saldo: {{ insumo.quantidade_atual }} {{ insumo.materiaPrima.unidade_medida }})
+                    </option>
+                    }
+                  </select>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#ADAAAA] pointer-events-none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]">Qtd. a Consumir *</label>
+                <div class="relative">
+                  <input type="number" formControlName="quantidade_consumida"
+                    [min]="consumo.get('unidade')?.value === 'UN' ? '1' : '0.01'"
+                    [step]="consumo.get('unidade')?.value === 'UN' ? '1' : '0.01'"
+                    class="w-full bg-[#131313] border border-[#484847]/60 rounded pl-3 pr-10 py-2 text-[12px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#ADAAAA]">
+                    {{ consumo.get('unidade')?.value }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
 
       <!-- Ações -->
       <div class="mt-4 pt-6 border-t border-[#484847]/30 flex justify-end gap-4">
@@ -129,7 +218,7 @@
           class="px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
           Cancelar
         </button>
-        <button type="submit" [disabled]="form.invalid || salvando()"
+        <button type="submit" [disabled]="form.invalid || salvando() || consumosArray.length === 0"
           class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
           @if (salvando()) {
             Salvando...

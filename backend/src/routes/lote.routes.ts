@@ -1,19 +1,13 @@
-import { Router } from 'express';
-import { LoteController } from '../controllers/lote.controller.js';
-import { validateBody } from '../middlewares/validateBody.js';
-import { criarLoteSchema, transicaoStatusSchema } from '../dto/lote.dto.js';
-import { roleGuard } from '../middlewares/roleGuard.js';
-import { PerfilUsuario } from '../entities/Usuario.js';
+import { Router } from "express";
+import * as ctrl from "../controllers/lote.controller.js";
+import { validateBody } from "../middlewares/validateBody.js";
+import { criarLoteSchema } from "../dto/lote.dto.js";
 
-const loteRoutes = Router();
+const router = Router();
 
-const loteController = new LoteController();
+router.get("/", ctrl.listar);
+router.get("/config", ctrl.getConfig);
+router.get("/:id", ctrl.buscarPorId);
+router.post("/", validateBody(criarLoteSchema), ctrl.criar);
 
-loteRoutes.post("/", roleGuard(PerfilUsuario.OPERADOR), validateBody(criarLoteSchema), loteController.create);
-loteRoutes.get("/", roleGuard(PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), loteController.getAll);
-loteRoutes.patch("/:id/encerrar", roleGuard(PerfilUsuario.OPERADOR), loteController.encerrar);
-loteRoutes.patch("/:id/status", roleGuard(PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), validateBody(transicaoStatusSchema), loteController.updateStatus);
-loteRoutes.get("/busca", roleGuard(PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), loteController.buscarSugestoes);
-loteRoutes.get("/:id", roleGuard(PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR), loteController.getDetalhes);
-
-export default loteRoutes;
+export default router;

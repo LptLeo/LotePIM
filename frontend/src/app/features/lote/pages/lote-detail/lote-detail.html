@@ -29,29 +29,20 @@
 
   <!-- ── Conteúdo do Lote ── -->
   @else if (lote()) {
-  <!-- Cabeçalho da Página -->
-  <header class="flex flex-col gap-6">
-    <!-- Barra de Ações Superior -->
-    <div class="flex items-center justify-between w-full">
-      <div class="flex items-center gap-4">
-        <button (click)="voltarParaLista()"
-          class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg"
-          title="Voltar para a lista">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
-            class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-        </button>
-        <div class="h-6 w-px bg-[#484847]/30"></div>
-        <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Gestão de Lotes / Detalhes</span>
-      </div>
 
-      <!-- Ações do Operador -->
-      @if (lote()!.status === 'em_producao' && authService.usuario()?.perfil === 'operador') {
-        <button (click)="encerrarProducao()" [disabled]="processando()" class="bg-[#00E5FF] text-black px-4 py-2 font-bold uppercase text-[11px] tracking-wider rounded border border-[#00E5FF] hover:bg-transparent hover:text-[#00E5FF] transition-all disabled:opacity-50">
-          Finalizar Produção
-        </button>
-      }
+  <!-- Cabeçalho -->
+  <header class="flex flex-col gap-6">
+    <div class="flex items-center gap-4">
+      <button (click)="voltarParaLista()"
+        class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg"
+        title="Voltar para a lista">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+      </button>
+      <div class="h-6 w-px bg-[#484847]/30"></div>
+      <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Gestão de Lotes / Detalhes</span>
     </div>
 
     <!-- Título e Status -->
@@ -64,7 +55,8 @@
       </div>
 
       <div class="px-4 py-2 rounded-md text-[12px] font-bold uppercase tracking-[2px] shadow-sm border"
-        [style.color]="getStatusConfig(lote()!.status).cor" [style.background]="getStatusConfig(lote()!.status).corBg"
+        [style.color]="getStatusConfig(lote()!.status).cor"
+        [style.background]="getStatusConfig(lote()!.status).corBg"
         [style.border-color]="getStatusConfig(lote()!.status).corBorda">
         {{ getStatusConfig(lote()!.status).label }}
       </div>
@@ -90,6 +82,10 @@
       <span class="info-value">{{ formatarData(lote()!.data_producao) }}</span>
     </div>
     <div class="info-card">
+      <span class="info-label">Quantidade Planejada</span>
+      <span class="info-value text-[#00E5FF]">{{ lote()!.quantidade_planejada }} <span class="text-[10px] text-[#ADAAAA]">UN</span></span>
+    </div>
+    <div class="info-card">
       <span class="info-label">Abertura</span>
       <span class="info-value text-[13px]">{{ formatarDataHora(lote()!.aberto_em) }}</span>
     </div>
@@ -99,285 +95,179 @@
       <span class="info-value text-[13px]">{{ formatarDataHora(lote()!.encerrado_em) }}</span>
     </div>
     }
-  </div>
-
-  <!-- ── Produção ── -->
-  <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
-    <h3 class="section-title">Produção</h3>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-4">
-      <div>
-        <span class="info-label">Produzidas</span>
-        <span class="text-3xl font-bold text-white">{{ lote()!.quantidade_prod }}</span>
-        <span class="text-[10px] text-[#ADAAAA] ml-1 font-bold">UN</span>
-      </div>
-      <div>
-        <span class="info-label">Reprovadas</span>
-        <span class="text-3xl font-bold" [class]="lote()!.quantidade_repr > 0 ? 'text-[#fca5a5]' : 'text-white'">
-          {{ lote()!.quantidade_repr }}
-        </span>
-        <span class="text-[10px] text-[#ADAAAA] ml-1 font-bold">UN</span>
-      </div>
-      <div class="col-span-2 md:col-span-1">
-        <span class="info-label">Taxa de Aprovação</span>
-        @let taxa = calcularTaxaAprovacao(lote()!.quantidade_prod, lote()!.quantidade_repr);
-        <div class="flex items-baseline gap-2">
-          <span class="text-3xl font-bold" [style.color]="taxa >= 90 ? '#9EEE35' : taxa >= 70 ? '#DFFF00' : '#fca5a5'">
-            {{ taxa }}%
-          </span>
-        </div>
-        <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden mt-2">
-          <div class="h-full rounded-full transition-all duration-700" [style.width]="taxa + '%'"
-            [style.background-color]="taxa >= 90 ? '#9EEE35' : taxa >= 70 ? '#DFFF00' : '#fca5a5'"
-            [style.box-shadow]="'0 0 8px ' + (taxa >= 90 ? '#9EEE35' : taxa >= 70 ? '#DFFF00' : '#fca5a5')">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    @if (lote()!.observacoes) {
-    <div class="mt-5 pt-5 border-t border-[#484847]/30">
-      <span class="info-label">Observações</span>
-      <p class="text-[13px] text-[#ADAAAA] mt-1 leading-relaxed">{{ lote()!.observacoes }}</p>
+    @if (lote()!.data_validade) {
+    <div class="info-card">
+      <span class="info-label">Validade</span>
+      <span class="info-value text-[13px]">{{ formatarData(lote()!.data_validade) }}</span>
     </div>
     }
   </div>
 
-  <!-- ── Insumos Vinculados ── -->
+  <!-- ── Observações ── -->
+  @if (lote()!.observacoes) {
   <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-3">
-        <span
-          class="text-[11px] font-bold text-[#00E5FF] bg-[rgba(0,229,255,0.1)] border border-[#00E5FF] px-2.5 py-1 rounded">
-          {{ totalInsumos() }} {{ (totalInsumos() === 1 ? 'item' : 'itens') }}
-        </span>
-        @if (novosInsumos().length > 0) {
-          <span class="text-[10px] text-[#DFFF00] font-medium italic animate-pulse">
-            + {{ novosInsumos().length }} aguardando salvamento
-          </span>
-        }
-      </div>
+    <span class="info-label">Observações</span>
+    <p class="text-[13px] text-[#ADAAAA] mt-1 leading-relaxed">{{ lote()!.observacoes }}</p>
+  </div>
+  }
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ── Insumos Consumidos (Read-Only) ── -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <h3 class="section-title mb-0">Insumos Consumidos</h3>
+      <span
+        class="text-[11px] font-bold text-[#00E5FF] bg-[rgba(0,229,255,0.1)] border border-[#00E5FF] px-2.5 py-0.5 rounded">
+        {{ lote()!.consumos.length || 0 }} {{ (lote()!.consumos.length === 1 ? 'item' : 'itens') }}
+      </span>
     </div>
 
-    @if (!lote()?.insumos || (lote()?.insumos?.length === 0)) {
-    <p class="text-[12px] text-[#6B7280] italic">Nenhum insumo vinculado a este lote.</p>
+    @if (!lote()!.consumos || lote()!.consumos.length === 0) {
+    <p class="text-[12px] text-[#6B7280] italic">Nenhum insumo consumido neste lote.</p>
     } @else {
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>
           <tr class="border-b border-[#484847]/30">
-            <th class="table-header">Nome do Insumo</th>
-            <th class="table-header">Código</th>
-            <th class="table-header">Lote do Insumo</th>
-            <th class="table-header text-right">Qtd.</th>
+            <th class="table-header">Matéria-Prima</th>
+            <th class="table-header">Lote Interno</th>
+            <th class="table-header">Fornecedor</th>
+            <th class="table-header text-right">Qtd. Consumida</th>
+            <th class="table-header text-right">Registrado Em</th>
           </tr>
         </thead>
         <tbody>
-          @for (insumo of (lote()!.insumos ?? []); track insumo.id) {
+          @for (consumo of lote()!.consumos; track consumo.id) {
           <tr class="border-b border-[#1e1e1e] hover:bg-[#1a1a1a] transition-colors">
-            <td class="table-cell font-medium text-white">{{ insumo.nome_insumo }}</td>
+            <td class="table-cell font-medium text-white">{{ consumo.insumoEstoque.materiaPrima.nome }}</td>
             <td class="table-cell">
-              @if (insumo.codigo_insumo) {
-              <span class="font-mono text-[11px] text-[#ADAAAA] bg-[#1a1a1a] px-2 py-0.5 rounded">
-                {{ insumo.codigo_insumo }}
+              <span class="font-mono text-[11px] text-[#00E5FF] bg-[rgba(0,229,255,0.05)] px-2 py-0.5 rounded">
+                {{ consumo.insumoEstoque.numero_lote_interno }}
               </span>
-              } @else {
-              <span class="text-[#484847]">—</span>
-              }
             </td>
-            <td class="table-cell">
-              @if (insumo.lote_insumo) {
-              <span class="font-mono text-[11px] text-[#ADAAAA]">{{ insumo.lote_insumo }}</span>
-              } @else {
-              <span class="text-[#484847]">—</span>
-              }
+            <td class="table-cell text-[#ADAAAA]">{{ consumo.insumoEstoque.fornecedor }}</td>
+            <td class="table-cell text-right font-bold text-white">
+              {{ consumo.quantidade_consumida }}
+              <span class="text-[10px] text-[#6B7280] ml-1">{{ consumo.insumoEstoque.materiaPrima.unidade_medida }}</span>
             </td>
-            <td class="table-cell text-right font-bold text-white">{{ insumo.quantidade }}</td>
+            <td class="table-cell text-right text-[#6B7280] text-[11px]">{{ formatarDataHora(consumo.registrado_em) }}</td>
           </tr>
           }
         </tbody>
       </table>
     </div>
     }
-
-    <!-- Seção de Vinculação de Insumo (Operador) -->
-    @if (lote()!.status === 'em_producao' && authService.usuario()?.perfil === 'operador') {
-      <div class="mt-8 border-t border-[#484847]/30 pt-6">
-        <h4 class="text-[12px] text-white font-bold uppercase tracking-wider mb-4">Vincular Novo Insumo</h4>
-        
-        <form [formGroup]="formInsumo" (ngSubmit)="adicionarInsumoNaLista()" class="flex flex-col md:flex-row items-end gap-4 p-4 border border-[#484847]/50 rounded bg-[#0E0E0E]">
-          <div class="flex-1 w-full">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Nome do Insumo *</label>
-            <div class="relative group">
-              <select (change)="onInsumoSelected($event)" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer pr-10">
-                <option value="" disabled selected>Selecione um insumo...</option>
-                @for (item of insumosMaster(); track item.id) {
-                  <option [value]="item.id">{{ item.nome }}</option>
-                }
-              </select>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
-                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-            </div>
-          </div>
-          <div class="w-full md:w-32">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Código</label>
-            <input type="text" formControlName="codigo_insumo" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
-          </div>
-          <div class="w-full md:w-32">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Lote Insumo</label>
-            <input type="text" formControlName="lote_insumo" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
-          </div>
-          <div class="w-full md:w-24">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Qtd *</label>
-            <input type="number" formControlName="quantidade" step="0.01" min="0.01" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
-          </div>
-          <div class="w-full md:w-24">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Und *</label>
-            <select formControlName="unidade" class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF]">
-              <option value="UNID">UN</option>
-              <option value="KG">KG</option>
-              <option value="L">L</option>
-              <option value="M">M</option>
-            </select>
-          </div>
-          <button type="submit" [disabled]="formInsumo.invalid" class="w-full md:w-auto h-[34px] px-4 bg-[#484847]/50 hover:bg-[#00E5FF]/20 hover:text-[#00E5FF] text-[#ADAAAA] border border-[#484847] hover:border-[#00E5FF]/50 rounded text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-30">
-            Adicionar
-          </button>
-        </form>
-
-        <!-- Lista Temporária -->
-        @if (novosInsumos().length > 0) {
-          <div class="mt-4 p-4 rounded bg-[#1A1A1A]/50 border border-dashed border-[#00E5FF]/30">
-            <h5 class="text-[10px] font-bold uppercase text-[#00E5FF] mb-3">Insumos prontos para envio ({{ novosInsumos().length }})</h5>
-            <ul class="flex flex-col gap-2 mb-4">
-              @for (novo of novosInsumos(); track $index) {
-                <li class="flex items-center justify-between text-[11px] text-[#ADAAAA] bg-[#0E0E0E] px-3 py-2 rounded border border-[#484847]/30">
-                  <span>{{ novo.nome_insumo }} <span class="text-[#6B7280] ml-2">Qtd: {{ novo.quantidade }} {{ novo.unidade }}</span></span>
-                  <button type="button" (click)="removerInsumoDaLista($index)" class="text-[#fca5a5] hover:text-red-400">Remover</button>
-                </li>
-              }
-            </ul>
-            <button (click)="salvarInsumos()" [disabled]="processando()" class="w-full py-2 bg-[#00E5FF] text-black font-bold uppercase text-[11px] rounded transition-all hover:bg-[#00E5FF]/80 disabled:opacity-50">
-              Salvar Insumos no Sistema
-            </button>
-          </div>
-        }
-      </div>
-    }
   </div>
 
-  <!-- ── Resultado da Inspeção ── -->
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ── Inspeção de Qualidade ── -->
+  <!-- ══════════════════════════════════════════ -->
   <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
     <h3 class="section-title mb-4">Inspeção de Qualidade</h3>
 
-    <!-- Lote ainda em produção: Mensagem para Inspetor -->
-    @if (lote()!.status === 'em_producao' && authService.usuario()?.perfil === 'inspetor') {
+    <!-- Ainda em produção -->
+    @if (lote()!.status === 'em_producao') {
       <div class="flex items-center gap-3 py-4">
-        <div class="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse"></div>
-        <p class="text-[13px] text-[#DFFF00]">Aguardando finalização da produção para liberar inspeção</p>
+        <div class="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse"></div>
+        <p class="text-[13px] text-[#00E5FF]">Lote em produção — inspeção disponível após progressão automática.</p>
       </div>
     }
-    
-    <!-- Formulário de Inspeção para o Inspetor (quando aguardando_inspecao) -->
-    @else if (!lote()!.inspecao && lote()!.status === 'aguardando_inspecao' && authService.usuario()?.perfil === 'inspetor') {
-      <form [formGroup]="formInspecao" (ngSubmit)="salvarInspecao()" class="mt-4 flex flex-col gap-5 p-5 border border-[#484847]/50 rounded bg-[#0E0E0E]">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-          
-          <!-- Número do Lote (Desabilitado) -->
-          <div class="w-full">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Número do Lote</label>
-            <input type="text" [value]="lote()!.numero_lote" disabled class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-[#ADAAAA] cursor-not-allowed h-[34px]">
-          </div>
 
-          <!-- Resultado (obrigatório) -->
-          <div class="w-full">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Resultado *</label>
-            <select formControlName="resultado" class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] cursor-pointer h-[34px]">
-              <option value="" disabled selected>Selecione...</option>
-              <option value="aprovado">Aprovado</option>
-              <option value="aprovado_restricao">Aprovado com Restrição</option>
-              <option value="reprovado">Reprovado</option>
-            </select>
-          </div>
+    <!-- Formulário de Inspeção (aguardando_inspecao + perfil inspetor ou gestor) -->
+    @else if (!lote()!.inspecao && lote()!.status === 'aguardando_inspecao' &&
+      (authService.usuario()?.perfil === 'inspetor' || authService.usuario()?.perfil === 'gestor')) {
+      <form [formGroup]="formInspecao" (ngSubmit)="salvarInspecao()"
+        class="mt-2 flex flex-col gap-5 p-5 border border-[#484847]/50 rounded bg-[#0E0E0E]">
 
-          <!-- Quantidade Reprovada (obrigatório) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+          <!-- Quantidade Reprovada -->
           <div class="w-full relative">
             <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 flex justify-between">
-              <span>Qtd Reprovada *</span>
-              <span class="text-[#00E5FF]">UN</span>
+              <span>Quantidade Reprovada *</span>
+              <span class="text-[#00E5FF]">máx: {{ lote()!.quantidade_planejada }}</span>
             </label>
-            <input type="number" formControlName="quantidade_repr" min="0" [max]="lote()!.quantidade_prod" class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] h-[34px]">
-            @if (formInspecao.get('quantidade_repr')?.errors?.['max']) {
-              <span class="text-[10px] text-[#fca5a5] mt-0.5 absolute left-0 top-full">Máximo: {{ lote()!.quantidade_prod }}</span>
-            }
+            <input type="number" formControlName="quantidade_reprovada" min="0" [max]="lote()!.quantidade_planejada"
+              class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] h-[34px]">
           </div>
 
-          <!-- Inspecionado Em (Desabilitado) -->
+          <!-- Preview de Resultado (auto-calculado) -->
           <div class="w-full">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Inspecionado Em</label>
-            <input type="text" [value]="formatarDataHora(dataAtual)" disabled class="w-full bg-[#1A1A1A] border border-[#484847]/50 rounded px-3 py-2 text-xs text-[#ADAAAA] cursor-not-allowed h-[34px]">
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Resultado (auto)</label>
+            <div class="h-[34px] flex items-center px-3 bg-[#1A1A1A] border border-[#484847]/30 rounded text-[11px] font-bold uppercase tracking-wider"
+              [class]="resultadoPreview() === 'APROVADO' ? 'text-[#9EEE35]' :
+                        resultadoPreview() === 'APROVADO COM RESTRIÇÃO' ? 'text-[#A0AEC0]' :
+                        resultadoPreview() === 'REPROVADO' ? 'text-[#fca5a5]' : 'text-[#6B7280]'">
+              {{ resultadoPreview() || '—' }}
+            </div>
           </div>
-        </div>
 
-        <div class="grid grid-cols-1 gap-4">
-          <!-- Descrição de Desvio -->
+          <!-- Preview Taxa -->
           <div class="w-full">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">
-              Descrição de Desvio 
-              @if(formInspecao.value.resultado !== 'aprovado') { <span class="text-[#00E5FF]">*</span> }
-            </label>
-            <textarea formControlName="descricao_desvio" rows="2" class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] resize-none" placeholder="Detalhes de possíveis não conformidades..."></textarea>
-          </div>
-        </div>
-
-        <!-- Taxa de Aprovação Preview & Salvar -->
-        <div class="flex flex-col md:flex-row items-center justify-between border-t border-[#484847]/30 pt-4 mt-2 gap-4">
-          <div class="flex items-center gap-3">
-            <span class="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider">Prev. Taxa de Aprovação:</span>
-            <span class="text-xl font-bold bg-[#131313] px-3 py-1 rounded border border-[#484847]/50" 
+            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">Taxa de Aprovação</label>
+            <div class="h-[34px] flex items-center px-3 bg-[#1A1A1A] border border-[#484847]/30 rounded text-xl font-bold"
               [style.color]="taxaAprovacaoPreview() >= 90 ? '#9EEE35' : taxaAprovacaoPreview() >= 70 ? '#DFFF00' : '#fca5a5'">
               {{ taxaAprovacaoPreview() }}%
-            </span>
+            </div>
           </div>
-          
-          <button type="submit" [disabled]="formInspecao.invalid || processando()" class="w-full md:w-auto px-6 py-2 bg-[#00E5FF] text-black font-bold uppercase text-[11px] tracking-wider rounded transition-all hover:bg-[#00E5FF]/80 disabled:opacity-50 flex items-center justify-center gap-2">
-            @if(processando()) {
+        </div>
+
+        <!-- Descrição do Desvio -->
+        <div class="w-full">
+          <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">
+            Descrição do Desvio
+            @if (qtdReprovadaInput() > 0) { <span class="text-[#00E5FF]">*</span> }
+          </label>
+          <textarea formControlName="descricao_desvio" rows="2"
+            class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] resize-none"
+            placeholder="Detalhes de possíveis não conformidades..."></textarea>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="submit" [disabled]="formInspecao.invalid || processando()"
+            class="px-6 py-2 bg-[#00E5FF] text-black font-bold uppercase text-[11px] tracking-wider rounded transition-all hover:bg-[#00E5FF]/80 disabled:opacity-50 flex items-center gap-2">
+            @if (processando()) {
               <div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               Processando
             } @else {
-               Registrar Inspeção
+              Registrar Inspeção
             }
           </button>
         </div>
       </form>
     }
 
-    <!-- Aviso Genérico se ainda não tem inspeção (Outras roles) -->
-    @else if (!lote()!.inspecao) {
+    <!-- Aguardando inspeção (perfil sem permissão) -->
+    @else if (!lote()!.inspecao && lote()!.status === 'aguardando_inspecao') {
       <div class="flex items-center gap-3 py-4">
         <div class="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse"></div>
         <p class="text-[13px] text-[#DFFF00]">Aguardando inspeção</p>
       </div>
-    } 
-    
+    }
+
     <!-- Relatório de Inspeção (Já Emitido) -->
-    @else {
+    @else if (lote()!.inspecao) {
       @let insp = lote()!.inspecao!;
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <div class="flex items-center gap-3 mb-4">
             <div class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider"
-              [style.color]="getStatusConfig(insp.resultado).cor"
-              [style.background]="getStatusConfig(insp.resultado).corBg"
-              [style.border]="'1px solid ' + getStatusConfig(insp.resultado).corBorda">
-              {{ getStatusConfig(insp.resultado).label }}
+              [style.color]="getStatusConfig(insp.resultado_calculado).cor"
+              [style.background]="getStatusConfig(insp.resultado_calculado).corBg"
+              [style.border]="'1px solid ' + getStatusConfig(insp.resultado_calculado).corBorda">
+              {{ getStatusConfig(insp.resultado_calculado).label }}
             </div>
           </div>
           <div class="flex flex-col gap-3">
             <div>
               <span class="info-label">Inspetor</span>
               <span class="info-value">{{ insp.inspetor.nome }}</span>
+            </div>
+            <div>
+              <span class="info-label">Reprovados</span>
+              <span class="info-value" [class]="insp.quantidade_reprovada > 0 ? 'text-[#fca5a5]' : ''">
+                {{ insp.quantidade_reprovada }} UN
+              </span>
             </div>
             @if (insp.inspecionado_em) {
             <div>
@@ -389,16 +279,17 @@
         </div>
 
         @if (insp.descricao_desvio) {
-        <div class="p-4 rounded border" [style.border-color]="getStatusConfig(insp.resultado).corBorda + '60'"
-          [style.background]="getStatusConfig(insp.resultado).corBg">
+        <div class="p-4 rounded border"
+          [style.border-color]="getStatusConfig(insp.resultado_calculado).corBorda + '60'"
+          [style.background]="getStatusConfig(insp.resultado_calculado).corBg">
           <div class="flex items-center gap-2 mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-              class="w-4 h-4 shrink-0" [style.stroke]="getStatusConfig(insp.resultado).cor">
+              class="w-4 h-4 shrink-0" [style.stroke]="getStatusConfig(insp.resultado_calculado).cor">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
             </svg>
             <span class="text-[10px] font-bold uppercase tracking-wider"
-              [style.color]="getStatusConfig(insp.resultado).cor">Descrição do Desvio</span>
+              [style.color]="getStatusConfig(insp.resultado_calculado).cor">Descrição do Desvio</span>
           </div>
           <p class="text-[13px] text-[#ADAAAA] leading-relaxed">{{ insp.descricao_desvio }}</p>
         </div>

@@ -1,5 +1,6 @@
 // ──────────────────────────────────────────────
-// Modelos compartilhados para lotes e pesquisa
+// Modelos compartilhados — tipagem explícita
+// Cada interface reflete exatamente o contrato da API
 // ──────────────────────────────────────────────
 
 export type LoteStatus =
@@ -9,24 +10,32 @@ export type LoteStatus =
   | 'aprovado_restricao'
   | 'reprovado';
 
-export interface SugestaoItem {
-  tipo: 'lote' | 'produto';
-  id: number | null;
-  label: string;
-  sublabel: string;
-  status?: LoteStatus;
+// ── Entidades Base ──
+
+export interface MateriaPrima {
+  id: number;
+  nome: string;
+  sku_interno: string;
+  unidade_medida: 'KG' | 'L' | 'M' | 'UN';
+  categoria: string;
+}
+
+export interface ReceitaItem {
+  id: number;
+  materiaPrima: MateriaPrima;
+  quantidade: number;
+  unidade: string;
 }
 
 export interface Produto {
   id: number;
   nome: string;
-}
-
-export interface InsumoMaster {
-  id: number;
-  nome: string;
-  codigo: string;
-  unidade_padrao: string;
+  sku: string;
+  categoria: string;
+  linha_padrao: string;
+  percentual_ressalva: number;
+  ativo: boolean;
+  receita: ReceitaItem[];
 }
 
 export interface Operador {
@@ -34,21 +43,36 @@ export interface Operador {
   nome: string;
 }
 
-export interface InsumoLote {
+export interface InsumoEstoque {
   id: number;
-  nome_insumo: string;
-  codigo_insumo?: string;
-  lote_insumo?: string;
-  quantidade: number;
+  materiaPrima: MateriaPrima;
+  numero_lote_fornecedor: string;
+  numero_lote_interno: string;
+  quantidade_inicial: number;
+  quantidade_atual: number;
+  fornecedor: string;
+  turno: string;
+  data_validade: string | null;
+  recebido_em: string;
 }
 
-export interface InspecaoLote {
+export interface ConsumoInsumo {
   id: number;
-  resultado: LoteStatus;
-  descricao_desvio?: string;
-  inspecionado_em?: string;
+  insumoEstoque: InsumoEstoque;
+  quantidade_consumida: number;
+  registrado_em: string;
+}
+
+export interface Inspecao {
+  id: number;
+  resultado_calculado: 'aprovado' | 'aprovado_restricao' | 'reprovado';
+  quantidade_reprovada: number;
+  descricao_desvio: string;
+  inspecionado_em: string;
   inspetor: Operador;
 }
+
+// ── Lote de Produção ──
 
 export interface LoteDetalhe {
   id: number;
@@ -57,14 +81,24 @@ export interface LoteDetalhe {
   data_producao: string;
   turno: string;
   operador: Operador;
-  quantidade_prod: number;
-  quantidade_repr: number;
+  quantidade_planejada: number;
   status: LoteStatus;
-  observacoes?: string;
+  observacoes: string;
+  data_validade: string | null;
   aberto_em: string;
-  encerrado_em?: string;
-  insumos?: InsumoLote[];
-  inspecao?: InspecaoLote;
+  encerrado_em: string | null;
+  consumos: ConsumoInsumo[];
+  inspecao: Inspecao | null;
+}
+
+// ── Sugestão de Busca ──
+
+export interface SugestaoItem {
+  tipo: 'lote' | 'produto';
+  id: number | null;
+  label: string;
+  sublabel: string;
+  status?: LoteStatus;
 }
 
 // ──────────────────────────────────────────────
