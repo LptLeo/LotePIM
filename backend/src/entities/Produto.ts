@@ -1,46 +1,56 @@
-import { Column, Entity, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, type Relation } from "typeorm";
-import type { Lote } from "./Lote.js";
-import type { Insumo } from "./Insumo.js";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  type Relation,
+} from "typeorm";
 
-@Entity('produto')
+import type { ReceitaItem } from "./ReceitaItem.js";
+import type { Lote } from "./Lote.js";
+
+/**
+ * Define um produto acabado e suas regras de qualidade.
+ * A receita (lista de matérias-primas necessárias) é gerenciada
+ * via entidade pivot ReceitaItem para armazenar quantidade por item.
+ */
+@Entity("produto")
 export class Produto {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'text', unique: true, nullable: false })
-  codigo!: string;
+  @Column({ type: "text", nullable: false })
+  nome!: string;
 
-  @Column({ type: 'text', nullable: false })
-  nome!: string
+  @Column({ type: "text", unique: true, nullable: false })
+  sku!: string;
 
-  @Column({ type: 'text', nullable: true })
-  descricao?: string;
+  @Column({ type: "text", nullable: false })
+  categoria!: string;
 
-  @Column({ type: 'text', nullable: false })
-  linha!: string
+  @Column({ type: "text", nullable: false })
+  linha_padrao!: string;
 
-  @Column({ type: 'text', default: '1.0.0' })
-  versao!: string;
+  /** Limiar de reprovação (%) para determinar o resultado da inspeção */
+  @Column({ type: "numeric", nullable: false })
+  percentual_ressalva!: number;
 
-  @Column({ type: 'boolean', default: true })
-  ativo!: boolean
+  @Column({ type: "boolean", default: true })
+  ativo!: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: "timestamptz" })
   criado_em!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: "timestamptz" })
   atualizado_em!: Date;
 
-  // Relacionamento 1:N com Lote
+  @OneToMany("ReceitaItem", "produto", { cascade: true })
+  receita!: Relation<ReceitaItem>[];
+
   @OneToMany("Lote", "produto")
   lotes!: Relation<Lote>[];
-
-  // Relacionamento M:N com Insumo (Insumos Padrão)
-  @ManyToMany("Insumo")
-  @JoinTable({
-    name: "produto_insumos_padrao",
-    joinColumn: { name: "produto_id", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "insumo_id", referencedColumnName: "id" }
-  })
-  insumos_padrao!: Relation<Insumo>[];
 }

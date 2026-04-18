@@ -1,164 +1,227 @@
-<div class="h-[calc(100vh-80px)] overflow-y-auto w-full p-4 md:p-8 bg-[#0A0A0A] custom-scrollbar">
+<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-6">
 
-  <!-- Retorno e Status -->
-  <div class="flex items-center gap-4 mb-8">
-    <button (click)="voltarParaLista()"
-      class="flex justify-center items-center w-8 h-8 rounded-full bg-[#1A1A1A] hover:bg-[#2A2A2A] transition-colors border border-[#484847]/30 cursor-pointer text-[#ADAAAA] hover:text-white">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-      </svg>
-    </button>
-    <div class="flex flex-col">
-      <h1 class="text-2xl font-bold text-white tracking-[-0.5px]">Novo Produto</h1>
-      <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Gestão de Catálogo</span>
+  <!-- Header -->
+  <header class="flex flex-col gap-6">
+    <div class="flex items-center gap-4">
+      <button (click)="voltarParaLista()"
+        class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+      </button>
+      <div class="h-6 w-px bg-[#484847]/30"></div>
+      <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Produtos / Novo Produto</span>
+    </div>
+
+    <div>
+      <h2 class="font-bold text-[32px] leading-tight tracking-[-1px] text-white">
+        Cadastro de Produto
+      </h2>
+      <p class="text-[14px] text-[#ADAAAA] mt-1 tracking-wide">
+        Wizard de 2 etapas — defina os dados e configure a receita de produção.
+      </p>
+    </div>
+  </header>
+
+  <!-- Step Indicator -->
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold transition-all duration-300"
+        [class]="etapaAtual() >= 1 ? 'bg-[#00E5FF] text-black' : 'bg-[#484847]/30 text-[#6B7280]'">1</div>
+      <span class="text-[11px] font-bold uppercase tracking-wider"
+        [class]="etapaAtual() >= 1 ? 'text-white' : 'text-[#6B7280]'">Dados Base</span>
+    </div>
+    <div class="flex-1 h-px" [class]="etapaAtual() >= 2 ? 'bg-[#00E5FF]' : 'bg-[#484847]/40'"></div>
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold transition-all duration-300"
+        [class]="etapaAtual() >= 2 ? 'bg-[#00E5FF] text-black' : 'bg-[#484847]/30 text-[#6B7280]'">2</div>
+      <span class="text-[11px] font-bold uppercase tracking-wider"
+        [class]="etapaAtual() >= 2 ? 'text-white' : 'text-[#6B7280]'">Receita</span>
     </div>
   </div>
 
+  <!-- Error -->
   @if (erro()) {
-    <div class="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded mb-6 text-sm flex items-center gap-2 max-w-5xl mx-auto">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      {{ erro() }}
-    </div>
+  <div class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md">
+    <p class="text-[#fca5a5] text-[13px] font-semibold">{{ erro() }}</p>
+  </div>
   }
 
-  <div class="max-w-5xl mx-auto flex flex-col xl:flex-row gap-6">
+  <!-- ═══════════ ETAPA 1: Dados Base ═══════════ -->
+  @if (etapaAtual() === 1) {
+  <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 sm:p-8">
+    <form [formGroup]="formBase" (ngSubmit)="avancarEtapa()" class="flex flex-col gap-6">
 
-    <!-- FORMULÁRIO PRINCIPAL -->
-    <div class="flex-1 bg-[#131313] border border-[#484847]/30 rounded-lg overflow-hidden flex flex-col">
-      <!-- HEADER -->
-      <div class="flex justify-between items-center px-6 py-4 bg-[#1A1A1A] border-b border-[#484847]/30">
-        <div class="flex items-center gap-3">
-          <div class="w-2 h-2 rounded-full bg-[#00E5FF]"></div>
-          <span class="text-[11px] font-bold text-white uppercase tracking-wider">Dados do Produto</span>
+      <!-- Nome + SKU Preview -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Nome do Produto *</label>
+          <input type="text" formControlName="nome" placeholder="Ex: Monitor Gamer 144Hz"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
         </div>
-        
-        <!-- Toggle Switch Ativo -->
-        <label class="relative inline-flex items-center cursor-pointer group">
-          <input type="checkbox" [formControl]="form.controls.ativo" class="sr-only peer">
-          <div class="w-9 h-5 bg-[#484847] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#00E5FF]"></div>
-          <span class="ml-2 text-[10px] font-bold text-[#ADAAAA] uppercase tracking-wider group-hover:text-white transition-colors">
-            {{ form.get('ativo')?.value ? 'Ativo' : 'Inativo' }}
-          </span>
-        </label>
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">SKU (Auto)</label>
+          <input type="text" [value]="skuPreview()" disabled
+            class="w-full bg-[#0E0E0E] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#00E5FF] font-mono cursor-not-allowed focus:outline-none">
+        </div>
       </div>
 
-      <!-- BODY -->
-      <div class="p-6">
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Nome -->
-            <div>
-              <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2 block">Nome Corporativo *</label>
-              <input type="text" formControlName="nome" placeholder="Ex: Cerveja IPA Artesanal" 
-                class="w-full bg-[#1A1A1A] border border-[#484847] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF]">
-            </div>
-
-            <!-- Categoria (Combobox simulado com Datalist) -->
-            <div>
-              <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2 block">Categoria (Linha) *</label>
-              <input type="text" formControlName="linha" list="categoriasList" placeholder="Selecione ou digite nova"
-                (focus)="$any($event.target).placeholder = ''"
-                (click)="$any($event.target).value = ''; carregarDadosApoio()"
-                class="w-full bg-[#1A1A1A] border border-[#484847] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF]">
-              <datalist id="categoriasList">
-                @for (cat of categoriasExistentes(); track cat) {
-                  <option [value]="cat"></option>
-                }
-              </datalist>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- SKU -->
-            <div class="md:col-span-2">
-              <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2 block">SKU / Código Interno *</label>
-              <div class="relative flex items-center">
-                <input type="text" formControlName="codigo" placeholder="Ex: PRD-0412" 
-                  class="w-full bg-[#1A1A1A] border border-[#484847] rounded pl-3 pr-24 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF] uppercase">
-                
-                <button type="button" (click)="gerarSkuParaNome()" [disabled]="gerandoSku() || !form.get('nome')?.value"
-                  class="absolute right-1 px-2 py-1 bg-[#2A2A2A] border border-[#484847] text-[9px] uppercase font-bold tracking-wider text-[#00E5FF] rounded hover:bg-[#3A3A3A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  @if (gerandoSku()) { <span class="animate-pulse">GERANDO...</span> }
-                  @else { GERAR AUTO }
-                </button>
-              </div>
-            </div>
-
-            <!-- Versão -->
-            <div>
-              <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2 block">Versão *</label>
-              <input type="text" formControlName="versao" placeholder="1.0.0" 
-                class="w-full bg-[#1A1A1A] border border-[#484847] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF]">
-            </div>
-          </div>
-
-          <!-- Descrição -->
-          <div>
-            <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-2 block">Descrição (Opcional)</label>
-            <textarea formControlName="descricao" rows="3" placeholder="Detalhes de produção, notas técnicas..."
-              class="w-full bg-[#1A1A1A] border border-[#484847] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF] resize-none"></textarea>
-          </div>
-
-          <!-- Divider -->
-          <div class="border-t border-[#484847]/30 my-2"></div>
-          
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Insumos Padrão</label>
-            <div class="relative inline-block cursor-help group">
-              <img class="w-3.5 h-3.5 opacity-60 hover:opacity-100" src="assets/icons/help-icon.svg" alt="Ajuda">
-              <div class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-[#1A1A1A] border border-[#484847] text-[10px] text-[#ADAAAA] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                Selecione os insumos que sempre são exigidos na lista de materiais ao fabricar esse produto.
-              </div>
-            </div>
-          </div>
-
-          <!-- Seletor Select para arranjar IDs -->
-          <select (change)="onInsumoSelected($event)" class="w-full bg-[#1A1A1A] border border-[#484847] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF] cursor-pointer mb-2">
-            <option value="" disabled selected>Clique para anexar um insumo...</option>
-            @for (ins of insumosExistentes(); track ins.id) {
-              <option [value]="ins.id">{{ ins.codigo }} - {{ ins.nome }} ({{ ins.unidade_padrao }})</option>
+      <!-- Categoria + Linha -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Categoria *</label>
+          <input type="text" formControlName="categoria" list="categoriasDatalist" placeholder="Ex: Monitores"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+          <datalist id="categoriasDatalist">
+            @for (cat of categoriasExistentes(); track cat) {
+              <option [value]="cat"></option>
             }
-          </select>
-
-          <!-- Chips Container -->
-          <div class="flex flex-wrap gap-2 min-h-[40px] items-start p-2 rounded bg-[#0A0A0A] border border-[#484847]/30">
-            @if (insumosSelecionados().length === 0) {
-              <span class="text-[11px] text-[#6B7280] p-1">Nenhum insumo associado ainda.</span>
-            }
-            @for (chip of insumosSelecionados(); track chip.id) {
-              <div class="flex items-center gap-1.5 bg-[#1A1A1A] border border-[#484847] rounded-full px-2.5 py-1 text-[11px] text-[#ADAAAA]">
-                <span class="font-bold text-[#DFFF00]">{{ chip.codigo }}</span>
-                <span>{{ chip.nome }}</span>
-                <button type="button" (click)="removerInsumoSelecionado(chip.id)" class="text-[#fca5a5] hover:text-white transition-colors cursor-pointer ml-1">
-                  ✕
-                </button>
-              </div>
-            }
-          </div>
-
-        </form>
+          </datalist>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Linha de Produção *</label>
+          <input type="text" formControlName="linha_padrao" placeholder="Ex: Linha A"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
       </div>
-      
-      <!-- FOOTER / ACTS -->
-      <div class="px-6 py-4 bg-[#1A1A1A] border-t border-[#484847]/30 flex justify-end gap-4 mt-auto">
+
+      <!-- Percentual de Ressalva -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Limiar de Ressalva (%) *</label>
+          <div class="relative">
+            <input type="number" min="0" max="100" step="0.5" formControlName="percentual_ressalva"
+              class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-12 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#ADAAAA]">%</span>
+          </div>
+          <p class="text-[10px] text-[#6B7280] leading-relaxed">
+            Taxa de falha acima deste valor = <span class="text-[#fca5a5]">REPROVADO</span>.
+            Abaixo = <span class="text-[#A0AEC0]">APROVADO COM RESTRIÇÃO</span>.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2 justify-center">
+          <label class="flex items-center gap-3 cursor-pointer select-none">
+            <input type="checkbox" formControlName="ativo" class="accent-[#00E5FF] w-5 h-5 cursor-pointer">
+            <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-wider">Produto Ativo</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Ações Etapa 1 -->
+      <div class="mt-4 pt-6 border-t border-[#484847]/30 flex justify-end gap-4">
         <button type="button" (click)="voltarParaLista()"
-          class="px-5 py-2 text-[11px] font-bold text-[#ADAAAA] uppercase tracking-wider hover:text-white transition-colors cursor-pointer">
+          class="px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
           Cancelar
         </button>
-        <button [disabled]="form.invalid || salvando()" (click)="onSubmit()"
-          class="bg-[#00E5FF] text-[#000000] text-[11px] font-bold uppercase tracking-wider px-6 py-2 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:shadow-[0_0_20px_rgba(0,229,255,0.5)] transition-all flex items-center justify-center min-w-[120px] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed">
-          @if (salvando()) {
-            <div class="w-3.5 h-3.5 border-2 border-[#000000] border-t-transparent rounded-full animate-spin"></div>
-          } @else {
-            SALVAR PRODUTO
-          }
+        <button type="button" (click)="onSubmit()"
+          class="px-6 py-2.5 bg-[#1a1a1a] border border-[#00E5FF]/50 text-[#00E5FF] text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/10 disabled:opacity-50">
+          Salvar (Sem Receita)
+        </button>
+        <button type="submit"
+          class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+          Próximo: Receita →
         </button>
       </div>
+    </form>
+  </div>
+  }
 
+  <!-- ═══════════ ETAPA 2: Receita ═══════════ -->
+  @if (etapaAtual() === 2) {
+  <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 sm:p-8 flex flex-col gap-6">
+
+    <!-- Resumo do produto (preview) -->
+    <div class="flex items-center justify-between px-4 py-3 bg-[#0E0E0E] border border-[#484847]/40 rounded-md">
+      <div>
+        <span class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">Produto</span>
+        <span class="text-[14px] font-bold text-white">{{ formBase.controls.nome.value }}</span>
+        <span class="text-[11px] text-[#00E5FF] font-mono ml-2">{{ skuPreview() }}</span>
+      </div>
+      <div class="text-right">
+        <span class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">Ressalva</span>
+        <span class="text-[14px] font-bold text-white">{{ formBase.controls.percentual_ressalva.value }}%</span>
+      </div>
     </div>
 
+    <!-- Dropdown para adicionar matéria-prima -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Adicionar Matéria-Prima à Receita</label>
+      <div class="flex gap-3">
+        <div class="relative group flex-1">
+          <select #mpSelect
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer">
+            <option value="" disabled selected>Selecione uma matéria-prima...</option>
+            @for (mp of mpDisponiveis(); track mp.id) {
+            <option [value]="mp.id">{{ mp.nome }} ({{ mp.sku_interno }}) — {{ mp.unidade_medida }}</option>
+            }
+          </select>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+        <button type="button" (click)="adicionarItemReceita(+mpSelect.value); mpSelect.value = ''"
+          [disabled]="!mpSelect.value"
+          class="px-5 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-30 disabled:cursor-not-allowed">
+          + Adicionar
+        </button>
+      </div>
+    </div>
+
+    <!-- Lista de itens na receita -->
+    @if (receitaArray.length === 0) {
+    <div class="py-8 flex flex-col items-center gap-2 text-[#6B7280]">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 opacity-30">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+      </svg>
+      <span class="text-[12px]">Nenhuma matéria-prima adicionada à receita.</span>
+    </div>
+    }
+
+    @for (item of receitaArray.controls; track $index; let i = $index) {
+    <div class="bg-[#0E0E0E] border border-[#484847]/40 rounded-md p-4 flex items-center gap-4" [formGroup]="item">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="w-1.5 h-1.5 rounded-full bg-[#00E5FF]"></div>
+          <span class="text-[12px] font-bold text-white">{{ item.get('materia_prima_nome')?.value }}</span>
+        </div>
+        <span class="text-[10px] text-[#6B7280] uppercase">{{ item.get('unidade_medida')?.value }}</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="relative w-24">
+          <input type="number" formControlName="quantidade"
+            [min]="item.get('unidade')?.value === 'UN' ? '1' : '0.01'"
+            [step]="item.get('unidade')?.value === 'UN' ? '1' : '0.01'"
+            class="w-full bg-[#131313] border border-[#484847]/60 rounded px-3 py-2 text-[12px] text-white text-center focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
+        <span class="text-[10px] font-bold text-[#ADAAAA] w-8">{{ item.get('unidade')?.value }}</span>
+        <button type="button" (click)="removerItemReceita(i)"
+          class="w-8 h-8 rounded-full border border-red-800/40 text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-all flex items-center justify-center text-[14px] font-bold">
+          ×
+        </button>
+      </div>
+    </div>
+    }
+
+    <!-- Ações Etapa 2 -->
+    <div class="mt-4 pt-6 border-t border-[#484847]/30 flex justify-between">
+      <button type="button" (click)="voltarEtapa()"
+        class="px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
+        ← Voltar
+      </button>
+      <button type="button" (click)="onSubmit()"
+        [disabled]="salvando()"
+        class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+        @if (salvando()) {
+          Salvando...
+        } @else {
+          Registrar Produto
+        }
+      </button>
+    </div>
   </div>
+  }
 </div>

@@ -1,91 +1,79 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { ProdutosService, ProdutoMetrics } from './services/produtos.service';
-import { finalize, interval, Subscription, startWith } from 'rxjs';
+import { ProdutosService } from './services/produtos.service';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+<<<<<<< Updated upstream
+import { ProdutoFilterButtonComponent } from './components/produto-filter-button/produto-filter-button';
+import { ProdutoCardComponent } from './components/produto-card/produto-card';
+import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
+=======
+import type { Produto } from '../../shared/models/lote.models';
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-produtos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ProdutoFilterButtonComponent, ProdutoCardComponent, StatCardComponent, PageHeaderComponent],
   templateUrl: './produtos.html',
 })
-export class Produtos implements OnInit, OnDestroy {
+export class Produtos implements OnInit {
   private produtosService = inject(ProdutosService);
   private router = inject(Router);
   authService = inject(AuthService);
 
-  private pollingSub?: Subscription;
-
   // States
-  produtos = signal<any[]>([]);
-  metrics = signal<ProdutoMetrics>({ total: 0, ativos: 0, inativos: 0, sem_insumos: 0, mais_produzidos: 0, mais_produzido: 'N/D' });
+  produtosBase = signal<Produto[]>([]);
   carregando = signal(true);
   erro = signal<string | null>(null);
-
-  // Filtros
-  filtroAtivo = signal<string>('todos');
   termoPesquisa = signal('');
-  ultimaAtualizacao = signal<string>('--:--:--');
 
-  ngOnInit() {
-    this.iniciarAutoAtualizacao();
+  /** Listagem filtrada por busca local */
+  produtos = computed(() => {
+    const lista = this.produtosBase();
+    const termo = this.termoPesquisa().toLowerCase().trim();
+    if (!termo) return lista;
+    return lista.filter(p =>
+      p.nome.toLowerCase().includes(termo) ||
+      p.sku.toLowerCase().includes(termo) ||
+      p.categoria.toLowerCase().includes(termo)
+    );
+  });
+
+  /** Métricas computadas localmente */
+  totalProdutos = computed(() => this.produtosBase().length);
+  totalAtivos = computed(() => this.produtosBase().filter(p => p.ativo).length);
+  totalComReceita = computed(() => this.produtosBase().filter(p => p.receita?.length > 0).length);
+
+  ngOnInit(): void {
+    this.carregarProdutos();
   }
 
-  ngOnDestroy() {
-    this.pollingSub?.unsubscribe();
-  }
-
-  private iniciarAutoAtualizacao() {
-    // Polling a cada 10 segundos para manter os dados "Real-Time" de forma fluída
-    this.pollingSub = interval(10000)
-      .pipe(startWith(0))
-      .subscribe(() => {
-        this.carregarMetricas();
-        this.carregarProdutos(true);
-        this.ultimaAtualizacao.set(new Date().toLocaleTimeString('pt-BR'));
-      });
-  }
-
-  carregarMetricas() {
-    this.produtosService.getMetrics().subscribe({
-      next: (m) => this.metrics.set(m),
-      error: (e) => console.error("Erro metricas", e)
-    });
-  }
-
-  carregarProdutos(silencioso = false) {
-    if (!silencioso) this.carregando.set(true);
-    const apiFiltros: any = {
-      search: this.termoPesquisa()
-    };
-
-    const tab = this.filtroAtivo();
-    if (tab === 'ativos') apiFiltros.ativo = true;
-    if (tab === 'inativos') apiFiltros.ativo = false;
-    if (tab === 'sem_insumos') apiFiltros.sem_insumos = true;
-    if (tab === 'mais_produzidos') apiFiltros.sort = tab;
-
-    this.produtosService.getProdutos(apiFiltros)
+  carregarProdutos(): void {
+    this.carregando.set(true);
+    this.produtosService.getProdutos()
       .pipe(finalize(() => this.carregando.set(false)))
       .subscribe({
-        next: (dados) => this.produtos.set(dados),
-        error: (e) => this.erro.set('Erro ao carregar produtos do servidor.')
+        next: (dados) => this.produtosBase.set(dados),
+        error: () => this.erro.set('Erro ao carregar produtos do servidor.'),
       });
   }
 
-  aplicarFiltroTab(aba: string) {
-    this.filtroAtivo.set(aba);
-    this.carregarProdutos();
+  onSearch(event: Event): void {
+    this.termoPesquisa.set((event.target as HTMLInputElement).value);
   }
 
-  onSearch(event: any) {
-    this.termoPesquisa.set(event.target.value);
-    this.carregarProdutos();
+  irParaNovo(): void {
+    this.router.navigate(['/app/produtos/novo']);
   }
 
-  formatarData(data: string) {
+  irParaDetalhe(id: number): void {
+    this.router.navigate(['/app/produtos', id]);
+  }
+
+  formatarData(data?: string): string {
     if (!data) return '—';
     return new Date(data).toLocaleDateString('pt-BR');
   }
