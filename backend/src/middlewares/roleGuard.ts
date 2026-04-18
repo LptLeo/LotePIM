@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express"
-import type { PerfilUsuario } from "../entities/Usuario.js"
+import { PerfilUsuario } from "../entities/Usuario.js"
 import { AppError } from "../errors/AppError.js";
 
 export const roleGuard = (...perfisPermitidos: PerfilUsuario[]) => {
@@ -8,6 +8,10 @@ export const roleGuard = (...perfisPermitidos: PerfilUsuario[]) => {
 
     if (!usuarioLogado) {
       return next(new AppError('Usuário não autenticado', 401));
+    }
+
+    if (usuarioLogado.perfil === PerfilUsuario.GESTOR) {
+      return next();
     }
 
     const temPermissao = perfisPermitidos.includes(usuarioLogado.perfil);

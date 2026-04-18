@@ -38,7 +38,7 @@ export class MetricasService {
 
       this.loteRepo
         .createQueryBuilder("lote")
-        .select("COALESCE(SUM(lote.quantidade_prod), 0)", "total")
+        .select("COALESCE(SUM(lote.quantidade_planejada), 0)", "total")
         .where("lote.aberto_em BETWEEN :inicio AND :fim", { inicio: inicioDia, fim: fimDia })
         .getRawOne<{ total: string }>(),
 
