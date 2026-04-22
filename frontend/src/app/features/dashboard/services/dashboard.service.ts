@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { DashboardData } from '../models/dashboard.interface';
@@ -10,9 +10,12 @@ export class DashboardService {
   private http = inject(HttpClient);
   private API_URL = 'http://localhost:3000/api/metricas/dashboard';
 
-  getDashboardData(): Observable<DashboardData> {
-    return this.http.get<DashboardData>(this.API_URL).pipe(
-      tap(res => console.log(res)),
+  getDashboardData(periodoLotes?: string, periodoUnidades?: string): Observable<DashboardData> {
+    let params = new HttpParams();
+    if (periodoLotes) params = params.set('periodoLotes', periodoLotes);
+    if (periodoUnidades) params = params.set('periodoUnidades', periodoUnidades);
+
+    return this.http.get<DashboardData>(this.API_URL, { params }).pipe(
       catchError((error) => {
         console.error('Erro ao buscar dados do dashboard:', error);
         return throwError(() => new Error('Falha ao carregar dados do dashboard'));

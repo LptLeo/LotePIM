@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoteFeatureService } from './services/lote.service';
 import { LoteDetalhe, STATUS_CONFIG, LoteStatus } from '../../shared/models/lote.models';
@@ -9,6 +9,7 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { LoteCardComponent } from '../../shared/components/lote-card/lote-card';
 import { FilterTabsComponent, FilterTab } from '../../shared/components/filter-tabs/filter-tabs';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
+import { ConfiguracoesService } from '../../core/services/configuracoes.service';
 
 /** Fallback caso o backend não responda — 2 minutos como padrão de demo */
 const FALLBACK_DURACAO_MS = 2 * 60 * 1000;
@@ -16,7 +17,7 @@ const FALLBACK_DURACAO_MS = 2 * 60 * 1000;
 @Component({
   selector: 'app-lote',
   standalone: true,
-  imports: [CommonModule, StatCardComponent, LoteCardComponent, FilterTabsComponent, PageHeaderComponent],
+  imports: [CommonModule, StatCardComponent, LoteCardComponent, FilterTabsComponent, PageHeaderComponent, DecimalPipe],
   templateUrl: './lote.html',
   styleUrl: './lote.css',
 })
@@ -26,6 +27,7 @@ export class Lote implements OnInit, OnDestroy {
   private loteService = inject(LoteFeatureService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private configuracoesService = inject(ConfiguracoesService);
   authService = inject(AuthService);
 
   filtrosTabs: FilterTab[] = [
@@ -63,16 +65,47 @@ export class Lote implements OnInit, OnDestroy {
   /** Duração de produção em ms — carregada do backend, com fallback */
   private duracaoMs = signal<number>(FALLBACK_DURACAO_MS);
 
+  producaoTotalLabel = computed(() => {
+    const p = this.configuracoesService.settings().lote.producaoTotalPeriodo;
+    const map = {
+      qualquer_momento: 'Produção Total Acumulada',
+      mes: 'Produção (Mês Atual)',
+      semana: 'Produção (Última Semana)',
+      dia: 'Produção (Hoje)'
+    };
+    return map[p] || 'Produção Total';
+  });
+
   producaoTotalAcumulada = computed(() => {
-    return this.lotesBase().reduce((acc, curr) => acc + (curr.quantidade_planejada || 0), 0);
+    const period = this.configuracoesService.settings().lote.producaoTotalPeriodo;
+    const now = new Date();
+    let filteredLotes = this.lotesBase();
+
+    if (period === 'mes') {
+      filteredLotes = filteredLotes.filter(l => {
+        const d = new Date(l.aberto_em);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else if (period === 'semana') {
+      // Simplificação de semana (últimos 7 dias)
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filteredLotes = filteredLotes.filter(l => new Date(l.aberto_em) >= oneWeekAgo);
+    } else if (period === 'dia') {
+      filteredLotes = filteredLotes.filter(l => {
+        const d = new Date(l.aberto_em);
+        return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    }
+
+    return filteredLotes.reduce((acc, curr) => acc + (curr.quantidade_planejada || 0), 0);
   });
 
   statsCargaSistema = computed(() => {
-    // Lógica fictícia para "Carga do Sistema" baseada no % de lotes em produção
-    const total = this.lotesBase().length;
-    if (total === 0) return 0;
+    const baseValue = this.configuracoesService.settings().lote.atividadeTempoRealBase || 1000;
     const emProducao = this.lotesBase().filter(l => l.status === 'em_producao').length;
-    return Math.round((emProducao / total) * 100);
+    // Cálculo: (emProducao / baseValue) * 100
+    const val = (emProducao / baseValue) * 100;
+    return parseFloat(val.toFixed(1));
   });
 
   contagemPorStatus = computed(() => {

@@ -29,7 +29,7 @@
         </p>
       </div>
       <div>
-        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">LOTES (MÊS ATUAL)</h4>
+        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3 uppercase">{{ lotesLabel() }}</h4>
       </div>
       <div>
         <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
@@ -38,7 +38,7 @@
       </div>
       <div>
         <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
-          Comparado ao mês anterior
+          {{ lotesSublabel() }}
         </span>
       </div>
     </div>
@@ -53,7 +53,7 @@
         </p>
       </div>
       <div>
-        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3">UNIDADES (MÊS ATUAL)</h4>
+        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3 uppercase">{{ unidadesLabel() }}</h4>
       </div>
       <div>
         <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
@@ -62,32 +62,32 @@
       </div>
       <div>
         <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
-          Volume total no período
+          {{ unidadesSublabel() }}
         </span>
       </div>
     </div>
     <div
       class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 rounded-[4px] order-4 lg:order-3 col-span-2 lg:col-span-1"
-      [style.border-color]="taxaDeAprovacaoMes() > 90 ? 'rgba(195, 244, 0, 0.2)' : 'rgba(255, 113, 108, 0.2)'">
+      [style.border-color]="taxaDeAprovacaoMes() >= taxaAlvo() ? 'rgba(195, 244, 0, 0.2)' : 'rgba(255, 113, 108, 0.2)'">
       <div class="flex items-start">
         <!-- Taxa de aprovação MENSAL -->
-        <p class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mr-auto">TAXA DE APROVAÇÃO</p>
+        <p class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mr-auto uppercase">TAXA DE APROVAÇÃO</p>
         <div>
           <img class="w-[22px] h-[21px]" src="assets/icons/approved-icon.svg" alt="">
         </div>
       </div>
       <div>
         <h4 class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]">
-          {{ taxaDeAprovacaoMes()}}
+          {{ taxaDeAprovacaoMes()}}%
         </h4>
       </div>
       <div class="w-full h-[4px] bg-[#262626] rounded-[12px]">
         <div class="h-full rounded-l-[12px]" [style.width.%]="taxaDeAprovacaoMes()"
-          [style.background-color]="taxaDeAprovacaoMes() > 90 ? '#C3F400' : '#FF716C'"></div>
+          [style.background-color]="taxaDeAprovacaoMes() >= taxaAlvo() ? '#C3F400' : '#FF716C'"></div>
       </div>
       <div>
         <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">
-          {{ taxaDeAprovacaoMes() > 90 ? 'Acima da média industrial' : 'Abaixo da média industrial' }}
+          {{ taxaDeAprovacaoMes() >= taxaAlvo() ? 'Acima da meta configurada' : 'Abaixo da meta configurada' }}
         </span>
       </div>
     </div>

@@ -1,9 +1,11 @@
 import { Component, inject, computed } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { DashboardService } from "./services/dashboard.service";
+import { DashboardData } from './models/dashboard.interface';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
+import { ConfiguracoesService } from '../../core/services/configuracoes.service';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -16,9 +18,15 @@ import autoTable from 'jspdf-autotable';
 export class Dashboard {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private configuracoesService = inject(ConfiguracoesService);
 
-  dashboardResource = rxResource({
-    stream: () => this.dashboardService.getDashboardData(),
+  settings = this.configuracoesService.settings;
+
+  dashboardResource = rxResource<DashboardData, any>({
+    stream: () => this.dashboardService.getDashboardData(
+      this.settings().dashboard.lotesComparacao,
+      this.settings().dashboard.unidadesComparacao
+    ),
   });
 
   lotesProduzidos = computed(() => this.dashboardResource.value()?.lotes_mes ?? 0);
@@ -29,6 +37,43 @@ export class Dashboard {
   lotesEmAberto = computed(() => this.dashboardResource.value()?.aguardando_inspecao ?? 0);
   ultimosLotes = computed(() => this.dashboardResource.value()?.ultimos_lotes ?? []);
   dataGeracao = new Date();
+
+  // Dynamic Labels
+  lotesLabel = computed(() => {
+    const p = this.settings().dashboard.lotesComparacao;
+    const map: Record<string, string> = {
+      qualquer_momento: 'LOTES (HISTÓRICO)',
+      mes: 'LOTES (MÊS ATUAL)',
+      semana: 'LOTES (ESTA SEMANA)',
+      dia: 'LOTES (HOJE)'
+    };
+    return map[p] || 'LOTES';
+  });
+
+  lotesSublabel = computed(() => {
+    const p = this.settings().dashboard.lotesComparacao;
+    if (p === 'qualquer_momento') return 'Total desde o início';
+    return `Comparado ao ${p === 'mes' ? 'mês anterior' : p === 'semana' ? 'período anterior' : 'dia anterior'}`;
+  });
+
+  unidadesLabel = computed(() => {
+    const p = this.settings().dashboard.unidadesComparacao;
+    const map: Record<string, string> = {
+      qualquer_momento: 'UNIDADES (HISTÓRICO)',
+      mes: 'UNIDADES (MÊS ATUAL)',
+      semana: 'UNIDADES (ESTA SEMANA)',
+      dia: 'UNIDADES (HOJE)'
+    };
+    return map[p] || 'UNIDADES';
+  });
+
+  unidadesSublabel = computed(() => {
+    const p = this.settings().dashboard.unidadesComparacao;
+    if (p === 'qualquer_momento') return 'Volume total acumulado';
+    return p === 'mes' ? 'Volume total no período' : 'Volume no período selecionado';
+  });
+
+  taxaAlvo = computed(() => this.settings().dashboard.taxaAprovacaoAlvo);
 
   irParaDetalhe(id: number): void {
     this.router.navigate(['/app/lote', id]);
@@ -80,7 +125,7 @@ export class Dashboard {
 
     autoTable(doc, {
       startY: 60,
-      head: [['Métrica', 'Valor Atual', 'Tendência (vs Mês Anterior)']],
+      head: [['Métrica', 'Valor Atual', 'Tendência (vs Período Anterior)']],
       body: [
         ['Lotes Produzidos', data.lotes_mes, lotesT.text],
         ['Unidades Produzidas', data.unidades_mes, unidadesT.text],
@@ -109,7 +154,7 @@ export class Dashboard {
       autoTable(doc, {
         startY: currentY + 5,
         head: [['Produto (Top 10)', 'Unidades Produzidas']],
-        body: data.top_produtos.map(p => [p.nome, p.quantidade]),
+        body: data.top_produtos.map((p: any) => [p.nome, p.quantidade]),
         theme: 'grid',
         headStyles: { fillColor: [0, 77, 87], textColor: [255, 255, 255] },
         styles: { fontSize: 9 }
@@ -122,7 +167,7 @@ export class Dashboard {
       autoTable(doc, {
         startY: currentY,
         head: [['Funcionário Destaque', 'Lotes Operados']],
-        body: data.top_funcionarios.map(f => [f.nome, f.quantidade_lotes]),
+        body: data.top_funcionarios.map((f: any) => [f.nome, f.quantidade_lotes]),
         theme: 'grid',
         headStyles: { fillColor: [0, 77, 87], textColor: [255, 255, 255] },
         styles: { fontSize: 9 }
@@ -139,7 +184,7 @@ export class Dashboard {
       autoTable(doc, {
         startY: currentY + 5,
         head: [['Lote', 'Produto', 'Operador', 'Status', 'Data']],
-        body: data.ultimos_lotes.map(l => [
+        body: data.ultimos_lotes.map((l: any) => [
           l.numero_lote,
           l.produto.nome,
           l.operador.nome,
