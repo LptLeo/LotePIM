@@ -54,7 +54,7 @@
 
   <!-- Tabs Nav -->
   <div
-    class="flex flex-wrap border-b border-[#484847]/30 gap-6 md:gap-8 overflow-x-auto whitespace-nowrap hide-scrollbar">
+    class="flex flex-wrap border-b border-[#484847]/30 gap-6 md:gap-8 overflow-x-auto whitespace-nowrap">
 
     <app-produto-filter-button value="todos" label="Todos" [count]="metrics().total"
       [active]="filtroAtivo() === 'todos'" (action)="aplicarFiltroTab($event)">
@@ -102,7 +102,7 @@
   } @else {
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     @for (prod of produtos(); track prod.id) {
-    <app-produto-card [prod]="prod"></app-produto-card>
+    <app-produto-card [prod]="prod" (cardClick)="irParaDetalhe($event)"></app-produto-card>
     }
   </div>
   }

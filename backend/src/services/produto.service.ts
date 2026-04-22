@@ -100,7 +100,7 @@ export class ProdutoService {
     ]);
 
     return this.produtoRepo.find({
-      relations: ["receita", "receita.materiaPrima"],
+      relations: ["receita", "receita.materiaPrima", "lotes"],
       order: { nome: "ASC" },
     });
   };
