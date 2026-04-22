@@ -10,6 +10,7 @@ import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade';
 import { Configuracoes } from './features/configuracoes/configuracoes';
 import { Insumos } from './features/insumos/insumos';
 import { InsumoNovo } from './features/insumos/pages/insumo-novo/insumo-novo';
+import { Perfil } from './features/perfil/perfil';
 import { authGuard } from './core/guards/auth/auth-guard';
 import { MainLayout } from './core/layouts/main-layout/main-layout';
 
@@ -77,6 +78,10 @@ export const routes: Routes = [
       {
         path: 'configuracoes',
         component: Configuracoes,
+      },
+      {
+        path: 'perfil',
+        component: Perfil,
       }
     ]
   },
