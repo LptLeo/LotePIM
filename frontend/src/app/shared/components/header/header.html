@@ -1,4 +1,4 @@
-<header class="flex justify-between items-center px-4 py-4 min-w-full bg-[#0E0E0E] md:px-8">
+<header class="flex justify-between items-center px-4 py-4 w-full bg-[#0E0E0E] md:px-8">
   <nav class="flex">
     <div class="flex items-center pr-6">
       <img class="min-w-[18px] min-h-[18px]" src="assets/icons/dashboard-icon.svg" alt="">
@@ -130,16 +130,18 @@
       </div>
     </div>
     <div class="flex items-center">
-      <div class="hidden flex-col justify-center items-end mr-3 min-w-25 md:flex">
-        <span class="font-bold text-[12px] leading-[12px] tracking-[-0.35px] text-[#00E5FF]">
-          {{ authService.usuario()?.nome || 'Convidado' }}
-        </span>
-        <span class="text-[10.4px] leading-[20px] tracking-[0.52px] text-[#ADAAAA]">
-          {{ cargoFormatado() }}
-        </span>
-      </div>
-      <div>
-        <img class="w-[30px] h-[30px] rounded-sm" src="assets/icons/user-profile.svg" alt="">
+      <div class="flex items-center cursor-pointer hover:opacity-80 transition-opacity" (click)="goToPerfil()">
+        <div class="hidden flex-col justify-center items-end mr-3 min-w-25 md:flex">
+          <span class="font-bold text-[12px] leading-[12px] tracking-[-0.35px] text-[#00E5FF]">
+            {{ authService.usuario()?.nome || 'Convidado' }}
+          </span>
+          <span class="text-[10.4px] leading-[20px] tracking-[0.52px] text-[#ADAAAA]">
+            {{ cargoFormatado() }}
+          </span>
+        </div>
+        <div>
+          <img class="w-[30px] h-[30px] rounded-sm" src="assets/icons/user-profile.svg" alt="">
+        </div>
       </div>
       <button
         (click)="logout()"
