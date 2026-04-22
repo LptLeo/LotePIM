@@ -1,4 +1,4 @@
-<div class="flex gap-3 overflow-x-auto pb-2 min-w-full scrollbar-hide">
+<div class="flex gap-3 overflow-x-auto pb-2 w-full">
     @for (tab of tabs; track tab.id) {
     <button (click)="onFiltroClick(tab.id)"
         [class.bg-[#00E5FF]]="filtroAtivo === tab.id"

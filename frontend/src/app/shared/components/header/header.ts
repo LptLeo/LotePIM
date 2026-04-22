@@ -49,6 +49,10 @@ export class Header implements OnInit, OnDestroy {
     return mapa[perfil || ''] || 'Cargo';
   });
 
+  goToPerfil() {
+    this.router.navigate(['/app/perfil']);
+  }
+
   // ── Estado da pesquisa ──────────────────────────────────────────────────
 
   termoPesquisa = '';

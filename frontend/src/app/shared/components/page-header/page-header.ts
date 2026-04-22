@@ -3,6 +3,9 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-page-header',
   templateUrl: './page-header.html',
+  host: {
+    class: 'block w-full'
+  }
 })
 export class PageHeaderComponent {
   @Input({ required: true }) title!: string;

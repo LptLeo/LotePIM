@@ -7,6 +7,9 @@ import { LoteDetalhe, STATUS_CONFIG } from '../../models/lote.models';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './lote-card.html',
+  host: {
+    class: 'block h-full min-w-0'
+  }
 })
 export class LoteCardComponent {
   @Input({ required: true }) lote!: LoteDetalhe;

@@ -11,7 +11,10 @@ export interface FilterTab {
   selector: 'app-filter-tabs',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './filter-tabs.html'
+  templateUrl: './filter-tabs.html',
+  host: {
+    class: 'block w-full min-w-0'
+  }
 })
 export class FilterTabsComponent {
   @Input({ required: true }) tabs!: FilterTab[];

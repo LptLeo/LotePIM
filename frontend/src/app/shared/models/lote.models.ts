@@ -36,6 +36,7 @@ export interface Produto {
   percentual_ressalva: number;
   ativo: boolean;
   receita: ReceitaItem[];
+  lotes?: any[];
 }
 
 export interface Operador {
