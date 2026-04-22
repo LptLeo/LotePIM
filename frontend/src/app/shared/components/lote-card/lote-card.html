@@ -43,10 +43,10 @@
     <div class="mt-4 flex flex-col gap-2">
         <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
             <span [style.color]="config.cor">{{ lote.status === 'em_producao' ? 'Progresso' : 'Integridade' }}</span>
-            <span [style.color]="config.cor">{{ progresso }}%</span>
+            <span [style.color]="config.cor">{{ animatedProgresso }}%</span>
         </div>
         <div class="w-full h-1.5 bg-[#484847]/30 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-1000" [style.width.%]="progresso"
+            <div class="h-full rounded-full transition-all duration-1000 ease-out" [style.width.%]="animatedProgresso"
                 [style.background-color]="config.cor" [style.box-shadow]="'0 0 8px ' + config.cor">
             </div>
         </div>
