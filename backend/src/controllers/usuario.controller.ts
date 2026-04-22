@@ -30,6 +30,13 @@ export class UsuarioController {
     res.status(200).json(usuario);
   }
 
+  getStats = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const stats = await this.usuarioService.getStats(Number(id), this.getRequisitante(req));
+
+    res.status(200).json(stats);
+  }
+
   create = async (req: Request, res: Response): Promise<void> => {
     const usuario = await this.usuarioService.create(req.body, this.getRequisitante(req));
 

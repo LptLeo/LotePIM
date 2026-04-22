@@ -10,6 +10,7 @@ const usuarioRoutes = Router();
 const usuarioController = new UsuarioController();
 
 usuarioRoutes.get('/', roleGuard(PerfilUsuario.GESTOR), usuarioController.findAll);
+usuarioRoutes.get('/:id/stats', usuarioController.getStats);
 usuarioRoutes.get('/:id', usuarioController.findById);
 usuarioRoutes.post('/', roleGuard(PerfilUsuario.GESTOR), validateBody(CreateUsuarioDto), usuarioController.create);
 usuarioRoutes.patch('/:id', validateBody(UpdateUsuarioDto), usuarioController.update);

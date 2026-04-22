@@ -1,6 +1,9 @@
 import bcrypt from 'bcrypt';
 import { AppDataSource } from '../config/AppDataSource.js';
 import { PerfilUsuario, Usuario } from '../entities/Usuario.js';
+import { Lote } from '../entities/Lote.js';
+import { Inspecao } from '../entities/Inspecao.js';
+import { Produto } from '../entities/Produto.js';
 import { CreateUsuarioDto, UpdateUsuarioDto, UpdateSenhaDto } from '../dto/usuario.dto.js';
 import { AppError } from '../errors/AppError.js';
 import { verificaPermissao, type Requisitante } from '../utils/auth.utils.js';
@@ -31,6 +34,35 @@ export class UsuarioService {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
 
     return omitSenha(usuario);
+  }
+
+  getStats = async (id: number, requisitante: Requisitante): Promise<any> => {
+    const usuario = await this.userRepo.findOne({ where: { id } });
+    if (!usuario) throw new AppError('Usuário não encontrado', 404);
+
+    verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
+
+    let lotes_produzidos = 0;
+    let lotes_inspecionados = 0;
+    let produtos_registrados = 0;
+
+    if (usuario.perfil === PerfilUsuario.OPERADOR || usuario.perfil === PerfilUsuario.GESTOR) {
+      lotes_produzidos = await AppDataSource.getRepository(Lote).count({ where: { operador: { id } } });
+    }
+
+    if (usuario.perfil === PerfilUsuario.INSPETOR || usuario.perfil === PerfilUsuario.GESTOR) {
+      lotes_inspecionados = await AppDataSource.getRepository(Inspecao).count({ where: { inspetor: { id } } });
+    }
+
+    if (usuario.perfil === PerfilUsuario.GESTOR) {
+      produtos_registrados = await AppDataSource.getRepository(Produto).count();
+    }
+
+    return {
+      lotes_produzidos,
+      lotes_inspecionados,
+      produtos_registrados
+    };
   }
 
   findByEmail = async (email: string): Promise<UsuarioSemSenha> => {

@@ -3,7 +3,7 @@
   <!-- Header -->
   <app-page-header title="Lista de Lotes" subtitle="Listagem de lotes corporativos em tempo real">
     <div actions>
-      @if (authService.usuario()?.perfil === 'operador') {
+      @if (authService.usuario()?.perfil === 'operador' || authService.usuario()?.perfil === 'gestor') {
       <button (click)="irParaNovoLote()"
         class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(0,229,255,0.2)]">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
@@ -83,7 +83,7 @@
 
   <!-- Cards List -->
   @else {
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
 
     @for (lote of lotes(); track lote.id) {
     <app-lote-card [lote]="lote" (cardClick)="irParaDetalhe($event)">
