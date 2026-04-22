@@ -7,3 +7,39 @@
     display: none !important;
   }
 }
+
+/* Custom Global Scrollbar */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: #484847 transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0E0E0E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #484847;
+  border-radius: 20px;
+  border: 2px solid #0E0E0E;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00E5FF;
+}
+
+/* Para elementos com scroll interno (como as tabs) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
