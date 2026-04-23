@@ -6,6 +6,7 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 import { ConfiguracoesService } from '../../core/services/configuracoes.service';
+import { AuthService } from '../../core/services/auth.service';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -19,8 +20,15 @@ export class Dashboard {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
   private configuracoesService = inject(ConfiguracoesService);
+  private authService = inject(AuthService);
 
   settings = this.configuracoesService.settings;
+
+  // Apenas operadores e gestores podem abrir novos lotes
+  podeAbrirLote = computed(() => {
+    const perfil = this.authService.usuario()?.perfil;
+    return perfil === 'operador' || perfil === 'gestor';
+  });
 
   dashboardResource = rxResource<DashboardData, any>({
     stream: () => this.dashboardService.getDashboardData(
