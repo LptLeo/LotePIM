@@ -1,5 +1,5 @@
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
-  <div class="flex flex-col">
+  <div class="flex flex-col animate-slide-in-left">
     <div class="flex items-center gap-3">
       <h1 class="text-[24px] lg:text-[30px] font-bold text-white tracking-[-0.75px] leading-[36px]">
         @if (mobileTitle) {
@@ -12,7 +12,7 @@
       <ng-content select="[badge]"></ng-content>
     </div>
     
-    <span class="text-[10px] lg:text-[16px] leading-[24px] uppercase lg:normal-case font-bold lg:font-normal tracking-[1px] lg:tracking-normal text-[#ADAAAA] mt-1 lg:mt-0">
+    <span class="text-[10px] lg:text-[16px] leading-[24px] uppercase lg:normal-case font-bold lg:font-normal tracking-[1px] lg:tracking-normal text-[#ADAAAA] mt-1 lg:mt-0 animate-fade-in delay-150">
       @if (mobileSubtitle) {
         <span class="sm:hidden">{{ mobileSubtitle }}</span>
         <span class="hidden sm:inline">{{ subtitle }}</span>
@@ -22,7 +22,7 @@
     </span>
   </div>
   
-  <div class="flex items-center gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+  <div class="flex items-center gap-4 w-full sm:w-auto mt-2 sm:mt-0 animate-slide-in-right">
     <ng-content select="[actions]"></ng-content>
   </div>
 </div>
