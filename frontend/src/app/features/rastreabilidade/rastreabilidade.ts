@@ -58,60 +58,23 @@ export interface ResultadoInsumo {
 
 export type ResultadoRastreabilidade = ResultadoLote | ResultadoInsumo;
 
+import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component';
+import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component';
+import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component';
+
 @Component({
   selector: 'app-rastreabilidade',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RastreabilidadeBuscaComponent,
+    RastreabilidadeArvoreLoteComponent,
+    RastreabilidadeArvoreRecallComponent
+  ],
   templateUrl: './rastreabilidade.html',
   styleUrl: './rastreabilidade.css',
-  animations: [
-    trigger('fadeSlideDown', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-12px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-      transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(-12px)' })),
-      ]),
-    ]),
-    trigger('fadeScale', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'scale(0.92)' }),
-        animate('350ms cubic-bezier(0.34, 1.56, 0.64, 1)', style({ opacity: 1, transform: 'scale(1)' })),
-      ]),
-    ]),
-    trigger('treeRoot', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-20px)' }),
-        animate('400ms 100ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-    trigger('treeChildren', [
-      transition(':enter', [
-        query(':enter', [
-          style({ opacity: 0, transform: 'translateY(20px) scale(0.95)' }),
-          stagger(80, [
-            animate('350ms cubic-bezier(0.34, 1.56, 0.64, 1)', style({ opacity: 1, transform: 'translateY(0) scale(1)' })),
-          ]),
-        ], { optional: true }),
-      ]),
-    ]),
-    trigger('lineGrow', [
-      transition(':enter', [
-        style({ transform: 'scaleY(0)', transformOrigin: 'top' }),
-        animate('400ms 300ms ease-out', style({ transform: 'scaleY(1)' })),
-      ]),
-    ]),
-    trigger('searchBar', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('300ms ease-out', style({ opacity: 1 })),
-      ]),
-      transition(':leave', [
-        animate('250ms ease-in', style({ opacity: 0, transform: 'translateY(-30px) scale(0.96)' })),
-      ]),
-    ]),
-  ],
+  animations: [],
 })
 export class Rastreabilidade implements OnInit {
   private http = inject(HttpClient);

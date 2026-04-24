@@ -1,0 +1,94 @@
+@if (isOpen) {
+<div class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
+  <div
+    class="w-full max-w-md bg-[#0A0A0A] h-full border-l border-[#484847]/40 shadow-2xl flex flex-col animate-slide-in-right">
+
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#484847]/40 bg-[#131313]">
+      <div>
+        <h2 class="text-lg font-bold text-white tracking-tight">Nova Matéria-Prima</h2>
+        <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Adicionar ao Catálogo</span>
+      </div>
+      <button (click)="onClose()"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-white hover:bg-red-900/20 hover:border-red-500/50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+      @if (erro) {
+      <div class="bg-red-950/20 border border-[#dc2626]/40 p-4 rounded-md mb-6">
+        <p class="text-[#fca5a5] text-[12px] font-semibold whitespace-pre-line">{{ erro }}</p>
+      </div>
+      }
+
+      <form [formGroup]="formMp" class="flex flex-col gap-6">
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Nome da Matéria-Prima *</label>
+          <input type="text" formControlName="nome" placeholder="Ex: Painel LED 14 polegadas"
+            class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">SKU (Auto)</label>
+          <input type="text" [value]="skuPreviewMp" disabled
+            class="w-full bg-[#1A1A1A] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#00E5FF] font-mono cursor-not-allowed focus:outline-none">
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Categoria *</label>
+          <input type="text" formControlName="categoria" list="categoriasMpDatalist"
+            placeholder="Ex: Componentes Eletrônicos"
+            class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+          <datalist id="categoriasMpDatalist">
+            @for (cat of categorias; track cat) {
+            <option [value]="cat"></option>
+            }
+          </datalist>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Unidade de Medida *</label>
+          <div class="relative">
+            <select formControlName="unidade_medida"
+              class="w-full bg-[#131313] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer transition-colors">
+              <option value="UN">Unidade (UN)</option>
+              <option value="KG">Quilograma (KG)</option>
+              <option value="L">Litro (L)</option>
+              <option value="M">Metro (M)</option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor"
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-6 border-t border-[#484847]/40 bg-[#131313] flex justify-end gap-3">
+      <button type="button" (click)="onClose()" [disabled]="salvando"
+        class="px-5 py-2.5 border border-[#484847] text-[#ADAAAA] text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#1A1A1A] disabled:opacity-50">
+        Cancelar
+      </button>
+      <button type="button" (click)="onSave()" [disabled]="formMp.invalid || salvando"
+        class="px-5 py-2.5 bg-[#00E5FF] text-black text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#00cce6] disabled:opacity-50 flex items-center gap-2 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
+        @if (salvando) {
+        <div class="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+        Salvando...
+        } @else {
+        Salvar Matéria-Prima
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}

@@ -1,24 +1,34 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { InsumosService } from './services/insumos.service';
-import { finalize, map, startWith } from 'rxjs';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import type { InsumoEstoque } from '../../shared/models/lote.models';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import { MetricCardsComponent } from './components/metric-cards/metric-cards.component';
+import { EstoqueListComponent } from './components/estoque-list/estoque-list.component';
+import { CatalogoTableComponent } from './components/catalogo-table/catalogo-table.component';
+import { NovaMpModalComponent } from './components/nova-mp-modal/nova-mp-modal.component';
+import { RegistrarEntradaModalComponent } from './components/registrar-entrada-modal/registrar-entrada-modal.component';
 
 @Component({
   selector: 'app-insumos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    MetricCardsComponent,
+    EstoqueListComponent,
+    CatalogoTableComponent,
+    NovaMpModalComponent,
+    RegistrarEntradaModalComponent
+  ],
   templateUrl: './insumos.html',
 })
 export class Insumos implements OnInit {
   private insumosService = inject(InsumosService);
   private router = inject(Router);
   authService = inject(AuthService);
-  private fb = inject(FormBuilder);
 
   abaAtiva = signal<'estoque' | 'catalogo'>('estoque');
 
@@ -35,52 +45,10 @@ export class Insumos implements OnInit {
   salvandoMp = signal(false);
   erroMp = signal<string | null>(null);
 
-  formMp = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.minLength(2)]],
-    categoria: ['', Validators.required],
-    unidade_medida: ['UN', Validators.required]
-  });
-
-  skuPreviewMp = computed(() => {
-    const nome = this.formMp.controls.nome.value;
-    if (!nome || nome.length < 2) return 'MP-...';
-
-    const base = nome
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toUpperCase()
-      .slice(0, 12);
-
-    return `MP-${base}`;
-  });
-
   // -- Modal Registrar Entrada de Estoque --
   modalEstoqueAberto = signal(false);
   salvandoEstoque = signal(false);
   erroEstoque = signal<string | null>(null);
-
-  formEstoque = this.fb.group({
-    materia_prima_id: [null as number | null, Validators.required],
-    numero_lote_fornecedor: ['', Validators.required],
-    fornecedor: ['', Validators.required],
-    quantidade_inicial: [null as number | null, [Validators.required, Validators.min(0.01)]],
-    data_validade: [null as string | null],
-    naoAplicaValidade: [false],
-    turno: ['manha', Validators.required]
-  });
-
-  // toSignal converte o valueChanges observable em Signal, tornando computed() reativo
-  private mpIdSelecionado = toSignal(
-    this.formEstoque.controls.materia_prima_id.valueChanges.pipe(startWith(null))
-  );
-
-  unidadeSelecionada = computed(() => {
-    const mpId = Number(this.mpIdSelecionado());
-    if (!mpId) return '--';
-    const mp = this.catalogoBase().find(item => item.id === mpId);
-    return mp ? mp.unidade_medida : '--';
-  });
 
   /** Listagem filtrada para estoque */
   insumos = computed(() => {
@@ -158,40 +126,9 @@ export class Insumos implements OnInit {
     this.termoPesquisa.set((event.target as HTMLInputElement).value);
   }
 
-  isVencendo(dataValidade: string | null): boolean {
-    if (!dataValidade) return false;
-    const hoje = new Date();
-    const validade = new Date(dataValidade);
-    const diffDays = Math.ceil((validade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 15;
-  }
-
-  isVencido(dataValidade: string | null): boolean {
-    if (!dataValidade) return false;
-    return new Date(dataValidade) < new Date();
-  }
-
-  formatarData(data?: string | null): string {
-    if (!data) return '—';
-    const d = new Date(data);
-    const day = d.getUTCDate().toString().padStart(2, '0');
-    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-    const year = d.getUTCFullYear();
-    return `${day}/${month}/${year}`;
-  }
-
-  /** Formata a data de validade do form no padrão dd/mm/aaaa para exibição no campo customizado */
-  dataValidadeFormatada(): string {
-    const data = this.formEstoque.controls.data_validade.value;
-    if (!data) return 'DD/MM/AAAA';
-    const [ano, mes, dia] = data.split('-');
-    return `${dia}/${mes}/${ano}`;
-  }
-
   // --- Modal Logic ---
 
   abrirModalNovaMp(): void {
-    this.formMp.reset({ unidade_medida: 'UN' });
     this.erroMp.set(null);
     this.modalAberto.set(true);
   }
@@ -201,16 +138,9 @@ export class Insumos implements OnInit {
     this.erroMp.set(null);
   }
 
-  salvarNovaMp(): void {
-    if (this.formMp.invalid) {
-      this.erroMp.set('Preencha os campos obrigatórios corretamente.');
-      return;
-    }
-
+  salvarNovaMp(payload: any): void {
     this.salvandoMp.set(true);
     this.erroMp.set(null);
-
-    const payload = this.formMp.getRawValue();
 
     this.insumosService.criarMateriaPrima(payload)
       .pipe(finalize(() => this.salvandoMp.set(false)))
@@ -235,7 +165,6 @@ export class Insumos implements OnInit {
   // --- Modal Estoque Logic ---
 
   abrirModalEstoque(): void {
-    this.formEstoque.reset({ turno: 'manha', naoAplicaValidade: false });
     this.erroEstoque.set(null);
     this.modalEstoqueAberto.set(true);
   }
@@ -245,37 +174,31 @@ export class Insumos implements OnInit {
     this.erroEstoque.set(null);
   }
 
-  salvarEstoque(): void {
-    if (this.formEstoque.invalid) {
-      this.erroEstoque.set('Preencha os campos obrigatórios corretamente.');
-      return;
-    }
-
-    const values = this.formEstoque.getRawValue();
-    const mpId = Number(values.materia_prima_id);
+  salvarEstoque(payload: any): void {
+    const mpId = Number(payload.materia_prima_id);
     const mp = this.catalogoBase().find(item => item.id === mpId);
 
     // Validação extra de segurança para UN
-    if (mp?.unidade_medida === 'UN' && !Number.isInteger(Number(values.quantidade_inicial))) {
+    if (mp?.unidade_medida === 'UN' && !Number.isInteger(Number(payload.quantidade_inicial))) {
       this.erroEstoque.set('Para Matérias-Primas com unidade "UN", a quantidade deve ser um número inteiro.');
       return;
     }
 
-    const dataValidadeFinal = (!values.naoAplicaValidade && values.data_validade) ? values.data_validade : null;
+    const dataValidadeFinal = (!payload.naoAplicaValidade && payload.data_validade) ? payload.data_validade : null;
 
     this.salvandoEstoque.set(true);
     this.erroEstoque.set(null);
     
-    const payload = {
+    const formattedPayload = {
       materia_prima_id: mpId,
-      numero_lote_fornecedor: values.numero_lote_fornecedor,
-      fornecedor: values.fornecedor,
-      quantidade_inicial: Number(values.quantidade_inicial),
-      turno: values.turno,
+      numero_lote_fornecedor: payload.numero_lote_fornecedor,
+      fornecedor: payload.fornecedor,
+      quantidade_inicial: Number(payload.quantidade_inicial),
+      turno: payload.turno,
       data_validade: dataValidadeFinal
     };
 
-    this.insumosService.create(payload)
+    this.insumosService.create(formattedPayload)
       .pipe(finalize(() => this.salvandoEstoque.set(false)))
       .subscribe({
         next: (novoLote) => {

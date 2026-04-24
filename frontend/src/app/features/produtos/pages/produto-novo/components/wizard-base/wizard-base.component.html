@@ -1,0 +1,76 @@
+<div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 sm:p-8">
+  <form [formGroup]="formBase" (ngSubmit)="onNext()" class="flex flex-col gap-6">
+
+    <!-- Nome + SKU Preview -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Nome do Produto *</label>
+        <input type="text" formControlName="nome" placeholder="Ex: Monitor Gamer 144Hz"
+          class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">SKU (Auto)</label>
+        <input type="text" [value]="skuPreview" disabled
+          class="w-full bg-[#0E0E0E] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#00E5FF] font-mono cursor-not-allowed focus:outline-none">
+      </div>
+    </div>
+
+    <!-- Categoria + Linha -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Categoria *</label>
+        <input type="text" formControlName="categoria" list="categoriasDatalist" placeholder="Ex: Monitores"
+          class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+        <datalist id="categoriasDatalist">
+          @for (cat of categoriasExistentes; track cat) {
+            <option [value]="cat"></option>
+          }
+        </datalist>
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Linha de Produção *</label>
+        <input type="text" formControlName="linha_padrao" placeholder="Ex: Linha A"
+          class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+      </div>
+    </div>
+
+    <!-- Percentual de Ressalva -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Limiar de Ressalva (%) *</label>
+        <div class="relative">
+          <input type="number" min="0" max="100" step="0.5" formControlName="percentual_ressalva"
+            class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-12 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#ADAAAA]">%</span>
+        </div>
+        <p class="text-[10px] text-[#6B7280] leading-relaxed">
+          Taxa de falha acima deste valor = <span class="text-[#fca5a5]">REPROVADO</span>.
+          Abaixo = <span class="text-[#A0AEC0]">APROVADO COM RESTRIÇÃO</span>.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2 justify-center">
+        <label class="flex items-center gap-3 cursor-pointer select-none">
+          <input type="checkbox" formControlName="ativo" class="accent-[#00E5FF] w-5 h-5 cursor-pointer">
+          <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-wider">Produto Ativo</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Ações Etapa 1 -->
+    <div class="mt-4 pt-6 border-t border-[#484847]/30 flex justify-end gap-4">
+      <button type="button" (click)="onCancel()"
+        class="px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
+        Cancelar
+      </button>
+      <button type="button" (click)="onSaveSemReceita()"
+        class="px-6 py-2.5 bg-[#1a1a1a] border border-[#00E5FF]/50 text-[#00E5FF] text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/10 disabled:opacity-50">
+        Salvar (Sem Receita)
+      </button>
+      <button type="submit"
+        class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+        Próximo: Receita →
+      </button>
+    </div>
+  </form>
+</div>

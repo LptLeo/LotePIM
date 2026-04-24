@@ -5,10 +5,13 @@ import { ProdutosService } from '../../services/produtos.service';
 import { Produto } from '../../../../shared/models/lote.models';
 import { finalize } from 'rxjs';
 
+import { ProdutoInfoCardsComponent } from './components/produto-info-cards/produto-info-cards.component';
+import { ProdutoReceitaComponent } from './components/produto-receita/produto-receita.component';
+
 @Component({
   selector: 'app-produto-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ProdutoInfoCardsComponent, ProdutoReceitaComponent],
   templateUrl: './produto-detail.html',
 })
 export class ProdutoDetail implements OnInit {

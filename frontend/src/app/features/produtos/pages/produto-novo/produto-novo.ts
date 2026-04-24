@@ -6,10 +6,13 @@ import { ProdutosService, CriarProdutoPayload } from '../../services/produtos.se
 import type { MateriaPrima } from '../../../../shared/models/lote.models';
 import { finalize } from 'rxjs';
 
+import { WizardBaseComponent } from './components/wizard-base/wizard-base.component';
+import { WizardReceitaComponent } from './components/wizard-receita/wizard-receita.component';
+
 @Component({
   selector: 'app-produto-novo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, WizardBaseComponent, WizardReceitaComponent],
   templateUrl: './produto-novo.html',
 })
 export class ProdutoNovo implements OnInit {

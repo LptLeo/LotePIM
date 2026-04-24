@@ -1,0 +1,66 @@
+<div
+  class="bg-[#131313] border border-[#484847]/30 flex flex-col rounded-lg overflow-hidden hover:border-[#00E5FF]/40 transition-all group shadow-lg h-full">
+  <div class="bg-[#1A1A1A] p-4 flex justify-between items-start border-b border-[#484847]/30">
+    <div class="flex flex-col">
+      <span class="text-white font-bold text-base leading-tight">{{ item.materiaPrima.nome }}</span>
+      <span class="text-[#6B7280] text-[10px] font-bold font-mono mt-1">SKU: {{ item.materiaPrima.sku_interno }}</span>
+    </div>
+
+    <div class="shrink-0 ml-2">
+      <span *ngIf="item.quantidade_atual > 0; else esgotado"
+        class="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#00E5FF] text-[#00E5FF] bg-[rgba(0,229,255,0.1)]">ESTOQUE</span>
+      <ng-template #esgotado>
+        <span
+          class="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#dc2626] text-[#fca5a5] bg-[rgba(69,10,10,0.6)]">ESGOTADO</span>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="p-4 flex flex-col gap-3 flex-1">
+    <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Fornecedor</span>
+      <span class="text-white text-[11px] font-medium truncate max-w-[150px]" [title]="item.fornecedor">{{
+        item.fornecedor }}</span>
+    </div>
+    <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Lote Fornecedor</span>
+      <span class="text-[#00E5FF] text-[11px] font-mono font-bold">{{ item.numero_lote_fornecedor }}</span>
+    </div>
+    <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Lote Interno</span>
+      <span class="text-[11px] font-mono font-bold text-[#ADAAAA]">{{ item.numero_lote_interno }}</span>
+    </div>
+    <div class="flex justify-between items-center bg-[#1A1A1A]/30 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[9px] uppercase font-bold tracking-wider">Saldo</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-white text-sm font-bold">{{ item.quantidade_atual }} / {{ item.quantidade_inicial }}</span>
+        <span class="text-[#6B7280] text-[9px] font-bold uppercase">{{ item.materiaPrima.unidade_medida }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-auto border-t border-[#484847]/30 p-4 bg-[#0A0A0A] flex flex-col gap-2">
+    <div class="flex justify-between items-center">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Validade</span>
+      <div class="flex items-center gap-1.5">
+        <ng-container *ngIf="isVencido(item.data_validade); else checkVencendo">
+          <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+          <span class="text-[11px] font-bold text-red-400">{{ formatarData(item.data_validade) }}</span>
+        </ng-container>
+        <ng-template #checkVencendo>
+          <ng-container *ngIf="isVencendo(item.data_validade); else normalValidade">
+            <span class="w-1.5 h-1.5 bg-[#DFFF00] rounded-full animate-pulse"></span>
+            <span class="text-[11px] font-bold text-[#DFFF00]">{{ formatarData(item.data_validade) }}</span>
+          </ng-container>
+        </ng-template>
+        <ng-template #normalValidade>
+          <span class="text-[11px] font-bold text-[#ADAAAA]">{{ formatarData(item.data_validade) }}</span>
+        </ng-template>
+      </div>
+    </div>
+    <div class="flex justify-between items-center border-t border-[#484847]/10 pt-2">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Recebimento</span>
+      <span class="text-[10px] text-[#6B7280]">{{ formatarData(item.recebido_em) }}</span>
+    </div>
+  </div>
+</div>
