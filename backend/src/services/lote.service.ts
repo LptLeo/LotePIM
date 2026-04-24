@@ -20,21 +20,29 @@ export class LoteService {
     this.usuarioRepo = AppDataSource.getRepository(Usuario);
   }
 
-  /** Gera número de lote sequencial (ex: LOT-20260416-001) */
+  /** Gera número de lote sequencial no padrão LOT-DDMMAAAA-N (N = item do dia) */
   private async gerarNumeroLote(data: Date | string): Promise<string> {
     const d = typeof data === "string" ? new Date(data) : data;
-    const ano = d.getUTCFullYear();
-    const mes = (d.getUTCMonth() + 1).toString().padStart(2, "0");
     const dia = d.getUTCDate().toString().padStart(2, "0");
-
-    const prefixo = `LOT-${ano}${mes}${dia}-`;
+    const mes = (d.getUTCMonth() + 1).toString().padStart(2, "0");
+    const ano = d.getUTCFullYear();
+    
+    const prefixo = `LOT-${dia}${mes}${ano}-`;
 
     const contagem = await this.loteRepo.count({
       where: { numero_lote: ILike(`${prefixo}%`) },
     });
 
-    const sequencial = (contagem + 1).toString().padStart(3, "0");
-    return `${prefixo}${sequencial}`;
+    const sequencial = contagem + 1;
+    const numeroLote = `${prefixo}${sequencial}`;
+
+    // Validação de segurança (Regex): LOT-8dígitos-número
+    const regex = /^LOT-\d{8}-\d+$/;
+    if (!regex.test(numeroLote)) {
+      throw new AppError("Erro ao gerar número de lote no padrão esperado.", 500);
+    }
+
+    return numeroLote;
   }
 
   /**

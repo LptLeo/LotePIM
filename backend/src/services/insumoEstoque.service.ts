@@ -18,21 +18,29 @@ export class InsumoEstoqueService {
     this.usuarioRepo = AppDataSource.getRepository(Usuario);
   }
 
-  /** Gera número de lote interno sequencial (ex: INS-20260416-001) */
+  /** Gera número de lote interno sequencial no padrão INS-DDMMAAAA-N (N = item do dia) */
   private async gerarNumeroLote(): Promise<string> {
     const hoje = new Date();
-    const ano = hoje.getUTCFullYear();
-    const mes = (hoje.getUTCMonth() + 1).toString().padStart(2, "0");
     const dia = hoje.getUTCDate().toString().padStart(2, "0");
+    const mes = (hoje.getUTCMonth() + 1).toString().padStart(2, "0");
+    const ano = hoje.getUTCFullYear();
 
-    const prefixo = `INS-${ano}${mes}${dia}-`;
+    const prefixo = `INS-${dia}${mes}${ano}-`;
 
     const contagem = await this.repo.count({
       where: { numero_lote_interno: ILike(`${prefixo}%`) },
     });
 
-    const sequencial = (contagem + 1).toString().padStart(3, "0");
-    return `${prefixo}${sequencial}`;
+    const sequencial = contagem + 1;
+    const numeroLote = `${prefixo}${sequencial}`;
+
+    // Validação de segurança (Regex): INS-8dígitos-número
+    const regex = /^INS-\d{8}-\d+$/;
+    if (!regex.test(numeroLote)) {
+      throw new AppError("Erro ao gerar número de lote interno no padrão esperado.", 500);
+    }
+
+    return numeroLote;
   }
 
   criar = async (dto: CriarInsumoEstoqueDTO, requisitante: Requisitante): Promise<InsumoEstoque> => {
