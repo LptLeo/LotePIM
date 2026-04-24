@@ -27,11 +27,11 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
-/** Retorna string no formato DDMMAAAA */
+/** Retorna string no formato DDMMAAAA (usando datas locais para evitar troca de dia por timezone) */
 function formatDateDDMMAAAA(d: Date): string {
-  const dia = d.getUTCDate().toString().padStart(2, "0");
-  const mes = (d.getUTCMonth() + 1).toString().padStart(2, "0");
-  const ano = d.getUTCFullYear();
+  const dia = d.getDate().toString().padStart(2, "0");
+  const mes = (d.getMonth() + 1).toString().padStart(2, "0");
+  const ano = d.getFullYear();
   return `${dia}${mes}${ano}`;
 }
 
@@ -62,23 +62,29 @@ async function seed() {
     const senhaLimpa  = process.env.SEED_USER_PASSWORD || "senha123";
 
     async function upsertUsuario(
-      nome: string, email: string, senha: string, perfil: PerfilUsuario
+      nome: string, email: string, senha: string, perfil: PerfilUsuario, criadoPor?: Usuario
     ): Promise<Usuario> {
       const existe = await usuarioRepo.findOneBy({ email });
       if (existe) { console.log(`[seed] Usuário '${email}' já existe.`); return existe; }
       console.log(`[seed] Criando usuário: ${email}`);
-      return usuarioRepo.save(usuarioRepo.create({
+      const userData = {
         nome, email,
         senha_hash: await bcrypt.hash(senha, SALT_ROUNDS),
         perfil, ativo: true,
-      }));
+      } as any;
+
+      if (criadoPor) {
+        userData.criadoPor = criadoPor;
+      }
+
+      return usuarioRepo.save(usuarioRepo.create(userData as Usuario));
     }
 
     const gestor   = await upsertUsuario("Gestor Inicial",   emailGestor,              senhaLimpa, PerfilUsuario.GESTOR);
-    const operador = await upsertUsuario("Carlos Operador",  "operador@lotepim.com",   "senha123", PerfilUsuario.OPERADOR);
-    const inspetor = await upsertUsuario("Ana Inspetora",    "inspetor@lotepim.com",   "senha123", PerfilUsuario.INSPETOR);
-    await upsertUsuario("Marcos Operador 2", "operador2@lotepim.com", "senha123", PerfilUsuario.OPERADOR);
-    await upsertUsuario("Julia Inspetora 2","inspetor2@lotepim.com", "senha123", PerfilUsuario.INSPETOR);
+    const operador = await upsertUsuario("Carlos Operador",  "operador@lotepim.com",   "senha123", PerfilUsuario.OPERADOR, gestor);
+    const inspetor = await upsertUsuario("Ana Inspetora",    "inspetor@lotepim.com",   "senha123", PerfilUsuario.INSPETOR, gestor);
+    await upsertUsuario("Marcos Operador 2", "operador2@lotepim.com", "senha123", PerfilUsuario.OPERADOR, gestor);
+    await upsertUsuario("Julia Inspetora 2","inspetor2@lotepim.com", "senha123", PerfilUsuario.INSPETOR, gestor);
 
     const operadores = [operador, await usuarioRepo.findOneBy({ email: "operador2@lotepim.com" }) as Usuario];
     const inspetores = [inspetor, await usuarioRepo.findOneBy({ email: "inspetor2@lotepim.com" }) as Usuario];
@@ -183,6 +189,7 @@ async function seed() {
       const p = await produtoRepo.save(produtoRepo.create({
         nome: def.nome, sku: def.sku, categoria: def.categoria,
         linha_padrao: def.linha_padrao, percentual_ressalva: def.percentual_ressalva, ativo: true,
+        criadoPor: gestor,
       }));
       const itens = def.receita.map(r => receitaRepo.create({
         produto: p, materiaPrima: r.mp, quantidade: r.qtd, unidade: r.mp.unidade_medida,
@@ -220,9 +227,10 @@ async function seed() {
         const dtRecebimento = randomDate(INICIO, HOJE);
         const dataStr = formatDateDDMMAAAA(dtRecebimento);
         
-        // Controle de sequencial por dia
-        seqPorDiaInsumo[dataStr] = (seqPorDiaInsumo[dataStr] || 0) + 1;
-        const numInterno = `INS-${dataStr}-${seqPorDiaInsumo[dataStr]}`;
+        // Chave única para o dia: prefixo de insumo + data
+        const diaChave = `INS-${dataStr}`;
+        seqPorDiaInsumo[diaChave] = (seqPorDiaInsumo[diaChave] || 0) + 1;
+        const numInterno = `${diaChave}-${seqPorDiaInsumo[diaChave]}`;
 
         const ex = await estoqueRepo.findOneBy({ numero_lote_interno: numInterno });
         if (ex) { insumosEstoque.push(ex); continue; }
@@ -234,7 +242,7 @@ async function seed() {
         const qtdInicial = mp.unidade_medida === UnidadeMedida.UN ? rand(50, 400) : rand(5, 50);
         const qtdAtual   = rand(Math.floor(qtdInicial * 0.1), qtdInicial);
 
-        const sufixoForn = `FORN-${mp.sku_interno}-${dtRecebimento.getFullYear()}-${seqPorDiaInsumo[dataStr]}`;
+        const sufixoForn = `FORN-${mp.sku_interno}-${dtRecebimento.getFullYear()}-${seqPorDiaInsumo[diaChave]}`;
 
         console.log(`[seed] Criando insumo estoque: ${numInterno} (${mp.nome})`);
         const ins = await estoqueRepo.save(estoqueRepo.create({
@@ -244,7 +252,7 @@ async function seed() {
           quantidade_inicial: qtdInicial,
           quantidade_atual: qtdAtual,
           fornecedor,
-          codigo_interno: `${mp.sku_interno}-${seqPorDiaInsumo[dataStr]}`,
+          codigo_interno: `${mp.sku_interno}-${mp.id}-${seqPorDiaInsumo[diaChave]}`,
           turno: pick([Turno.MANHA, Turno.TARDE, Turno.NOITE]),
           operador: pick(operadores),
           data_validade: dtValidade,
