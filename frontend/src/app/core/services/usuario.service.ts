@@ -16,6 +16,14 @@ export interface UsuarioStats {
   produtos_registrados: number;
 }
 
+export interface CreateUsuarioPayload {
+  nome: string;
+  email: string;
+  perfil: 'operador' | 'inspetor' | 'gestor';
+  senha: string;
+  ativo: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,11 +31,19 @@ export class UsuarioService {
   private http = inject(HttpClient);
   private readonly API_URL = 'http://localhost:3000/api/usuarios';
 
+  getAll() {
+    return this.http.get<UsuarioPerfil[]>(this.API_URL);
+  }
+
   getPerfil(id: number) {
     return this.http.get<UsuarioPerfil>(`${this.API_URL}/${id}`);
   }
 
   getStats(id: number) {
     return this.http.get<UsuarioStats>(`${this.API_URL}/${id}/stats`);
+  }
+
+  create(payload: CreateUsuarioPayload) {
+    return this.http.post<UsuarioPerfil>(this.API_URL, payload);
   }
 }

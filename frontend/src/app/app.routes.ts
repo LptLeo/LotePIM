@@ -11,6 +11,7 @@ import { Configuracoes } from './features/configuracoes/configuracoes';
 import { Insumos } from './features/insumos/insumos';
 import { InsumoNovo } from './features/insumos/pages/insumo-novo/insumo-novo';
 import { Perfil } from './features/perfil/perfil';
+import { CadastroUsuarios } from './features/cadastro-usuarios/cadastro-usuarios';
 import { authGuard } from './core/guards/auth/auth-guard';
 import { MainLayout } from './core/layouts/main-layout/main-layout';
 
@@ -78,6 +79,10 @@ export const routes: Routes = [
       {
         path: 'configuracoes',
         component: Configuracoes,
+      },
+      {
+        path: 'cadastro-usuarios',
+        component: CadastroUsuarios,
       },
       {
         path: 'perfil',

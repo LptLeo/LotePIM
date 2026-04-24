@@ -18,6 +18,8 @@ Thumbs.db
 
 # Backend (Express / Node / TypeORM)
 .env
+# Configurações do Agente
+GEMINI.md
 .agent
 Tema - 8_ rastreamento lotes (1).md
 Tema - 8_ rastreamento lotes (1).pdf

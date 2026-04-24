@@ -1,0 +1,24 @@
+@if (toastService.toast(); as toast) {
+  <div class="fixed top-20 right-4 z-[70] max-w-sm w-full">
+    <div
+      class="flex items-start justify-between gap-3 rounded-md border px-4 py-3 shadow-lg bg-[#131313]"
+      [class.border-[#00E5FF]/40]="toast.type === 'success'"
+      [class.border-[#dc2626]/40]="toast.type === 'error'"
+    >
+      <p
+        class="text-[13px]"
+        [class.text-[#81ECFF]]="toast.type === 'success'"
+        [class.text-[#fca5a5]]="toast.type === 'error'"
+      >
+        {{ toast.message }}
+      </p>
+      <button
+        type="button"
+        (click)="toastService.close()"
+        class="text-xs text-[#ADAAAA] hover:text-white transition-colors"
+      >
+        Fechar
+      </button>
+    </div>
+  </div>
+}
