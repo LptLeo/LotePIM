@@ -1,22 +1,20 @@
-<div class="animate-fade-in flex flex-col w-full min-h-screen text-white font-sans bg-[#0A0A0A] px-4 py-8 md:px-12">
+<div class="flex flex-col gap-10 text-white min-h-[80vh] pb-20">
 
-  <!-- ── MODO BUSCA (Omnibox) ── -->
+  <!-- ── MODO BUSCA ── -->
   @if (!modoResultado()) {
-  <div @searchBar class="flex flex-col items-center justify-center flex-1 min-h-[80vh] gap-8">
-
-    <!-- Header -->
+  <div class="flex flex-col items-center justify-center gap-8 max-w-4xl mx-auto w-full py-10 animate-fade-in">
     <div class="flex flex-col items-center gap-3 text-center">
       <div class="w-16 h-16 rounded-2xl bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-center mb-2">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#00E5FF" class="w-8 h-8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
         </svg>
       </div>
-      <h1 class="text-3xl font-bold text-white tracking-tight">Consulta de Rastreabilidade</h1>
-      <p class="text-[#6B7280] text-sm max-w-md">Digite o número de um lote de produção ou de um insumo para visualizar sua árvore de rastreabilidade.</p>
+      <h2 class="text-3xl font-bold tracking-tight">Rastreabilidade Total</h2>
+      <p class="text-[#ADAAAA] text-sm max-w-md">Consulte a árvore completa de insumos de um lote ou identifique o alcance de um recall em segundos.</p>
     </div>
 
-    <!-- Omnibox -->
-    <div class="relative w-full max-w-2xl">
+    <!-- Campo de Busca -->
+    <div class="w-full max-w-2xl">
       <div class="relative flex items-center bg-[#131313] border-2 border-[#484847]/60 rounded-2xl px-5 py-4 gap-4 transition-all focus-within:border-[#00E5FF]/60 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.08)]">
         @if (buscandoSugestoes()) {
           <div class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin flex-shrink-0"></div>
@@ -32,7 +30,7 @@
           (focus)="onFocus()"
           (blur)="fecharDropdown()"
           (keyup.enter)="buscar()"
-          placeholder="LOT-20250418-001 ou INS-20250418-001..."
+          placeholder="LOT-24042026-1 ou INS-24042026-1..."
           class="flex-1 bg-transparent text-white text-base focus:outline-none placeholder:text-[#484847]"
           autocomplete="off"
         >
@@ -47,55 +45,29 @@
           class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[11px] font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] flex-shrink-0">
           Buscar
         </button>
-      </div>
 
-      <!-- Dropdown Autocomplete -->
-      @if (mostrarDropdown() && (sugestoes().length > 0 || buscandoSugestoes())) {
-      <div @fadeSlideDown class="absolute top-full left-0 right-0 mt-2 bg-[#131313] border border-[#484847]/60 rounded-xl shadow-2xl overflow-hidden z-50 max-h-48 overflow-y-auto scrollbar-hide">
-        
-        @if (buscandoSugestoes()) {
-          <div class="flex items-center justify-center py-6 gap-3">
-            <div class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"></div>
-            <span class="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Buscando...</span>
-          </div>
-        } @else if (sugestoes().length > 0) {
-          @for (s of sugestoes(); track s.id) {
-          <button (click)="selecionarSugestao(s)"
-            class="w-full flex items-center gap-4 px-5 py-3 hover:bg-[#1A1A1A] transition-colors text-left border-b border-[#484847]/20 last:border-0">
-            <!-- Badge tipo -->
-            @if (s.tipo === 'LOTE_PRODUTO') {
-              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[#00E5FF]/40 text-[#00E5FF] bg-[rgba(0,229,255,0.07)] flex-shrink-0">PROD</span>
-            } @else {
-              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-orange-500/40 text-orange-400 bg-orange-500/07 flex-shrink-0">INSUMO</span>
+        <!-- Dropdown de Sugestões -->
+        @if (mostrarDropdown() && sugestoes().length > 0) {
+          <div class="absolute left-0 right-0 top-[calc(100%+8px)] bg-[#131313] border border-[#484847]/40 rounded-xl py-2 shadow-2xl z-50 animate-scale-in origin-top">
+            @for (sug of sugestoes(); track sug.id) {
+              <button (click)="selecionarSugestao(sug)"
+                class="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors group">
+                <div class="flex items-center gap-3">
+                  <span class="w-2 h-2 rounded-full" [class]="sug.tipo === 'LOTE_PRODUTO' ? 'bg-[#00E5FF]' : 'bg-orange-400'"></span>
+                  <span class="text-sm font-mono font-medium text-[#ADAAAA] group-hover:text-white">{{ sug.texto_exibicao }}</span>
+                </div>
+                <span class="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider">{{ sug.tipo === 'LOTE_PRODUTO' ? 'Lote Produção' : 'Lote Insumo' }}</span>
+              </button>
             }
-            <div class="flex flex-col min-w-0">
-              <span class="text-sm font-mono font-bold text-white">{{ s.texto_exibicao }}</span>
-              <span class="text-[11px] text-[#6B7280] truncate">{{ s.subtexto }}</span>
-            </div>
-            @if (s.status) {
-              <span class="ml-auto text-[9px] font-bold uppercase px-2 py-0.5 rounded flex-shrink-0"
-                [style.color]="STATUS_CONFIG[s.status].cor"
-                [style.background]="STATUS_CONFIG[s.status].corBg"
-                [style.border-color]="STATUS_CONFIG[s.status].corBorda"
-                style="border-width:1px;border-style:solid">
-                {{ STATUS_CONFIG[s.status].label }}
-              </span>
-            }
-          </button>
-          }
-        } @else {
-          <div class="flex items-center justify-center py-6">
-            <span class="text-[#6B7280] text-xs font-semibold">Nenhuma sugestão encontrada.</span>
           </div>
         }
       </div>
-      }
     </div>
 
-    <!-- Erro no modo busca -->
+    <!-- Erro -->
     @if (erro()) {
-      <div @fadeScale class="bg-red-950/20 border border-red-500/30 rounded-xl px-6 py-4 max-w-2xl w-full text-center">
-        <p class="text-red-400 text-sm font-semibold">{{ erro() }}</p>
+      <div class="p-4 bg-red-950/20 border border-red-500/30 rounded-xl text-center max-w-md w-full animate-shake">
+        <p class="text-red-400 text-sm font-medium">{{ erro() }}</p>
       </div>
     }
 
@@ -111,11 +83,11 @@
     <div class="flex gap-6 flex-wrap justify-center">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-[#00E5FF]"></span>
-        <span class="text-[11px] text-[#6B7280]">Lotes de produção: <span class="text-[#ADAAAA] font-mono">LOT-AAAAMMDD-NNN</span></span>
+        <span class="text-[11px] text-[#6B7280]">Lotes de produção: <span class="text-[#ADAAAA] font-mono">LOT-DDMMAAAA-X</span></span>
       </div>
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-orange-400"></span>
-        <span class="text-[11px] text-[#6B7280]">Lotes de insumo: <span class="text-[#ADAAAA] font-mono">INS-AAAAMMDD-NNN</span></span>
+        <span class="text-[11px] text-[#6B7280]">Lotes de insumo: <span class="text-[#ADAAAA] font-mono">INS-DDMMAAAA-X</span></span>
       </div>
     </div>
   </div>

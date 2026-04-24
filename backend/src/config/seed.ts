@@ -27,6 +27,14 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
+/** Retorna string no formato DDMMAAAA */
+function formatDateDDMMAAAA(d: Date): string {
+  const dia = d.getUTCDate().toString().padStart(2, "0");
+  const mes = (d.getUTCMonth() + 1).toString().padStart(2, "0");
+  const ano = d.getUTCFullYear();
+  return `${dia}${mes}${ano}`;
+}
+
 /** Simula 3 meses atrás até hoje */
 const HOJE = new Date();
 const INICIO = new Date(HOJE);
@@ -202,27 +210,31 @@ async function seed() {
 
     // Lotes de insumo: ~3 por MP = ~36 lotes no total
     const insumosEstoque: InsumoEstoque[] = [];
-    let loteInsumoSeq = 1;
+    const seqPorDiaInsumo: Record<string, number> = {};
 
     for (const mp of mps) {
       const fornecedores = fornecedoresPorMp[mp.sku_interno] ?? ["Fornecedor Genérico"];
       const qtdLotes = rand(2, 4);
 
       for (let i = 0; i < qtdLotes; i++) {
-        const seq = String(loteInsumoSeq++).padStart(3, "0");
-        const numInterno = `INS-${seq}`;
+        const dtRecebimento = randomDate(INICIO, HOJE);
+        const dataStr = formatDateDDMMAAAA(dtRecebimento);
+        
+        // Controle de sequencial por dia
+        seqPorDiaInsumo[dataStr] = (seqPorDiaInsumo[dataStr] || 0) + 1;
+        const numInterno = `INS-${dataStr}-${seqPorDiaInsumo[dataStr]}`;
+
         const ex = await estoqueRepo.findOneBy({ numero_lote_interno: numInterno });
         if (ex) { insumosEstoque.push(ex); continue; }
 
-        const dtRecebimento = randomDate(INICIO, HOJE);
         const dtValidade = new Date(dtRecebimento);
         dtValidade.setMonth(dtValidade.getMonth() + rand(6, 24));
 
         const fornecedor = pick(fornecedores);
-        const qtdInicial = mp.unidade_medida === UnidadeMedida.KG ? rand(5, 50) : rand(50, 400);
+        const qtdInicial = mp.unidade_medida === UnidadeMedida.UN ? rand(50, 400) : rand(5, 50);
         const qtdAtual   = rand(Math.floor(qtdInicial * 0.1), qtdInicial);
 
-        const sufixoForn = `FORN-${mp.sku_interno}-${dtRecebimento.getFullYear()}-${seq}`;
+        const sufixoForn = `FORN-${mp.sku_interno}-${dtRecebimento.getFullYear()}-${seqPorDiaInsumo[dataStr]}`;
 
         console.log(`[seed] Criando insumo estoque: ${numInterno} (${mp.nome})`);
         const ins = await estoqueRepo.save(estoqueRepo.create({
@@ -232,7 +244,7 @@ async function seed() {
           quantidade_inicial: qtdInicial,
           quantidade_atual: qtdAtual,
           fornecedor,
-          codigo_interno: `${mp.sku_interno}-${seq}`,
+          codigo_interno: `${mp.sku_interno}-${seqPorDiaInsumo[dataStr]}`,
           turno: pick([Turno.MANHA, Turno.TARDE, Turno.NOITE]),
           operador: pick(operadores),
           data_validade: dtValidade,
@@ -258,20 +270,25 @@ async function seed() {
       null, null, null, null, // maioria sem desvio (aprovado)
     ];
 
-    let loteSeq = 1;
+    const seqPorDiaLote: Record<string, number> = {};
+    let totalLotesCriados = 0;
 
     for (const produto of produtos) {
       const def = produtosDef.find(d => d.sku === produto.sku)!;
       const qtdLotesProd = rand(6, 10); // 6-10 lotes por produto = ~35-50 lotes total
 
       for (let i = 0; i < qtdLotesProd; i++) {
-        const seq = String(loteSeq++).padStart(4, "0");
-        const numLote = `LOT-${seq}`;
+        const dataProducao = randomDate(INICIO, HOJE);
+        const dataStr = formatDateDDMMAAAA(dataProducao);
+        
+        // Controle de sequencial por dia
+        seqPorDiaLote[dataStr] = (seqPorDiaLote[dataStr] || 0) + 1;
+        const numLote = `LOT-${dataStr}-${seqPorDiaLote[dataStr]}`;
 
         const exLote = await loteRepo.findOneBy({ numero_lote: numLote });
         if (exLote) { console.log(`[seed] Lote ${numLote} já existe.`); continue; }
 
-        const dataProducao = randomDate(INICIO, HOJE);
+        totalLotesCriados++;
         const qtdPlanejada = rand(20, 150);
         const op = pick(operadores);
 
@@ -375,7 +392,7 @@ async function seed() {
     console.log(`  → Matérias-Primas:   ${mps.length}`);
     console.log(`  → Produtos:          ${produtos.length} (cada um com receita)`);
     console.log(`  → Lotes de Insumo:   ~${insumosEstoque.length} (distribuídos em 3 meses)`);
-    console.log(`  → Lotes de Produção: ~${loteSeq - 1} (com consumos e inspeções)`);
+    console.log(`  → Lotes de Produção: ~${totalLotesCriados} (com consumos e inspeções)`);
     console.log("\nCredenciais de acesso:");
     console.log(`  Gestor:      ${emailGestor} / ${senhaLimpa}`);
     console.log("  Operador:    operador@lotepim.com  / senha123");
