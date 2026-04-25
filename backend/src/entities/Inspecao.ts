@@ -4,10 +4,10 @@ import {
   JoinColumn,
   ManyToOne,
   OneToOne,
-  PrimaryGeneratedColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { Lote } from "./Lote.js";
 import type { Usuario } from "./Usuario.js";
 
@@ -23,10 +23,7 @@ export enum ResultadoInspecao {
  * no percentual_ressalva do Produto — o frontend não envia o resultado.
  */
 @Entity("inspecao")
-export class Inspecao {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class Inspecao extends EntidadeBase {
   @OneToOne("Lote", "inspecao")
   @JoinColumn({ name: "lote_id" })
   lote!: Relation<Lote>;
@@ -43,7 +40,4 @@ export class Inspecao {
 
   @Column({ type: "text", nullable: true })
   descricao_desvio!: string;
-
-  @Column({ type: "timestamptz", nullable: false, default: () => "CURRENT_TIMESTAMP" })
-  inspecionado_em!: Date;
 }

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { catchError, of, ReplaySubject, tap } from 'rxjs';
 
 export interface UserInfo {
   id: number;
@@ -13,83 +13,106 @@ export interface UserInfo {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:3000/api/auth/login';
+  private readonly AUTH_URL = 'http://localhost:3000/api/auth';
 
-  // Sinal reativo para armazenar o usuário logado
+  // Armazena o Access Token apenas em memória (proteção XSS)
+  private tokenAcesso = signal<string | null>(null);
+
+  // Sinal reativo para o usuário logado
   usuario = signal<UserInfo | null>(null);
 
-  constructor() {
-    this.carregarUsuarioDoToken();
+  /**
+   * ReplaySubject(1) que emite exatamente uma vez quando a tentativa de
+   * restaurar a sessão via silent refresh conclui (sucesso ou erro).
+   */
+  private _sessaoCarregada$ = new ReplaySubject<void>(1);
+  readonly sessaoCarregada$ = this._sessaoCarregada$.asObservable();
+
+  constructor() {}
+
+  /** 
+   * Método chamado pelo APP_INITIALIZER para garantir que a sessão
+   * seja verificada ANTES do app carregar.
+   */
+  inicializarSessao() {
+    return this.carregarSessaoSilenciosa();
   }
 
-  login(credentials: { email: string, senha: string }) {
-    return this.http.post<{ token: string, usuario: any }>(this.API_URL, credentials).pipe(
-      tap(res => {
-        localStorage.setItem('token', res.token);
-        this.carregarUsuarioDoToken();
+  login(credentials: { email: string; senha: string }) {
+    return this.http
+      .post<{ tokenAcesso: string; usuario: any }>(`${this.AUTH_URL}/login`, credentials, {
+        withCredentials: true,
       })
-    )
+      .pipe(
+        tap((res) => {
+          this.setSessao(res.tokenAcesso, res.usuario);
+        })
+      );
   }
 
-  private carregarUsuarioDoToken() {
+  /** Renova o token de acesso usando o token de atualização do cookie HttpOnly */
+  renovarToken() {
+    return this.http
+      .post<{ tokenAcesso: string }>(`${this.AUTH_URL}/refresh`, {}, { withCredentials: true })
+      .pipe(
+        tap((res) => {
+          this.tokenAcesso.set(res.tokenAcesso);
+          this.decodificarUsuarioDoToken(res.tokenAcesso);
+        })
+      );
+  }
+
+  getTokenAcesso() {
+    return this.tokenAcesso();
+  }
+
+  private setSessao(token: string, usuario: any) {
+    this.tokenAcesso.set(token);
+    this.usuario.set(usuario);
+  }
+
+  private carregarSessaoSilenciosa() {
+    return this.renovarToken().pipe(
+      tap({
+        next: () => {
+          this._sessaoCarregada$.next();
+          this._sessaoCarregada$.complete();
+        },
+        error: () => {
+          this.logoutLocal();
+          this._sessaoCarregada$.next();
+          this._sessaoCarregada$.complete();
+        }
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  private decodificarUsuarioDoToken(token: string) {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        this.usuario.set(null);
-        return;
-      }
-
-      const partes = token.split('.');
-      if (partes.length !== 3) return;
-
-      const payload = JSON.parse(atob(partes[1]));
-      
-      // Verifica expiração
-      if (payload.exp < Date.now() / 1000) {
-        this.logout();
-        return;
-      }
-
+      const payload = JSON.parse(atob(token.split('.')[1]));
       this.usuario.set({
         id: payload.id,
         nome: payload.nome,
-        perfil: payload.perfil
+        perfil: payload.perfil,
       });
-    } catch (error) {
-      console.error('Erro ao carregar usuário do token:', error);
-      this.usuario.set(null);
+    } catch {
+      this.logoutLocal();
     }
   }
 
   isLoggedIn() {
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) return false;
-
-      // atob decodifica o base64
-      // split('.') divide o token em 3 partes
-      // [1] pega a segunda parte (payload)
-      const partes = token.split('.');
-
-      if (partes.length !== 3) return false;
-
-      const payload = JSON.parse(atob(partes[1]));
-      const tokenExpirado = payload.exp < Date.now() / 1000;
-
-      if (tokenExpirado) {
-        this.logout();
-      }
-
-      return !tokenExpirado;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
+    return !!this.tokenAcesso() && this.usuario() !== null;
   }
 
   logout() {
-    localStorage.removeItem('token');
+    return this.http.post(`${this.AUTH_URL}/logout`, {}, { withCredentials: true }).pipe(
+      tap(() => this.logoutLocal())
+    ).subscribe();
+  }
+
+  private logoutLocal() {
+    this.tokenAcesso.set(null);
     this.usuario.set(null);
   }
 }

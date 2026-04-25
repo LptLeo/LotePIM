@@ -1,14 +1,13 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToMany,
   ManyToOne,
   JoinColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { Lote } from "./Lote.js";
 import type { InsumoEstoque } from "./InsumoEstoque.js";
 import type { Inspecao } from "./Inspecao.js";
@@ -20,10 +19,7 @@ export enum PerfilUsuario {
 }
 
 @Entity("usuario")
-export class Usuario {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class Usuario extends EntidadeBase {
   @Column({ type: "text", nullable: false })
   nome!: string;
 
@@ -44,8 +40,8 @@ export class Usuario {
   @Column({ type: "boolean", default: true, nullable: false })
   ativo!: boolean;
 
-  @CreateDateColumn({ type: "timestamptz" })
-  criado_em!: Date;
+  @Column({ type: "text", nullable: true, select: false })
+  refresh_token!: string | null;
 
   @ManyToOne("Usuario")
   @JoinColumn({ name: "criado_por_id" })

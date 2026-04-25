@@ -1,9 +1,9 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
 } from "typeorm";
+
+import { EntidadeBase } from "./EntidadeBase.js";
 
 /**
  * Catálogo central de materiais.
@@ -19,10 +19,7 @@ export enum UnidadeMedida {
 }
 
 @Entity("materia_prima")
-export class MateriaPrima {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class MateriaPrima extends EntidadeBase {
   @Column({ type: "text", nullable: false })
   nome!: string;
 
@@ -34,7 +31,4 @@ export class MateriaPrima {
 
   @Column({ type: "text", nullable: false })
   categoria!: string;
-
-  @CreateDateColumn({ type: "timestamptz" })
-  criado_em!: Date;
 }

@@ -1,13 +1,12 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { Lote } from "./Lote.js";
 import type { InsumoEstoque } from "./InsumoEstoque.js";
 
@@ -17,21 +16,15 @@ import type { InsumoEstoque } from "./InsumoEstoque.js";
  * armazenando a quantidade exata consumida para dar baixa rastreável.
  */
 @Entity("consumo_insumo")
-export class ConsumoInsumo {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class ConsumoInsumo extends EntidadeBase {
   @ManyToOne("Lote", "consumos", { onDelete: "CASCADE" })
   @JoinColumn({ name: "lote_id" })
   lote!: Relation<Lote>;
 
-  @ManyToOne("InsumoEstoque", { eager: true })
+  @ManyToOne("InsumoEstoque")
   @JoinColumn({ name: "insumo_estoque_id" })
   insumoEstoque!: Relation<InsumoEstoque>;
 
   @Column({ type: "numeric", nullable: false })
   quantidade_consumida!: number;
-
-  @CreateDateColumn({ type: "timestamptz" })
-  registrado_em!: Date;
 }

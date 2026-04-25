@@ -1,13 +1,12 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { MateriaPrima } from "./MateriaPrima.js";
 import type { Usuario } from "./Usuario.js";
 
@@ -23,11 +22,8 @@ export enum Turno {
  * rastreamento interno gerado automaticamente pelo sistema.
  */
 @Entity("insumo_estoque")
-export class InsumoEstoque {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
-  @ManyToOne("MateriaPrima", { eager: true })
+export class InsumoEstoque extends EntidadeBase {
+  @ManyToOne("MateriaPrima")
   @JoinColumn({ name: "materia_prima_id" })
   materiaPrima!: Relation<MateriaPrima>;
 
@@ -65,6 +61,6 @@ export class InsumoEstoque {
   @Column({ type: "boolean", default: true })
   ativo!: boolean;
 
-  @CreateDateColumn({ type: "timestamptz" })
+  @Column({ type: "timestamptz", nullable: false, default: () => "CURRENT_TIMESTAMP" })
   recebido_em!: Date;
 }

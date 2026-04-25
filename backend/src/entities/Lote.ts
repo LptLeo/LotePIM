@@ -5,10 +5,10 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { Produto } from "./Produto.js";
 import type { Usuario } from "./Usuario.js";
 import type { ConsumoInsumo } from "./ConsumoInsumo.js";
@@ -29,10 +29,7 @@ export enum LoteStatus {
  * O status progride automaticamente via Job de progressão.
  */
 @Entity("lote")
-export class Lote {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class Lote extends EntidadeBase {
   @Column({ type: "text", unique: true, nullable: false })
   numero_lote!: string;
 

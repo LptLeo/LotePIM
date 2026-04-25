@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { AppDataSource } from "./config/AppDataSource.js";
 import routes from "./routes/index.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -18,6 +19,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 app.use("/api", routes);
 app.use(errorHandler);
 

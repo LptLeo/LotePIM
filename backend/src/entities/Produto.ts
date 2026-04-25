@@ -1,15 +1,13 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { ReceitaItem } from "./ReceitaItem.js";
 import type { Lote } from "./Lote.js";
 import type { Usuario } from "./Usuario.js";
@@ -20,10 +18,7 @@ import type { Usuario } from "./Usuario.js";
  * via entidade pivot ReceitaItem para armazenar quantidade por item.
  */
 @Entity("produto")
-export class Produto {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class Produto extends EntidadeBase {
   @Column({ type: "text", nullable: false })
   nome!: string;
 
@@ -42,12 +37,6 @@ export class Produto {
 
   @Column({ type: "boolean", default: true })
   ativo!: boolean;
-
-  @CreateDateColumn({ type: "timestamptz" })
-  criado_em!: Date;
-
-  @UpdateDateColumn({ type: "timestamptz" })
-  atualizado_em!: Date;
 
   @ManyToOne("Usuario")
   @JoinColumn({ name: "criado_por_id" })

@@ -3,10 +3,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
   type Relation,
 } from "typeorm";
 
+import { EntidadeBase } from "./EntidadeBase.js";
 import type { Produto } from "./Produto.js";
 import type { MateriaPrima } from "./MateriaPrima.js";
 
@@ -16,15 +16,12 @@ import type { MateriaPrima } from "./MateriaPrima.js";
  * necessária de cada matéria-prima por unidade do produto.
  */
 @Entity("receita_item")
-export class ReceitaItem {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class ReceitaItem extends EntidadeBase {
   @ManyToOne("Produto", "receita", { onDelete: "CASCADE" })
   @JoinColumn({ name: "produto_id" })
   produto!: Relation<Produto>;
 
-  @ManyToOne("MateriaPrima", { eager: true })
+  @ManyToOne("MateriaPrima")
   @JoinColumn({ name: "materia_prima_id" })
   materiaPrima!: Relation<MateriaPrima>;
 
