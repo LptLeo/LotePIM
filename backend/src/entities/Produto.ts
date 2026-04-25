@@ -12,6 +12,7 @@ import {
 
 import type { ReceitaItem } from "./ReceitaItem.js";
 import type { Lote } from "./Lote.js";
+import type { Usuario } from "./Usuario.js";
 
 /**
  * Define um produto acabado e suas regras de qualidade.
@@ -47,6 +48,10 @@ export class Produto {
 
   @UpdateDateColumn({ type: "timestamptz" })
   atualizado_em!: Date;
+
+  @ManyToOne("Usuario")
+  @JoinColumn({ name: "criado_por_id" })
+  criadoPor!: Relation<Usuario>;
 
   @OneToMany("ReceitaItem", "produto", { cascade: true })
   receita!: Relation<ReceitaItem>[];

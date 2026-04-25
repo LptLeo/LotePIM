@@ -195,7 +195,8 @@
                   <th class="py-2 pr-2">Nome</th>
                   <th class="py-2 pr-2">E-mail</th>
                   <th class="py-2 pr-2">Perfil</th>
-                  <th class="py-2">Status</th>
+                  <th class="py-2 pr-2">Status</th>
+                  <th class="py-2">Cadastrado Por</th>
                 </tr>
               </thead>
               <tbody>
@@ -204,9 +205,10 @@
                     <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.nome }}</td>
                     <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.email }}</td>
                     <td class="py-2 pr-2 text-white capitalize">{{ usuario.perfil }}</td>
-                    <td class="py-2" [class.text-[#81ECFF]]="usuario.ativo" [class.text-[#fca5a5]]="!usuario.ativo">
+                    <td class="py-2 pr-2" [class.text-[#81ECFF]]="usuario.ativo" [class.text-[#fca5a5]]="!usuario.ativo">
                       {{ usuario.ativo ? 'Ativo' : 'Inativo' }}
                     </td>
+                    <td class="py-2 text-[#ADAAAA]">{{ usuario.criadoPor?.nome || 'Sistema' }}</td>
                   </tr>
                 }
               </tbody>

@@ -46,6 +46,10 @@ export class ProdutoService {
   criar = async (dto: CriarProdutoDTO, requisitante: Requisitante): Promise<Produto> => {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
+    const userRepo = AppDataSource.getRepository("Usuario");
+    const criador = await userRepo.findOneBy({ id: requisitante.id });
+    if (!criador) throw new AppError("Criador não encontrado.", 404);
+
     const skuBase = this.gerarSku(dto.nome);
     const skuUnico = await this.garantirSkuUnico(skuBase);
 
@@ -57,6 +61,7 @@ export class ProdutoService {
         linha_padrao: dto.linha_padrao,
         percentual_ressalva: dto.percentual_ressalva,
         ativo: dto.ativo,
+        criadoPor: criador as any,
       });
 
       const produtoSalvo = await manager.save(produto);
@@ -100,7 +105,7 @@ export class ProdutoService {
     ]);
 
     return this.produtoRepo.find({
-      relations: ["receita", "receita.materiaPrima", "lotes"],
+      relations: ["receita", "receita.materiaPrima", "lotes", "criadoPor"],
       order: { nome: "ASC" },
     });
   };
@@ -114,7 +119,7 @@ export class ProdutoService {
 
     const produto = await this.produtoRepo.findOne({
       where: { id },
-      relations: ["receita", "receita.materiaPrima"],
+      relations: ["receita", "receita.materiaPrima", "criadoPor"],
     });
 
     if (!produto) throw new AppError("Produto não encontrado.", 404);

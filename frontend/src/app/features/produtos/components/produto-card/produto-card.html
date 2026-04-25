@@ -52,6 +52,10 @@
         <span class="text-[10px] text-[#484847]">lotes</span>
       </div>
     </div>
+    <div class="flex flex-col items-center">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Cadastrado por</span>
+      <span class="text-[10px] text-[#ADAAAA]">{{ prod.criadoPor?.nome || 'Sistema' }}</span>
+    </div>
     <div class="flex flex-col items-end">
       <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Atualização</span>
       <span class="text-xs text-[#ADAAAA]">{{ formatarData(prod.atualizado_em) }}</span>

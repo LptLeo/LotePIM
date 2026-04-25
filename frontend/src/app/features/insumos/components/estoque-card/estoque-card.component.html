@@ -60,7 +60,11 @@
     </div>
     <div class="flex justify-between items-center border-t border-[#484847]/10 pt-2">
       <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Recebimento</span>
-      <span class="text-[10px] text-[#6B7280]">{{ formatarData(item.recebido_em) }}</span>
+      <span class="text-[10px] text-[#ADAAAA]">{{ formatarData(item.recebido_em) }}</span>
+    </div>
+    <div class="flex justify-between items-center border-t border-[#484847]/10 pt-2">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Operador</span>
+      <span class="text-[10px] text-white">{{ item.operador?.nome || '—' }}</span>
     </div>
   </div>
 </div>

@@ -50,6 +50,10 @@
           <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Data Produção</span>
           <span class="text-[11px] text-[#ADAAAA]">{{ formatarData(lote.data_producao) }}</span>
         </div>
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Operador</span>
+          <span class="text-[11px] text-white">{{ lote.operador_nome }}</span>
+        </div>
         @for (ins of lote.insumos_correspondentes; track ins.lote_interno) {
         <div class="flex justify-between items-center pt-2 border-t border-red-500/10">
           <span class="text-[9px] text-red-400/70 uppercase font-bold tracking-wider">Qtd. Usada</span>

@@ -37,6 +37,9 @@ export interface Produto {
   ativo: boolean;
   receita: ReceitaItem[];
   lotes?: any[];
+  criadoPor?: { nome: string };
+  criado_em: string;
+  atualizado_em: string;
 }
 
 export interface Operador {
@@ -55,6 +58,7 @@ export interface InsumoEstoque {
   turno: string;
   data_validade: string | null;
   recebido_em: string;
+  operador?: Operador;
 }
 
 export interface ConsumoInsumo {

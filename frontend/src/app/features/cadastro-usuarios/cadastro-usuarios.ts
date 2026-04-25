@@ -48,8 +48,8 @@ export class CadastroUsuarios {
   cadastrados = signal<UsuarioPerfil[]>([]);
 
   filtroTermo = signal('');
-  filtroPerfil = signal<'operador' | 'inspetor' | 'gestor'>('operador');
-  filtroStatus = signal<'ativos' | 'inativos'>('ativos');
+  filtroPerfil = signal<'todos' | 'operador' | 'inspetor' | 'gestor'>('todos');
+  filtroStatus = signal<'todos' | 'ativos' | 'inativos'>('todos');
 
   cadastradosFiltrados = computed(() => {
     const termo = this.filtroTermo().trim().toLowerCase();
@@ -62,9 +62,14 @@ export class CadastroUsuarios {
         u.nome.toLowerCase().includes(termo) ||
         u.email.toLowerCase().includes(termo);
 
-      const perfilOk = u.perfil === perfil;
+      const perfilOk = perfil === 'todos' ? true : u.perfil === perfil;
 
-      const statusOk = status === 'ativos' ? u.ativo : !u.ativo;
+      const statusOk =
+        status === 'todos'
+          ? true
+          : status === 'ativos'
+            ? u.ativo
+            : !u.ativo;
 
       return termoOk && perfilOk && statusOk;
     });
@@ -77,12 +82,14 @@ export class CadastroUsuarios {
   ];
 
   filtroPerfilOptions: SelectOption[] = [
+    { value: 'todos', label: 'Todos' },
     { value: 'operador', label: 'Operador' },
     { value: 'inspetor', label: 'Inspetor' },
     { value: 'gestor', label: 'Gestor' },
   ];
 
   filtroStatusOptions: SelectOption[] = [
+    { value: 'todos', label: 'Todos' },
     { value: 'ativos', label: 'Ativos' },
     { value: 'inativos', label: 'Inativos' },
   ];
@@ -164,14 +171,14 @@ export class CadastroUsuarios {
   }
 
   setFiltroPerfil(value: string): void {
-    const allowed = new Set(['operador', 'inspetor', 'gestor']);
+    const allowed = new Set(['todos', 'operador', 'inspetor', 'gestor']);
     if (allowed.has(value)) {
       this.filtroPerfil.set(value as any);
     }
   }
 
   setFiltroStatus(value: string): void {
-    const allowed = new Set(['ativos', 'inativos']);
+    const allowed = new Set(['todos', 'ativos', 'inativos']);
     if (allowed.has(value)) {
       this.filtroStatus.set(value as any);
     }

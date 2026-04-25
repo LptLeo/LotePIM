@@ -28,14 +28,14 @@ export class RastreabilidadeService {
       this.loteRepo
         .createQueryBuilder("l")
         .leftJoinAndSelect("l.produto", "p")
-        .where("l.numero_lote LIKE :termo", { termo })
+        .where("l.numero_lote ILIKE :termo", { termo })
         .limit(6)
         .getMany(),
       this.insumoRepo
         .createQueryBuilder("ie")
         .leftJoinAndSelect("ie.materiaPrima", "mp")
-        .where("ie.numero_lote_interno LIKE :termo", { termo })
-        .orWhere("ie.numero_lote_fornecedor LIKE :termo", { termo })
+        .where("ie.numero_lote_interno ILIKE :termo", { termo })
+        .orWhere("ie.numero_lote_fornecedor ILIKE :termo", { termo })
         .limit(6)
         .getMany(),
     ]);
@@ -60,18 +60,18 @@ export class RastreabilidadeService {
 
   /** Consulta por número de lote de produção */
   private consultarPorLote = async (termo: string) => {
-    const lote = await this.loteRepo.findOne({
-      where: { numero_lote: termo },
-      relations: [
-        "produto",
-        "operador",
-        "consumos",
-        "consumos.insumoEstoque",
-        "consumos.insumoEstoque.materiaPrima",
-        "inspecao",
-        "inspecao.inspetor",
-      ],
-    });
+    const lote = await this.loteRepo
+      .createQueryBuilder("l")
+      .leftJoinAndSelect("l.produto", "produto")
+      .leftJoinAndSelect("l.operador", "operador")
+      .leftJoinAndSelect("l.consumos", "consumos")
+      .leftJoinAndSelect("consumos.insumoEstoque", "insumoEstoque")
+      .leftJoinAndSelect("insumoEstoque.materiaPrima", "materiaPrima")
+      .leftJoinAndSelect("insumoEstoque.operador", "operadorInsumo")
+      .leftJoinAndSelect("l.inspecao", "inspecao")
+      .leftJoinAndSelect("inspecao.inspetor", "inspetor")
+      .where("l.numero_lote ILIKE :termo", { termo })
+      .getOne();
 
     if (!lote) throw new AppError(`Nenhum lote encontrado com o número '${termo}'.`, 404);
     return lote;
@@ -83,11 +83,12 @@ export class RastreabilidadeService {
       .createQueryBuilder("ci")
       .leftJoinAndSelect("ci.insumoEstoque", "ie")
       .leftJoinAndSelect("ie.materiaPrima", "mp")
+      .leftJoinAndSelect("ie.operador", "opInsumo")
       .leftJoinAndSelect("ci.lote", "lote")
       .leftJoinAndSelect("lote.produto", "produto")
       .leftJoinAndSelect("lote.operador", "operador")
-      .where("ie.numero_lote_interno = :termo", { termo })
-      .orWhere("ie.numero_lote_fornecedor = :termo", { termo })
+      .where("ie.numero_lote_interno ILIKE :termo", { termo })
+      .orWhere("ie.numero_lote_fornecedor ILIKE :termo", { termo })
       .getMany();
 
     if (consumos.length === 0) {
@@ -99,6 +100,7 @@ export class RastreabilidadeService {
       produto: string;
       data_producao: Date;
       status: string;
+      operador_nome: string;
       insumos_correspondentes: { nome: string; lote_interno: string; quantidade: number }[];
     }>();
 
@@ -119,6 +121,7 @@ export class RastreabilidadeService {
           produto: lote.produto.nome,
           data_producao: lote.data_producao,
           status: lote.status,
+          operador_nome: lote.operador?.nome ?? "—",
           insumos_correspondentes: [insumoInfo],
         });
       }
@@ -130,7 +133,7 @@ export class RastreabilidadeService {
   consultar = async (termo: string, requisitante: Requisitante) => {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR]);
 
-    const ehLoteProduto = termo.startsWith("LOT-");
+    const ehLoteProduto = termo.toUpperCase().startsWith("LOT-");
 
     if (ehLoteProduto) {
       return {

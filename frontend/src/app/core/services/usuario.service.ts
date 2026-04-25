@@ -8,6 +8,7 @@ export interface UsuarioPerfil {
   perfil: string;
   ativo: boolean;
   criado_em: string;
+  criadoPor?: { nome: string };
 }
 
 export interface UsuarioStats {

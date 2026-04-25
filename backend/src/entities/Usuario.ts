@@ -4,6 +4,8 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
   type Relation,
 } from "typeorm";
 
@@ -44,6 +46,10 @@ export class Usuario {
 
   @CreateDateColumn({ type: "timestamptz" })
   criado_em!: Date;
+
+  @ManyToOne("Usuario")
+  @JoinColumn({ name: "criado_por_id" })
+  criadoPor?: Relation<Usuario>;
 
   @OneToMany("Lote", "operador")
   lotes!: Relation<Lote>[];

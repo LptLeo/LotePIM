@@ -22,13 +22,19 @@ export class UsuarioService {
 
   findAll = async (requisitante: Requisitante): Promise<UsuarioSemSenha[]> => {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
-    const usuarios = await this.userRepo.find({ order: { nome: 'ASC' } });
+    const usuarios = await this.userRepo.find({ 
+      relations: ['criadoPor'],
+      order: { nome: 'ASC' } 
+    });
 
     return usuarios.map(omitSenha);
   }
 
   findById = async (id: number, requisitante: Requisitante): Promise<UsuarioSemSenha> => {
-    const usuario = await this.userRepo.findOne({ where: { id } });
+    const usuario = await this.userRepo.findOne({ 
+      where: { id },
+      relations: ['criadoPor']
+    });
     if (!usuario) throw new AppError('Usuário não encontrado', 404);
 
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
@@ -79,10 +85,17 @@ export class UsuarioService {
     const existe = await this.userRepo.findOne({ where: { email: dto.email } });
     if (existe) throw new AppError(`E-mail '${dto.email}' já está em uso`, 409);
 
+    const criador = await this.userRepo.findOneBy({ id: requisitante.id });
+    if (!criador) throw new AppError('Criador não encontrado', 404);
+
     const senha_hash = await bcrypt.hash(dto.senha, SALT_ROUNDS);
 
     const { senha: _, ...dadosSemSenha } = dto;
-    const usuario = this.userRepo.create({ ...dadosSemSenha, senha_hash });
+    const usuario = this.userRepo.create({ 
+      ...dadosSemSenha, 
+      senha_hash,
+      criadoPor: criador 
+    });
 
     const salvo = await this.userRepo.save(usuario);
 

@@ -33,6 +33,7 @@ export interface ResultadoLote {
         numero_lote_interno: string;
         numero_lote_fornecedor: string;
         fornecedor: string;
+        operador?: { nome: string };
         materiaPrima: { nome: string; sku_interno: string; unidade_medida: string };
       };
     }[];
@@ -52,6 +53,7 @@ export interface ResultadoInsumo {
     produto: string;
     data_producao: string;
     status: LoteStatus;
+    operador_nome: string;
     insumos_correspondentes: { nome: string; lote_interno: string; quantidade: number }[];
   }[];
 }

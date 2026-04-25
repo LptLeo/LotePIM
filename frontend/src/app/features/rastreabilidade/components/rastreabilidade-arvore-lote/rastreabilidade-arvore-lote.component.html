@@ -85,6 +85,10 @@
           <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Fornecedor</span>
           <span class="text-[11px] text-[#ADAAAA]">{{ consumo.insumoEstoque.fornecedor }}</span>
         </div>
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Registrado por</span>
+          <span class="text-[11px] text-white">{{ consumo.insumoEstoque.operador?.nome || '—' }}</span>
+        </div>
         <div class="flex justify-between items-center pt-2 border-t border-[#484847]/20">
           <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Qtd. Consumida</span>
           <span class="text-sm font-bold text-white">{{ consumo.quantidade_consumida }} <span class="text-[#6B7280] text-[9px]">{{ consumo.insumoEstoque.materiaPrima.unidade_medida }}</span></span>
