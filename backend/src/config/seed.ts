@@ -349,7 +349,8 @@ async function seed() {
             lote,
             insumoEstoque: insumoUsado,
             quantidade_consumida: qtdConsumida,
-          }));
+            criado_em: dataProducao,
+          } as any));
         }
 
         // ── Inspeção (apenas lotes que saíram de produção) ──
@@ -387,8 +388,8 @@ async function seed() {
             quantidade_reprovada: qtdReprovada,
             resultado_calculado: resultado,
             descricao_desvio: desvio ?? "",
-            inspecionado_em: dtInspecao,
-          }));
+            criado_em: dtInspecao,
+          } as any));
         }
       }
     }
