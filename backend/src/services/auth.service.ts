@@ -28,25 +28,79 @@ export class AuthService {
 
     if (!senhaValida) throw new AppError("E-mail ou senha incorretos.", 401);
 
-    const secret = process.env.JWT_SECRET!
-
-    const token = jwt.sign(
-      {
-        id: usuario.id,
-        nome: usuario.nome,
-        perfil: usuario.perfil
-      },
-      secret,
-      { expiresIn: "8h" }
-    );
+    const tokens = await this.gerarERegistrarTokens(usuario);
 
     return {
       usuario: {
         id: usuario.id,
         nome: usuario.nome,
-        email: usuario.email
+        email: usuario.email,
+        perfil: usuario.perfil
       },
-      token
+      tokenAcesso: tokens.tokenAcesso,
+      tokenAtualizacao: tokens.tokenAtualizacao
     }
+  }
+
+  async refresh(token: string) {
+    if (!token) throw new AppError("Refresh token não fornecido.", 401);
+
+    // Bug #3: falha explicitamente se JWT_REFRESH_SECRET não estiver configurada
+    const secretRefresh = process.env.JWT_REFRESH_SECRET;
+    if (!secretRefresh) throw new AppError("JWT_REFRESH_SECRET não configurada.", 500);
+
+    try {
+      const decoded = jwt.verify(token, secretRefresh) as { id: number };
+      const usuario = await this.userRepo.findOne({
+        where: { id: decoded.id },
+        select: ["id", "nome", "email", "perfil", "ativo", "refresh_token"]
+      });
+
+      if (!usuario || !usuario.ativo || !usuario.refresh_token) {
+        throw new AppError("Sessão inválida ou usuário desativado.", 401);
+      }
+
+      const tokenValido = await bcrypt.compare(token, usuario.refresh_token);
+      if (!tokenValido) throw new AppError("Token de atualização inválido.", 401);
+
+      const tokens = await this.gerarERegistrarTokens(usuario);
+      return tokens;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError("Token de atualização expirado ou inválido.", 401);
+    }
+  }
+
+  async logout(usuarioId: number) {
+    await this.userRepo.update(usuarioId, { refresh_token: null });
+  }
+
+  private async gerarERegistrarTokens(usuario: Usuario) {
+    // Bug #3: falha explicitamente se qualquer segredo não estiver configurado
+    const secret = process.env.JWT_SECRET;
+    const secretRefresh = process.env.JWT_REFRESH_SECRET;
+
+    if (!secret || !secretRefresh) {
+      throw new AppError("JWT_SECRET ou JWT_REFRESH_SECRET não configurados.", 500);
+    }
+
+    const tokenAcesso = jwt.sign(
+      { id: usuario.id, nome: usuario.nome, perfil: usuario.perfil },
+      secret,
+      { expiresIn: "15m" }
+    );
+
+    const tokenAtualizacao = jwt.sign(
+      { id: usuario.id },
+      secretRefresh,
+      { expiresIn: "7d" }
+    );
+
+    // Salva hash do refresh token para permitir invalidação individual de sessão
+    const salt = 10;
+    const hash = await bcrypt.hash(tokenAtualizacao, salt);
+    await this.userRepo.update(usuario.id, { refresh_token: hash });
+
+    return { tokenAcesso, tokenAtualizacao };
   }
 }
