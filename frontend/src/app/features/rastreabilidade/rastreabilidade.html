@@ -51,6 +51,12 @@
         [resultadoInsumos]="resultadoInsumos"
         [termoBusca]="termoBusca()">
       </app-rastreabilidade-arvore-recall>
+
+      @if (paginationMeta; as meta) {
+        @if (meta.totalPaginas > 1) {
+          <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+        }
+      }
     }
 
   </div>

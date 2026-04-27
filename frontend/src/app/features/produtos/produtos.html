@@ -105,5 +105,11 @@
     <app-produto-card [prod]="prod" (cardClick)="irParaDetalhe($event)"></app-produto-card>
     }
   </div>
+
+  @if (paginationMeta(); as meta) {
+    @if (meta.totalPaginas > 1) {
+      <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+    }
+  }
   }
 </div>

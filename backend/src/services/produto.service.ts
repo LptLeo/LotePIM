@@ -9,6 +9,7 @@ import { verificaPermissao, type Requisitante } from "../utils/auth.utils.js";
 import type { CriarProdutoDTO, AtualizarReceitaDTO } from "../dto/produto.dto.js";
 import { NotificacaoService } from "./notificacao.service.js";
 import { TipoNotificacao } from "../entities/Notificacao.js";
+import { PaginacaoQueryDto, formatarRespostaPaginada, type RespostaPaginada } from "../dto/paginacao.dto.js";
 
 export class ProdutoService {
   private produtoRepo: Repository<Produto>;
@@ -107,17 +108,35 @@ export class ProdutoService {
     });
   };
 
-  listar = async (requisitante: Requisitante): Promise<Produto[]> => {
+  listar = async (query: PaginacaoQueryDto & { categoria?: string }, requisitante: Requisitante): Promise<RespostaPaginada<Produto>> => {
     verificaPermissao(requisitante, [
       PerfilUsuario.OPERADOR,
       PerfilUsuario.INSPETOR,
       PerfilUsuario.GESTOR,
     ]);
 
-    return this.produtoRepo.find({
-      relations: ["receita", "receita.materiaPrima", "lotes", "criadoPor"],
-      order: { nome: "ASC" },
-    });
+    const { pagina, limite, busca, categoria } = query;
+    const skip = (pagina - 1) * limite;
+
+    const queryBuilder = this.produtoRepo.createQueryBuilder("produto")
+      .leftJoinAndSelect("produto.receita", "receita")
+      .leftJoinAndSelect("receita.materiaPrima", "materiaPrima")
+      .leftJoinAndSelect("produto.criadoPor", "criadoPor")
+      .skip(skip)
+      .take(limite)
+      .orderBy("produto.nome", "ASC");
+
+    if (busca) {
+      queryBuilder.andWhere("(produto.nome ILIKE :busca OR produto.sku ILIKE :busca)", { busca: `%${busca}%` });
+    }
+
+    if (categoria && categoria !== 'todas') {
+      queryBuilder.andWhere("produto.categoria = :categoria", { categoria });
+    }
+
+    const [produtos, total] = await queryBuilder.getManyAndCount();
+
+    return formatarRespostaPaginada([produtos, total], query);
   };
 
   buscarPorId = async (id: number, requisitante: Requisitante): Promise<Produto> => {

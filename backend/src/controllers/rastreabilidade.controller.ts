@@ -24,7 +24,7 @@ export class RastreabilidadeController {
   consultar = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { termo } = queryRastreabilidadeSchema.parse(req.query);
-      const resultado = await this.rastreabilidadeService.consultar(termo, getRequisitante(req));
+      const resultado = await this.rastreabilidadeService.consultar(termo, req.query as any, getRequisitante(req));
       return res.json(resultado);
     } catch (error) {
       next(error);

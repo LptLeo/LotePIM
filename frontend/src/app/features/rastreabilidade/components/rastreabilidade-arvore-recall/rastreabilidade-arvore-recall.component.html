@@ -35,10 +35,10 @@
           <div class="font-mono font-bold text-white text-sm">{{ lote.numero_lote }}</div>
         </div>
         <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded border"
-          [style.color]="STATUS_CONFIG[lote.status].cor"
-          [style.background]="STATUS_CONFIG[lote.status].corBg"
-          [style.border-color]="STATUS_CONFIG[lote.status].corBorda">
-          {{ STATUS_CONFIG[lote.status].label }}
+          [style.color]="getStatusConfig(lote.status).cor"
+          [style.background]="getStatusConfig(lote.status).corBg"
+          [style.border-color]="getStatusConfig(lote.status).corBorda">
+          {{ getStatusConfig(lote.status).label }}
         </span>
       </div>
       <div class="flex flex-col gap-2">

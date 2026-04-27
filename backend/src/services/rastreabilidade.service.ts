@@ -6,6 +6,7 @@ import { ConsumoInsumo } from "../entities/ConsumoInsumo.js";
 import { AppError } from "../errors/AppError.js";
 import { verificaPermissao, type Requisitante } from "../utils/auth.utils.js";
 import { PerfilUsuario } from "../entities/Usuario.js";
+import { PaginacaoQueryDto, formatarRespostaPaginada, type RespostaPaginada } from "../dto/paginacao.dto.js";
 
 export class RastreabilidadeService {
   private loteRepo: Repository<Lote>;
@@ -78,7 +79,27 @@ export class RastreabilidadeService {
   };
 
   /** Consulta reversa por código de lote de insumo */
-  private consultarPorInsumo = async (termo: string) => {
+  private consultarPorInsumo = async (termo: string, query: PaginacaoQueryDto) => {
+    const { pagina, limite } = query;
+    const skip = (pagina - 1) * limite;
+
+    // Primeiro buscamos os lotes distintos que usam este insumo para contar o total
+    const subQueryLotesAfetados = this.consumoRepo
+      .createQueryBuilder("ci")
+      .select("DISTINCT ci.lote_id", "lote_id")
+      .innerJoin("ci.insumoEstoque", "ie")
+      .where("ie.numero_lote_interno ILIKE :termo OR ie.numero_lote_fornecedor ILIKE :termo", { termo });
+
+    const totalCountRaw = await subQueryLotesAfetados.getRawMany();
+    const total = totalCountRaw.length;
+
+    if (total === 0) {
+      throw new AppError(`Nenhum lote encontrado utilizando o insumo '${termo}'.`, 404);
+    }
+
+    // Agora buscamos os lotes paginados
+    const idsAfetadosPaginados = totalCountRaw.slice(skip, skip + limite).map(r => r.lote_id);
+
     const consumos = await this.consumoRepo
       .createQueryBuilder("ci")
       .leftJoinAndSelect("ci.insumoEstoque", "ie")
@@ -87,13 +108,9 @@ export class RastreabilidadeService {
       .leftJoinAndSelect("ci.lote", "lote")
       .leftJoinAndSelect("lote.produto", "produto")
       .leftJoinAndSelect("lote.operador", "operador")
-      .where("ie.numero_lote_interno ILIKE :termo", { termo })
-      .orWhere("ie.numero_lote_fornecedor ILIKE :termo", { termo })
+      .where("lote.id IN (:...idsAfetadosPaginados)", { idsAfetadosPaginados })
+      .orderBy("lote.data_producao", "DESC")
       .getMany();
-
-    if (consumos.length === 0) {
-      throw new AppError(`Nenhum lote encontrado utilizando o insumo '${termo}'.`, 404);
-    }
 
     const lotesMap = new Map<number, {
       numero_lote: string;
@@ -127,10 +144,11 @@ export class RastreabilidadeService {
       }
     }
 
-    return Array.from(lotesMap.values());
+    const items = Array.from(lotesMap.values());
+    return formatarRespostaPaginada([items, total], query);
   };
 
-  consultar = async (termo: string, requisitante: Requisitante) => {
+  consultar = async (termo: string, q: PaginacaoQueryDto, requisitante: Requisitante) => {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR]);
 
     const ehLoteProduto = termo.toUpperCase().startsWith("LOT-");
@@ -144,7 +162,7 @@ export class RastreabilidadeService {
 
     return {
       tipo: "insumo" as const,
-      resultado: await this.consultarPorInsumo(termo),
+      resultado: await this.consultarPorInsumo(termo, q),
     };
   };
 }
