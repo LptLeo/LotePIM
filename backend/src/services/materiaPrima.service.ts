@@ -5,6 +5,7 @@ import { PerfilUsuario } from "../entities/Usuario.js";
 import { AppError } from "../errors/AppError.js";
 import { verificaPermissao, type Requisitante } from "../utils/auth.utils.js";
 import type { CriarMateriaPrimaDTO } from "../dto/materiaPrima.dto.js";
+import { PaginacaoQueryDto, formatarRespostaPaginada, type RespostaPaginada } from "../dto/paginacao.dto.js";
 
 export class MateriaPrimaService {
   private repo: Repository<MateriaPrima>;
@@ -54,9 +55,24 @@ export class MateriaPrimaService {
     return this.repo.save(entidade);
   };
 
-  listar = async (requisitante: Requisitante): Promise<MateriaPrima[]> => {
+  listar = async (query: PaginacaoQueryDto, requisitante: Requisitante): Promise<RespostaPaginada<MateriaPrima>> => {
     verificaPermissao(requisitante, [PerfilUsuario.OPERADOR, PerfilUsuario.INSPETOR, PerfilUsuario.GESTOR]);
-    return this.repo.find({ order: { nome: "ASC" } });
+    
+    const { pagina, limite, busca } = query;
+    const skip = (pagina - 1) * limite;
+
+    const queryBuilder = this.repo.createQueryBuilder("mp")
+      .skip(skip)
+      .take(limite)
+      .orderBy("mp.nome", "ASC");
+
+    if (busca) {
+      queryBuilder.andWhere("(mp.nome ILIKE :busca OR mp.sku_interno ILIKE :busca)", { busca: `%${busca}%` });
+    }
+
+    const [itens, total] = await queryBuilder.getManyAndCount();
+
+    return formatarRespostaPaginada([itens, total], query);
   };
 
   buscarPorId = async (id: number, requisitante: Requisitante): Promise<MateriaPrima> => {
