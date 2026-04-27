@@ -1,4 +1,11 @@
 import { z } from "zod";
+import { PaginacaoQueryDto } from "./paginacao.dto.js";
+
+export const ListProdutosQueryDto = PaginacaoQueryDto.extend({
+  categoria: z.string().optional(),
+});
+
+export type ListProdutosQueryDto = z.infer<typeof ListProdutosQueryDto>;
 
 /** Schema de um item da receita (matéria-prima + quantidade por unidade de produto) */
 const receitaItemSchema = z.object({

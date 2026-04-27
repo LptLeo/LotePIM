@@ -9,11 +9,12 @@ import { ProdutoCardComponent } from './components/produto-card/produto-card';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 import type { Produto } from '../../shared/models/lote.models';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-produtos',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProdutoFilterButtonComponent, ProdutoCardComponent, StatCardComponent, PageHeaderComponent],
+  imports: [CommonModule, RouterLink, ProdutoFilterButtonComponent, ProdutoCardComponent, StatCardComponent, PageHeaderComponent, PaginationComponent],
   templateUrl: './produtos.html',
 })
 export class Produtos implements OnInit {
@@ -22,49 +23,28 @@ export class Produtos implements OnInit {
   authService = inject(AuthService);
 
   // States
-  produtosBase = signal<Produto[]>([]);
+  produtos = signal<Produto[]>([]);
+  paginationMeta = signal<PaginationMeta | null>(null);
   carregando = signal(true);
   erro = signal<string | null>(null);
   termoPesquisa = signal('');
   filtroAtivo = signal('todos');
+  currentPage = signal(1);
   ultimaAtualizacao = signal(new Date().toLocaleTimeString('pt-BR'));
 
-  /** Listagem filtrada por busca local e abas */
-  produtos = computed(() => {
-    let lista = this.produtosBase();
-    
-    // Filtro por abas
-    const filtro = this.filtroAtivo();
-    if (filtro === 'ativos') lista = lista.filter(p => p.ativo);
-    if (filtro === 'inativos') lista = lista.filter(p => !p.ativo);
-    if (filtro === 'sem_insumos') lista = lista.filter(p => !p.receita || p.receita.length === 0);
+  /** Métricas: Como agora é paginado, mantemos apenas estatísticas simples ou solicitamos ao back */
+  totalProdutos = signal(0);
+  totalAtivos = signal(0);
+  totalComReceita = signal(0);
 
-    // Filtro por pesquisa textual
-    const termo = this.termoPesquisa().toLowerCase().trim();
-    if (!termo) return lista;
-    return lista.filter(p =>
-      p.nome.toLowerCase().includes(termo) ||
-      p.sku.toLowerCase().includes(termo) ||
-      p.categoria.toLowerCase().includes(termo)
-    );
-  });
-
-  /** Métricas computadas localmente para as abas */
-  metrics = computed(() => {
-    const lista = this.produtosBase();
-    return {
-      total: lista.length,
-      ativos: lista.filter(p => p.ativo).length,
-      inativos: lista.filter(p => !p.ativo).length,
-      mais_produzidos: 0, // Placeholder
-      sem_insumos: lista.filter(p => !p.receita || p.receita.length === 0).length,
-      mais_produzido: lista.length > 0 ? lista[0].nome : '—'
-    };
-  });
-
-  totalProdutos = computed(() => this.produtosBase().length);
-  totalAtivos = computed(() => this.produtosBase().filter(p => p.ativo).length);
-  totalComReceita = computed(() => this.produtosBase().filter(p => p.receita?.length > 0).length);
+  metrics = computed(() => ({
+    total: this.totalProdutos(),
+    ativos: this.totalAtivos(),
+    inativos: this.totalProdutos() - this.totalAtivos(),
+    sem_insumos: 0,
+    mais_produzidos: 0,
+    mais_produzido: this.produtos().length > 0 ? this.produtos()[0].nome : '—'
+  }));
 
   ngOnInit(): void {
     this.carregarProdutos();
@@ -72,20 +52,42 @@ export class Produtos implements OnInit {
 
   aplicarFiltroTab(tab: string): void {
     this.filtroAtivo.set(tab);
+    this.currentPage.set(1);
+    this.carregarProdutos();
   }
 
   carregarProdutos(): void {
     this.carregando.set(true);
-    this.produtosService.getProdutos()
+    
+    const filtros = {
+      pagina: this.currentPage(),
+      limite: 10,
+      busca: this.termoPesquisa().trim()
+      // Filtro de status (ativos/inativos) poderia ser enviado aqui se o back suportasse
+    };
+
+    this.produtosService.getProdutos(filtros)
       .pipe(finalize(() => this.carregando.set(false)))
       .subscribe({
-        next: (dados) => this.produtosBase.set(dados),
+        next: (res) => {
+          this.produtos.set(res.itens);
+          this.paginationMeta.set(res.meta);
+          this.totalProdutos.set(res.meta.totalItens);
+        },
         error: () => this.erro.set('Erro ao carregar produtos do servidor.'),
       });
   }
 
   onSearch(event: Event): void {
-    this.termoPesquisa.set((event.target as HTMLInputElement).value);
+    const valor = (event.target as HTMLInputElement).value;
+    this.termoPesquisa.set(valor);
+    this.currentPage.set(1);
+    this.carregarProdutos();
+  }
+
+  onPageChange(pagina: number): void {
+    this.currentPage.set(pagina);
+    this.carregarProdutos();
   }
 
   irParaNovo(): void {

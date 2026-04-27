@@ -1,10 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, tap } from 'rxjs';
-import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, finalize } from 'rxjs';
 import { STATUS_CONFIG, type LoteStatus } from '../../shared/models/lote.models';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
 
 export interface AutocompleteSugestao {
   id: number;
@@ -49,13 +49,16 @@ export interface ResultadoLote {
 export interface ResultadoInsumo {
   tipo: 'insumo';
   resultado: {
-    numero_lote: string;
-    produto: string;
-    data_producao: string;
-    status: LoteStatus;
-    operador_nome: string;
-    insumos_correspondentes: { nome: string; lote_interno: string; quantidade: number }[];
-  }[];
+    itens: {
+      numero_lote: string;
+      produto: string;
+      data_producao: string;
+      status: LoteStatus;
+      operador_nome: string;
+      insumos_correspondentes: { nome: string; lote_interno: string; quantidade: number }[];
+    }[];
+    meta: PaginationMeta;
+  };
 }
 
 export type ResultadoRastreabilidade = ResultadoLote | ResultadoInsumo;
@@ -72,11 +75,11 @@ import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilida
     FormsModule,
     RastreabilidadeBuscaComponent,
     RastreabilidadeArvoreLoteComponent,
-    RastreabilidadeArvoreRecallComponent
+    RastreabilidadeArvoreRecallComponent,
+    PaginationComponent
   ],
   templateUrl: './rastreabilidade.html',
   styleUrl: './rastreabilidade.css',
-  animations: [],
 })
 export class Rastreabilidade implements OnInit {
   private http = inject(HttpClient);
@@ -92,6 +95,7 @@ export class Rastreabilidade implements OnInit {
   buscando = signal(false);
   erro = signal<string | null>(null);
   modoResultado = signal(false);
+  currentPage = signal(1);
 
   private busca$ = new Subject<string>();
 
@@ -139,6 +143,7 @@ export class Rastreabilidade implements OnInit {
   selecionarSugestao(s: AutocompleteSugestao): void {
     this.termoBusca.set(s.texto_exibicao);
     this.mostrarDropdown.set(false);
+    this.currentPage.set(1);
     this.buscar(s.texto_exibicao);
   }
 
@@ -147,21 +152,30 @@ export class Rastreabilidade implements OnInit {
     if (!q.trim()) return;
     this.buscando.set(true);
     this.erro.set(null);
-    this.resultado.set(null);
     
+    let params = new HttpParams()
+      .set('termo', q)
+      .set('pagina', String(this.currentPage()))
+      .set('limite', '10');
+
     this.http.get<ResultadoRastreabilidade>(
-      `http://localhost:3000/api/rastreabilidade?termo=${encodeURIComponent(q)}`
-    ).subscribe({
+      `http://localhost:3000/api/rastreabilidade`,
+      { params }
+    ).pipe(finalize(() => this.buscando.set(false)))
+    .subscribe({
       next: (res) => {
         this.resultado.set(res);
         this.modoResultado.set(true);
-        this.buscando.set(false);
       },
       error: (err) => {
         this.erro.set(err.error?.message ?? 'Nenhum resultado encontrado.');
-        this.buscando.set(false);
       }
     });
+  }
+
+  onPageChange(pagina: number): void {
+    this.currentPage.set(pagina);
+    this.buscar();
   }
 
   novaBusca(): void {
@@ -170,6 +184,7 @@ export class Rastreabilidade implements OnInit {
     this.erro.set(null);
     this.termoBusca.set('');
     this.sugestoes.set([]);
+    this.currentPage.set(1);
   }
 
   fecharDropdown(): void {
@@ -184,9 +199,14 @@ export class Rastreabilidade implements OnInit {
     return r?.tipo === 'lote' ? r.resultado : null;
   }
 
-  get resultadoInsumos(): ResultadoInsumo['resultado'] | null {
+  get resultadoInsumos(): ResultadoInsumo['resultado']['itens'] | null {
     const r = this.resultado();
-    return r?.tipo === 'insumo' ? r.resultado : null;
+    return r?.tipo === 'insumo' ? r.resultado.itens : null;
+  }
+
+  get paginationMeta(): PaginationMeta | null {
+    const r = this.resultado();
+    return r?.tipo === 'insumo' ? r.resultado.meta : null;
   }
 
   formatarData(data?: string | null): string {

@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
-import { STATUS_CONFIG } from '../../../../shared/models/lote.models';
-import type { ResultadoInsumo } from '../../rastreabilidade.ts';
+import { STATUS_CONFIG, LoteStatus } from '../../../../shared/models/lote.models';
+import type { ResultadoInsumo } from '../../rastreabilidade';
 
 @Component({
   selector: 'app-rastreabilidade-arvore-recall',
@@ -41,10 +41,15 @@ import type { ResultadoInsumo } from '../../rastreabilidade.ts';
   ]
 })
 export class RastreabilidadeArvoreRecallComponent {
-  @Input() resultadoInsumos!: ResultadoInsumo['resultado'];
+  @Input() resultadoInsumos!: ResultadoInsumo['resultado']['itens'];
   @Input() termoBusca: string = '';
 
   readonly STATUS_CONFIG = STATUS_CONFIG;
+
+  getStatusConfig(status: any) {
+    const s = status as LoteStatus;
+    return this.STATUS_CONFIG[s] || { label: status, cor: '#ADAAAA', corBg: 'transparent', corBorda: '#484847' };
+  }
 
   formatarData(data?: string | null): string {
     if (!data) return '—';
