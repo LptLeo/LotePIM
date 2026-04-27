@@ -8,6 +8,7 @@
 .settings/
 *.sublime-workspace
 .history/
+.cursorrules
 
 # Globais
 node_modules/
