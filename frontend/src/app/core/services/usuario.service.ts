@@ -1,5 +1,15 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+
+export interface RespostaPaginada<T> {
+  itens: T[];
+  meta: {
+    totalItens: number;
+    itensPorPagina: number;
+    totalPaginas: number;
+    paginaAtual: number;
+  };
+}
 
 export interface UsuarioPerfil {
   id: number;
@@ -42,8 +52,18 @@ export class UsuarioService {
   private http = inject(HttpClient);
   private readonly API_URL = 'http://localhost:3000/api/usuarios';
 
-  getAll() {
-    return this.http.get<UsuarioPerfil[]>(this.API_URL);
+  getAll(filtros?: Record<string, string | number>) {
+    let params = new HttpParams();
+
+    if (filtros) {
+      Object.entries(filtros).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params = params.set(key, String(value));
+        }
+      });
+    }
+
+    return this.http.get<RespostaPaginada<UsuarioPerfil>>(this.API_URL, { params });
   }
 
   getPerfil(id: number) {

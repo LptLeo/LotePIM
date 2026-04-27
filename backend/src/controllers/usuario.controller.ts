@@ -18,7 +18,7 @@ export class UsuarioController {
   }
 
   findAll = async (req: Request, res: Response): Promise<void> => {
-    const data = await this.usuarioService.findAll(this.getRequisitante(req));
+    const data = await this.usuarioService.findAll(req.query as any, this.getRequisitante(req));
 
     res.status(200).json(data);
   }

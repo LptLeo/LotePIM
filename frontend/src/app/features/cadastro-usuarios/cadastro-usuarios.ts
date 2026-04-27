@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -13,6 +13,7 @@ import { PasswordFieldComponent } from '../../shared/components/form-controls/pa
 import { SelectFieldComponent, SelectOption } from '../../shared/components/form-controls/select-field/select-field';
 import { TextInputFieldComponent } from '../../shared/components/form-controls/text-input-field/text-input-field';
 import { cadastroUsuarioPayloadSchema } from './schemas/cadastro-usuario.schema';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-cadastro-usuarios',
@@ -25,10 +26,11 @@ import { cadastroUsuarioPayloadSchema } from './schemas/cadastro-usuario.schema'
     SelectFieldComponent,
     PasswordFieldComponent,
     CheckboxFieldComponent,
+    PaginationComponent
   ],
   templateUrl: './cadastro-usuarios.html',
 })
-export class CadastroUsuarios {
+export class CadastroUsuarios implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -46,34 +48,12 @@ export class CadastroUsuarios {
   carregandoLista = signal(false);
   erroLista = signal<string | null>(null);
   cadastrados = signal<UsuarioPerfil[]>([]);
+  paginationMeta = signal<PaginationMeta | null>(null);
+  currentPage = signal(1);
 
   filtroTermo = signal('');
   filtroPerfil = signal<'todos' | 'operador' | 'inspetor' | 'gestor'>('todos');
   filtroStatus = signal<'todos' | 'ativos' | 'inativos'>('todos');
-
-  cadastradosFiltrados = computed(() => {
-    const termo = this.filtroTermo().trim().toLowerCase();
-    const perfil = this.filtroPerfil();
-    const status = this.filtroStatus();
-
-    return this.cadastrados().filter((u) => {
-      const termoOk =
-        !termo ||
-        u.nome.toLowerCase().includes(termo) ||
-        u.email.toLowerCase().includes(termo);
-
-      const perfilOk = perfil === 'todos' ? true : u.perfil === perfil;
-
-      const statusOk =
-        status === 'todos'
-          ? true
-          : status === 'ativos'
-            ? u.ativo
-            : !u.ativo;
-
-      return termoOk && perfilOk && statusOk;
-    });
-  });
 
   roleOptions: SelectOption[] = [
     { value: 'operador', label: 'Operador' },
@@ -112,8 +92,6 @@ export class CadastroUsuarios {
       return;
     }
 
-    this.loadCadastrados();
-
     effect(() => {
       const cfg = this.config();
 
@@ -129,6 +107,10 @@ export class CadastroUsuarios {
       this.form.controls.email.updateValueAndValidity({ emitEvent: false });
       this.form.controls.senha.updateValueAndValidity({ emitEvent: false });
     });
+  }
+
+  ngOnInit() {
+    this.loadCadastrados();
   }
 
   abrirCadastro(): void {
@@ -149,31 +131,52 @@ export class CadastroUsuarios {
       ativo: true,
     });
     this.telaAtiva.set('listagem');
+    this.loadCadastrados();
   }
 
   loadCadastrados(): void {
     this.erroLista.set(null);
     this.carregandoLista.set(true);
 
+    const filtros = {
+      pagina: this.currentPage(),
+      limite: 10,
+      busca: this.filtroTermo().trim(),
+      perfil: this.filtroPerfil(),
+      ativo: this.filtroStatus()
+    };
+
     this.usuarioService
-      .getAll()
+      .getAll(filtros)
       .pipe(finalize(() => this.carregandoLista.set(false)))
       .subscribe({
-        next: (usuarios) => this.cadastrados.set(usuarios),
+        next: (res) => {
+          this.cadastrados.set(res.itens);
+          this.paginationMeta.set(res.meta);
+        },
         error: (err) => {
           this.erroLista.set(err?.error?.message ?? 'Não foi possível carregar a lista de usuários.');
         },
       });
   }
 
+  onPageChange(pagina: number) {
+    this.currentPage.set(pagina);
+    this.loadCadastrados();
+  }
+
   setFiltroTermo(value: string): void {
     this.filtroTermo.set(value);
+    this.currentPage.set(1);
+    this.loadCadastrados();
   }
 
   setFiltroPerfil(value: string): void {
     const allowed = new Set(['todos', 'operador', 'inspetor', 'gestor']);
     if (allowed.has(value)) {
       this.filtroPerfil.set(value as any);
+      this.currentPage.set(1);
+      this.loadCadastrados();
     }
   }
 
@@ -181,6 +184,8 @@ export class CadastroUsuarios {
     const allowed = new Set(['todos', 'ativos', 'inativos']);
     if (allowed.has(value)) {
       this.filtroStatus.set(value as any);
+      this.currentPage.set(1);
+      this.loadCadastrados();
     }
   }
 
@@ -208,8 +213,7 @@ export class CadastroUsuarios {
       .create(validation.data)
       .pipe(finalize(() => this.salvando.set(false)))
       .subscribe({
-        next: (usuarioCriado) => {
-          this.cadastrados.set([usuarioCriado, ...this.cadastrados()]);
+        next: () => {
           this.form.reset({
             nome: '',
             email: '',
@@ -221,7 +225,7 @@ export class CadastroUsuarios {
           this.submitted.set(false);
           this.zodErrors.set({});
           this.toastService.success('Colaborador cadastrado com sucesso.');
-          this.telaAtiva.set('listagem');
+          this.voltarParaListagem();
         },
         error: (err) => {
           this.erroApi.set(err?.error?.message ?? 'Não foi possível cadastrar o colaborador.');

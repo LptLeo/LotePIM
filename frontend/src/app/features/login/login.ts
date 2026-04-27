@@ -33,7 +33,6 @@ export class Login implements OnInit {
   login() {
     this.errorMessage = '';
     this.isLoading = true;
-    console.log(this.email, this.password);
     this.authService.login({ email: this.email, senha: this.password }).subscribe({
       next: (res: any) => {
         this.isLoading = false;

@@ -186,7 +186,7 @@
           <span class="text-[12px] text-[#6B7280]">Carregando usuários...</span>
         </div>
       } @else {
-        @if (cadastradosFiltrados().length === 0) {
+        @if (cadastrados().length === 0) {
           <p class="text-[12px] text-[#ADAAAA] animate-fade-in delay-300">Nenhum usuário encontrado para o filtro atual.</p>
         } @else {
           <div class="overflow-x-auto max-h-[420px] pr-1 animate-fade-in-up delay-300">
@@ -202,7 +202,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (usuario of cadastradosFiltrados(); track usuario.id) {
+                @for (usuario of cadastrados(); track usuario.id) {
                   <tr class="border-b border-[#484847]/20 stagger-item animate-fade-in-up">
                     <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.nome }}</td>
                     <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.email }}</td>
@@ -244,6 +244,12 @@
               </tbody>
             </table>
           </div>
+
+          @if (paginationMeta(); as meta) {
+            @if (meta.totalPaginas > 1) {
+              <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+            }
+          }
         }
       }
     </section>

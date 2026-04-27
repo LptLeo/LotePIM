@@ -5,6 +5,7 @@ import { Lote } from '../entities/Lote.js';
 import { Inspecao } from '../entities/Inspecao.js';
 import { Produto } from '../entities/Produto.js';
 import { CreateUsuarioDto, UpdateUsuarioDto, UpdateSenhaDto } from '../dto/usuario.dto.js';
+import { PaginacaoQueryDto, formatarRespostaPaginada, type RespostaPaginada } from '../dto/paginacao.dto.js';
 import { AppError } from '../errors/AppError.js';
 import { verificaPermissao, type Requisitante } from '../utils/auth.utils.js';
 
@@ -20,14 +21,34 @@ function omitSenha(usuario: Usuario): UsuarioSemSenha {
 export class UsuarioService {
   private userRepo = AppDataSource.getRepository(Usuario);
 
-  findAll = async (requisitante: Requisitante): Promise<UsuarioSemSenha[]> => {
+  findAll = async (query: PaginacaoQueryDto & { perfil?: string, ativo?: string }, requisitante: Requisitante): Promise<RespostaPaginada<UsuarioSemSenha>> => {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
-    const usuarios = await this.userRepo.find({ 
-      relations: ['criadoPor'],
-      order: { nome: 'ASC' } 
-    });
+    
+    const { pagina, limite, busca, perfil, ativo } = query;
+    const skip = (pagina - 1) * limite;
 
-    return usuarios.map(omitSenha);
+    const queryBuilder = this.userRepo.createQueryBuilder("usuario")
+      .leftJoinAndSelect("usuario.criadoPor", "criador")
+      .skip(skip)
+      .take(limite)
+      .orderBy("usuario.nome", "ASC");
+
+    if (busca) {
+      queryBuilder.andWhere("(usuario.nome ILIKE :busca OR usuario.email ILIKE :busca)", { busca: `%${busca}%` });
+    }
+
+    if (perfil && perfil !== 'todos') {
+      queryBuilder.andWhere("usuario.perfil = :perfil", { perfil });
+    }
+
+    if (ativo && ativo !== 'todos') {
+      const isAtivo = ativo === 'ativos';
+      queryBuilder.andWhere("usuario.ativo = :isAtivo", { isAtivo });
+    }
+
+    const [usuarios, total] = await queryBuilder.getManyAndCount();
+
+    return formatarRespostaPaginada([usuarios.map(omitSenha), total], query);
   }
 
   findById = async (id: number, requisitante: Requisitante): Promise<UsuarioSemSenha> => {
