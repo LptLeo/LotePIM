@@ -1,0 +1,26 @@
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* Garante que o fundo seja branco para economizar tinta e parecer profissional */
+  :host {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Remove sombras e efeitos de glow que ficam ruins no papel */
+  * {
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+  }
+}

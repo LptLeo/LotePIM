@@ -1,0 +1,42 @@
+# Ide e Editores
+.vscode/
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/
+.cursorrules
+
+# Globais
+node_modules/
+dist/
+tmp/
+.DS_Store
+Thumbs.db
+
+# Backend (Express / Node / TypeORM)
+.env
+# Configurações do Agente
+GEMINI.md
+.agent
+Tema - 8_ rastreamento lotes (1).md
+Tema - 8_ rastreamento lotes (1).pdf
+
+# Frontend (Angular)
+.angular/
+out-tsc/
+bazel-out/
+.sass-cache/
+coverage/
+typings/
+__screenshots__/
+
+# Logs Node
+npm-debug.log
+yarn-error.log
+connect.lock
+libpeerconnection.log
+testem.log

@@ -1,0 +1,18 @@
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-page-header',
+  standalone: true,
+  templateUrl: './page-header.html',
+  host: {
+    class: 'block w-full'
+  }
+})
+export class PageHeaderComponent {
+  @Input({ required: true }) title!: string;
+  @Input({ required: true }) subtitle!: string;
+  
+  // Propriedades opcionais caso a tela queira usar títulos diferentes no celular
+  @Input() mobileTitle?: string;
+  @Input() mobileSubtitle?: string;
+}

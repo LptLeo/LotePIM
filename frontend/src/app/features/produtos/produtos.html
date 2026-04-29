@@ -1,0 +1,115 @@
+<div class="page-enter flex flex-col w-full max-w-7xl mx-auto space-y-6 lg:space-y-8 font-sans text-white">
+
+  <!-- Header -->
+  <app-page-header title="Gestão de Produtos" subtitle="Catálogo e Configurações Base">
+    <div badge
+      class="flex items-center gap-2 px-2 py-0.5 rounded-full bg-[#DFFF00]/10 border border-[#DFFF00]/20 w-fit">
+      <div class="flex items-center gap-1.5 border-r border-[#DFFF00]/20 pr-2 mr-1">
+        <span class="relative flex h-1.5 w-1.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DFFF00] opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#DFFF00]"></span>
+        </span>
+        <span class="text-[8px] font-black text-[#DFFF00] uppercase tracking-widest">Live</span>
+      </div>
+      <span class="text-[8px] font-bold text-[#ADAAAA] uppercase tracking-widest">Sinc: {{ ultimaAtualizacao()
+        }}</span>
+    </div>
+
+    <div actions class="flex items-center gap-4 w-full md:w-auto">
+      <div class="flex items-center bg-[#131313] border border-[#484847]/30 rounded-lg px-4 py-2 w-full md:w-64">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-4 h-4 text-[#6B7280] mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input type="text" [value]="termoPesquisa()" (input)="onSearch($event)" placeholder="Buscar código, nome..."
+          class="bg-transparent text-[11px] text-white focus:outline-none w-full placeholder:text-[#484847]">
+      </div>
+      <button routerLink="/app/produtos/novo"
+        class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all whitespace-nowrap">
+        + Criar Novo Produto
+      </button>
+    </div>
+  </app-page-header>
+
+  <!-- Metric Cards -->
+  <div class="flex flex-col md:flex-row gap-4 mb-4">
+    <app-stat-card title="Total de Produtos"
+      tooltip="Quantidade total de produtos cadastrados no catálogo do sistema, incluindo ativos e inativos."
+      trackingClass="tracking-[1.5px]" class="flex-1 flex flex-col">
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-bold text-white">{{ totalProdutos() }}</span>
+        <span class="text-[#ADAAAA] text-[10px] uppercase font-bold">Cadastrados</span>
+      </div>
+    </app-stat-card>
+
+    <app-stat-card title="Mais Produzido (Mês)"
+      tooltip="Identifica qual produto teve o maior número de lotes abertos no mês vigente até o momento."
+      trackingClass="tracking-[0.5px]" class="flex-1 flex flex-col">
+      <div class="flex items-center gap-4">
+        <span class="text-2xl font-bold text-[#DFFF00] truncate max-w-[250px]">{{ metrics().mais_produzido }}</span>
+      </div>
+    </app-stat-card>
+  </div>
+
+  <!-- Tabs Nav -->
+  <div
+    class="flex flex-wrap border-b border-[#484847]/30 gap-6 md:gap-8 overflow-x-auto whitespace-nowrap">
+
+    <app-produto-filter-button value="todos" label="Todos" [count]="metrics().total"
+      [active]="filtroAtivo() === 'todos'" (action)="aplicarFiltroTab($event)">
+    </app-produto-filter-button>
+
+    <app-produto-filter-button value="ativos" label="Ativos" [count]="metrics().ativos"
+      [active]="filtroAtivo() === 'ativos'" (action)="aplicarFiltroTab($event)">
+    </app-produto-filter-button>
+
+    <app-produto-filter-button value="inativos" label="Inativos" [count]="metrics().inativos"
+      [active]="filtroAtivo() === 'inativos'" (action)="aplicarFiltroTab($event)">
+    </app-produto-filter-button>
+
+    <app-produto-filter-button value="mais_produzidos" label="Mais Produzidos" [count]="metrics().mais_produzidos"
+      [active]="filtroAtivo() === 'mais_produzidos'" (action)="aplicarFiltroTab($event)">
+    </app-produto-filter-button>
+
+    <app-produto-filter-button value="sem_insumos" label="Sem Insumos" [count]="metrics().sem_insumos"
+      [active]="filtroAtivo() === 'sem_insumos'" [isWarning]="true" (action)="aplicarFiltroTab($event)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+        class="w-3 h-3">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </app-produto-filter-button>
+
+  </div>
+
+  <!-- Content / Listing -->
+  @if (carregando()) {
+  <div class="flex justify-center items-center py-20 w-full col-span-full">
+    <div class="w-8 h-8 border-4 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"></div>
+  </div>
+  } @else if (produtos().length === 0) {
+  <div
+    class="flex flex-col justify-center items-center py-20 w-full col-span-full border border-dashed border-[#484847]/50 rounded-lg bg-[#131313]">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#484847"
+      class="w-16 h-16 mb-4">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+    </svg>
+    <span class="text-[#ADAAAA] text-sm uppercase tracking-wider font-bold">Nenhum produto encontrado</span>
+    <span class="text-[#6B7280] text-xs mt-1">Refine a busca.</span>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    @for (prod of produtos(); track prod.id) {
+    <app-produto-card [prod]="prod" (cardClick)="irParaDetalhe($event)"></app-produto-card>
+    }
+  </div>
+
+  @if (paginationMeta(); as meta) {
+    @if (meta.totalPaginas > 1) {
+      <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+    }
+  }
+  }
+</div>

@@ -1,0 +1,105 @@
+<div class="page-enter flex flex-col w-full max-w-7xl mx-auto space-y-6 lg:space-y-8 font-sans text-white">
+
+  <!-- Header -->
+  <app-page-header title="Lista de Lotes" subtitle="Listagem de lotes corporativos em tempo real">
+    <div actions>
+      @if (authService.usuario()?.perfil === 'operador' || authService.usuario()?.perfil === 'gestor') {
+      <button (click)="irParaNovoLote()"
+        class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(0,229,255,0.2)]">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Criar Novo Lote
+      </button>
+      }
+    </div>
+  </app-page-header>
+
+  <!-- Stats Cards -->
+  <div class="flex flex-col md:flex-row gap-4 mb-4">
+    <app-stat-card [title]="producaoTotalLabel()"
+      tooltip="Soma de todas as unidades produzidas no período selecionado."
+      trackingClass="tracking-[1.5px]">
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-bold text-white">{{ producaoTotalAcumulada() | number:'1.0-0' }}</span>
+        <span class="text-[#ADAAAA] text-[10px] font-bold uppercase">Unidades</span>
+      </div>
+    </app-stat-card>
+
+    <app-stat-card title="Atividade em Tempo Real"
+      tooltip="Percentual baseado na quantidade de lotes atualmente com o status 'Em Produção' em relação ao valor base configurado."
+      trackingClass="tracking-[0.5px]">
+      <div class="flex items-center gap-4">
+        <span class="text-3xl font-bold text-[#DFFF00]">{{ statsCargaSistema() | number:'1.1-1' }}%</span>
+        <div class="flex gap-1 items-end h-[24px]">
+          <div class="w-1.5 h-3" [style.background]="statsCargaSistema() >= 20 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-4" [style.background]="statsCargaSistema() >= 40 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-5" [style.background]="statsCargaSistema() >= 60 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-6" [style.background]="statsCargaSistema() >= 80 ? '#DFFF00' : '#484847'"></div>
+          <div class="w-1.5 h-4" [style.background]="statsCargaSistema() >= 95 ? '#DFFF00' : '#484847'"></div>
+        </div>
+      </div>
+    </app-stat-card>
+  </div>
+
+  <!-- Tabs (Filtros) -->
+  <app-filter-tabs [tabs]="filtrosTabs" [filtroAtivo]="filtroAtivo()" [contagem]="contagemPorStatus()"
+    (filtroMudou)="alterarFiltro($event)">
+  </app-filter-tabs>
+
+  <!-- Loading State -->
+  @if (carregando()) {
+  <div class="flex flex-col items-center justify-center py-20 gap-4">
+    <div class="w-10 h-10 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Sincronizando lotes corporativos...</p>
+  </div>
+  }
+
+  <!-- Error State -->
+  @else if (erro()) {
+  <div class="bg-red-950/20 border border-red-500/30 p-8 rounded-md text-center">
+    <p class="text-red-400 text-sm">{{ erro() }}</p>
+    <button (click)="carregarLotes()" class="mt-4 text-[#00E5FF] text-xs font-bold uppercase underline">Tentar
+      novamente</button>
+  </div>
+  }
+
+  <!-- Empty State -->
+  @else if (lotes().length === 0) {
+  <div
+    class="flex flex-col items-center justify-center py-24 border border-dashed border-[#484847]/40 rounded-lg bg-[#111]">
+    <div class="p-4 bg-[#1a1a1a] rounded-full mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#484847"
+        class="size-8">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
+      </svg>
+    </div>
+    <h3 class="text-[#ADAAAA] font-bold uppercase tracking-widest text-sm">Nenhum lote localizado</h3>
+    <p class="text-[#6B7280] text-xs mt-1">Refine seus filtros ou realize uma nova busca</p>
+  </div>
+  }
+
+  <!-- Cards List -->
+  @else {
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    @for (lote of lotes(); track lote.id) {
+    <app-lote-card 
+      class="animate-fade-in" 
+      [lote]="lote" 
+      [duracaoProducaoMs]="duracaoMs()"
+      (cardClick)="irParaDetalhe($event)">
+    </app-lote-card>
+    }
+
+  </div>
+
+  @if (paginationMeta(); as meta) {
+    @if (meta.totalPaginas > 1) {
+      <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+    }
+  }
+  }
+</div>

@@ -1,0 +1,23 @@
+<div
+    class="bg-[#161616] border border-[#484847]/20 rounded-md p-6 flex flex-col justify-center transition-all duration-300 hover:border-[#00E5FF]/40 group h-full w-full relative overflow-hidden">
+    <!-- Efeito de brilho no hover -->
+    <div
+        class="absolute -inset-full bg-gradient-to-r from-transparent via-white/5 to-transparent group-hover:animate-shimmer pointer-events-none transform -skew-x-12 opacity-0 group-hover:opacity-100">
+    </div>
+
+    <div class="flex items-center gap-2 mb-4 relative z-10">
+        <h3 class="text-[#6B7280] text-[10px] font-bold uppercase truncate" [ngClass]="trackingClass">
+            {{ title }}
+        </h3>
+        <span *ngIf="tooltip" class="text-[#6B7280] cursor-help" [title]="tooltip">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="w-3.5 h-3.5 hover:text-[#00E5FF] transition-colors">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+        </span>
+    </div>
+    <div class="relative z-10">
+        <ng-content></ng-content>
+    </div>
+</div>

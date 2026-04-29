@@ -1,0 +1,257 @@
+<div class="flex flex-col gap-6 text-white page-enter-safe">
+  <app-page-header
+    title="Gestão de Colaboradores"
+    subtitle="Cadastre e gerencie o acesso dos profissionais da fábrica."
+    class="animate-fade-in-up"
+  >
+    <div actions>
+      @if (telaAtiva() === 'listagem') {
+        <button
+          type="button"
+          (click)="abrirCadastro()"
+          class="flex items-center gap-2 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all"
+        >
+          + Cadastrar Usuário
+        </button>
+      } @else {
+        <button
+          type="button"
+          (click)="voltarParaListagem()"
+          class="px-5 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded"
+        >
+          Voltar para Listagem
+        </button>
+      }
+    </div>
+  </app-page-header>
+
+  @if (erroApi()) {
+    <div class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md animate-fade-in-up delay-75">
+      <p class="text-[#fca5a5] text-[13px] font-semibold">{{ erroApi() }}</p>
+    </div>
+  }
+
+  @if (telaAtiva() === 'cadastro') {
+    <section class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 animate-fade-in-up delay-100">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-in-left delay-150">
+          <app-text-input-field
+            label="Nome Completo *"
+            [control]="form.controls.nome"
+            [submitted]="submitted()"
+            [errorMessage]="getError('nome')"
+            placeholder="Ex.: Ana Maria Silva"
+          />
+
+          <app-text-input-field
+            label="E-mail Corporativo *"
+            type="email"
+            [control]="form.controls.email"
+            [submitted]="submitted()"
+            [errorMessage]="getError('email')"
+            placeholder="nome@empresa.com"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-in-right delay-200">
+          <app-select-field
+            label="Perfil (Role) *"
+            [control]="form.controls.perfil"
+            [options]="roleOptions"
+            [submitted]="submitted()"
+          />
+
+          <div class="flex items-end">
+            <app-checkbox-field
+              label="Status Ativo"
+              [control]="form.controls.ativo"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-in-left delay-300">
+          <app-password-field
+            label="Senha *"
+            [control]="form.controls.senha"
+            [submitted]="submitted()"
+            [errorMessage]="getError('senha')"
+            [showGenerator]="true"
+            [onGenerate]="generateSecurePassword.bind(this)"
+          />
+
+          <app-password-field
+            label="Confirmar Senha *"
+            [control]="form.controls.confirmarSenha"
+            [submitted]="submitted()"
+            [errorMessage]="getConfirmPasswordControlError()"
+          />
+        </div>
+
+        <div class="pt-4 border-t border-[#484847]/30 flex justify-end animate-fade-in delay-400">
+          <button
+            type="button"
+            (click)="voltarParaListagem()"
+            class="mr-3 px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="form.invalid || salvando()"
+            class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (salvando()) {
+              Cadastrando...
+            } @else {
+              Cadastrar Usuário
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+  } @else {
+    <section class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 animate-fade-in-up delay-100">
+      <div class="flex items-center justify-between mb-4 animate-fade-in delay-150">
+        <h3 class="text-[12px] font-bold uppercase tracking-[1.5px] text-[#00E5FF]">Cadastrados</h3>
+        <button
+          type="button"
+          (click)="loadCadastrados()"
+          class="text-[11px] text-[#ADAAAA] hover:text-white transition-colors"
+        >
+          Atualizar
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3 mb-4 animate-fade-in-up delay-200">
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            [value]="filtroTermo()"
+            (input)="setFiltroTermo($any($event.target).value)"
+            placeholder="Filtrar por nome ou e-mail..."
+            class="w-full bg-[#0E0E0E] border border-[#484847]/60 rounded px-3 py-2 text-[12px] text-white placeholder:text-[#6B7280] focus:outline-none focus:border-[#00E5FF] transition-colors"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Perfil</label>
+            <div class="relative group">
+              <select
+                [value]="filtroPerfil()"
+                (change)="setFiltroPerfil($any($event.target).value)"
+                class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
+              >
+                @for (option of filtroPerfilOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Status</label>
+            <div class="relative group">
+              <select
+                [value]="filtroStatus()"
+                (change)="setFiltroStatus($any($event.target).value)"
+                class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
+              >
+                @for (option of filtroStatusOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (erroLista()) {
+        <div class="p-3 mb-3 bg-red-950/20 border border-[#dc2626]/40 rounded-md animate-fade-in">
+          <p class="text-[#fca5a5] text-[12px] font-semibold">{{ erroLista() }}</p>
+        </div>
+      }
+
+      @if (carregandoLista()) {
+        <div class="flex items-center gap-3 py-3 animate-fade-in delay-300">
+          <div class="w-4 h-4 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-[12px] text-[#6B7280]">Carregando usuários...</span>
+        </div>
+      } @else {
+        @if (cadastrados().length === 0) {
+          <p class="text-[12px] text-[#ADAAAA] animate-fade-in delay-300">Nenhum usuário encontrado para o filtro atual.</p>
+        } @else {
+          <div class="overflow-x-auto max-h-[420px] pr-1 animate-fade-in-up delay-300">
+            <table class="w-full text-left text-[12px]">
+              <thead class="sticky top-0 bg-[#131313]">
+                <tr class="text-[#6B7280] border-b border-[#484847]/30">
+                  <th class="py-2 pr-2">Nome</th>
+                  <th class="py-2 pr-2">E-mail</th>
+                  <th class="py-2 pr-2">Perfil</th>
+                  <th class="py-2 pr-2">Status</th>
+                  <th class="py-2">Cadastrado Por</th>
+                  <th class="py-2 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (usuario of cadastrados(); track usuario.id) {
+                  <tr class="border-b border-[#484847]/20 stagger-item animate-fade-in-up">
+                    <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.nome }}</td>
+                    <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.email }}</td>
+                    <td class="py-2 pr-2 text-white capitalize">{{ usuario.perfil }}</td>
+                    <td class="py-2 pr-2" [class.text-[#81ECFF]]="usuario.ativo" [class.text-[#fca5a5]]="!usuario.ativo">
+                      {{ usuario.ativo ? 'Ativo' : 'Inativo' }}
+                    </td>
+                    <td class="py-2 text-[#ADAAAA]">{{ usuario.criadoPor?.nome || 'Sistema' }}</td>
+                    <td class="py-2 text-right">
+                      @if (usuario.ativo && usuario.perfil !== 'gestor') {
+                        <button
+                          (click)="deativarUsuario(usuario.id)"
+                          class="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer"
+                          title="Desativar Colaborador"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.765Z" />
+                          </svg>
+                        </button>
+                      } @else if (usuario.perfil === 'gestor') {
+                        <span class="text-[10px] text-[#484847] italic pr-2">Protegido</span>
+                      } @else {
+                        <div class="flex items-center justify-end gap-2">
+                          <span class="text-[10px] text-red-500/40 font-bold uppercase tracking-wider">Desativado</span>
+                          <button
+                            (click)="reativarUsuario(usuario.id)"
+                            class="p-1.5 text-[#00E5FF]/60 hover:text-[#00E5FF] hover:bg-[#00E5FF]/10 rounded transition-all cursor-pointer"
+                            title="Reativar Colaborador"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h1.5m9-10.5h3m0 0v3m0-3-3 3m-3 2.25A2.25 2.25 0 1 1 9 15a2.25 2.25 0 0 1 4.5 0Zm7.5 3v.75A2.25 2.25 0 0 1 18.75 21h-9A2.25 2.25 0 0 1 7.5 18.75V18" />
+                            </svg>
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (paginationMeta(); as meta) {
+            @if (meta.totalPaginas > 1) {
+              <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+            }
+          }
+        }
+      }
+    </section>
+  }
+</div>

@@ -1,0 +1,82 @@
+<div class="min-h-screen flex flex-col justify-between bg-linear-to-b from-[#181818] via-[#0c0c0c] to-[#0c0c0c]">
+  <header
+    class="header-title animate-fade-in flex justify-start items-center px-4 py-3 font-bold text-xl text-[#22D3EE] bg-[rgba(14,14,14,0.7)]">
+    <img class="w-10 mr-2 hover:animate-pulse transition-all duration-300" src="favicon.png" alt="">
+    LOTE PIM
+  </header>
+  <main class="flex justify-center items-center px-4">
+    <form (ngSubmit)="login()" #loginForm="ngForm"
+      class="animate-fade-in-up flex flex-col bg-[#131313] bg-opacity-70 p-5 mx-auto rounded-sm w-[340px] shadow-sm shadow-[#1b1b1b]">
+      <div class="flex justify-start items-center relative mb-4">
+        <h4 class="login-title font-bold text-3xl text-gray-50 p-3 pl-0">LOG IN</h4>
+        <div
+          class="login-title-line absolute border-2 rounded-full border-gray-50 w-[60px] bottom-0 left-0 transition-all duration-500 ease-out">
+        </div>
+      </div>
+      <p class="text-sm text-gray-400 mb-10 delay-100 animate-fade-in-up">Inicialize uma sessão segura para acessar as
+        PÁGINAS DE CONTROLE</p>
+
+      @if (errorMessage) {
+      <div
+        class="bg-[#2a0c0c] border border-red-500 text-[#ffb3b3] text-[13px] p-3 rounded mb-4 text-center font-bold tracking-wide shadow-sm shadow-[#ff000040]">
+        {{ errorMessage }}
+      </div>
+      }
+
+
+      <label class="ps-1 text-xs text-gray-400 my-1 delay-200 animate-fade-in-up" for="usuario">EMAIL</label>
+      <input [(ngModel)]="email" name="email"
+        class="bg-black text-sm p-3 mb-1 text-white placeholder:text-xs outline-none transition-all duration-300 focus:scale-[1.02] focus:ring-1 focus:ring-[#00E3FD] outline-none delay-200 animate-fade-in-up"
+        type="email" id="usuario" placeholder="EMAIL" required email #emailModel="ngModel"
+        [class.border-red-500]="emailModel.invalid && (emailModel.dirty || emailModel.touched)"
+        [class.border]="emailModel.invalid && (emailModel.dirty || emailModel.touched)" />
+
+      @if (emailModel.invalid && (emailModel.dirty || emailModel.touched)) {
+      <div class="text-red-500 text-xs mb-2 ps-1">
+        @if (emailModel.errors?.['required']) {
+        <span>O email é obrigatório.</span>
+        }
+        @if (emailModel.errors?.['email']) {
+        <span>Por favor, insira um email válido.</span>
+        }
+      </div>
+      } @else {
+      <div class="mb-2"></div>
+      }
+
+      <label class="ps-1 text-xs text-gray-400 my-1 delay-200 animate-fade-in-up" for="senha">SENHA</label>
+      <input [(ngModel)]="password" name="password"
+        class="bg-black text-sm p-3 text-white placeholder:text-xs outline-none transition-all duration-300 focus:scale-[1.02] focus:ring-1 focus:ring-[#00E3FD] outline-none delay-200 animate-fade-in-up"
+        type="password" id="senha" placeholder="SENHA" required #passwordModel="ngModel"
+        [class.border-red-500]="passwordModel.invalid && (passwordModel.dirty || passwordModel.touched)"
+        [class.border]="passwordModel.invalid && (passwordModel.dirty || passwordModel.touched)" />
+
+      @if (passwordModel.invalid && (passwordModel.dirty || passwordModel.touched)) {
+      <div class="text-red-500 text-xs mt-1 ps-1">
+        @if (passwordModel.errors?.['required']) {
+        <span>A senha é obrigatória.</span>
+        }
+      </div>
+      }
+
+      <button
+        class="text-xs text-center text-[#005762] bg-linear-to-r from-[#81ECFF] to-[#00E3FD] py-3 rounded-sm font-bold mt-10 shadow-sm shadow-[#81ECFF] disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer flex justify-center items-center gap-2"
+        [disabled]="loginForm.invalid || isLoading" type="submit">
+        @if (isLoading) {
+        <svg class="animate-spin h-4 w-4 text-[#005762]" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+          </path>
+        </svg>
+        }
+        <span>{{ isLoading ? 'ENTRANDO...' : 'ENTRAR' }}</span>
+      </button>
+    </form>
+  </main>
+  <footer class="flex flex-col justify-center items-center animate-fade-in delay-300 mb-4">
+    <span class="text-xs text-gray-400">Versão do sistema: --x--</span>
+    <span class="text-xs text-gray-400">Desenvolvido por: --x--</span>
+  </footer>
+</div>

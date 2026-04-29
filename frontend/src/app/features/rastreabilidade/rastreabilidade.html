@@ -1,0 +1,65 @@
+<div class="flex flex-col gap-10 text-white min-h-[80vh] pb-20 page-enter-safe">
+
+  <!-- ── MODO BUSCA ── -->
+  @if (!modoResultado()) {
+    <app-rastreabilidade-busca
+      [termo]="termoBusca()"
+      [sugestoes]="sugestoes()"
+      [mostrandoDropdown]="mostrarDropdown()"
+      [buscandoSugestoes]="buscandoSugestoes()"
+      [buscando]="buscando()"
+      [erro]="erro()"
+      (inputChange)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="fecharDropdown()"
+      (search)="buscar()"
+      (clear)="novaBusca()"
+      (selectSuggestion)="selecionarSugestao($event)"
+      class="animate-fade-in-up">
+    </app-rastreabilidade-busca>
+  }
+
+  <!-- ── MODO RESULTADO (Árvore) ── -->
+  @if (modoResultado() && resultado()) {
+  <div class="flex flex-col gap-8 max-w-6xl mx-auto w-full animate-fade-in-up delay-100">
+
+    <!-- Topbar -->
+    <div class="flex items-center gap-4 animate-slide-in-left delay-200">
+      <button (click)="novaBusca()"
+        class="flex items-center gap-2 px-4 py-2 bg-[#131313] border border-[#484847]/40 rounded-lg text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/40 transition-all text-[11px] font-bold uppercase tracking-wider">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        Nova Busca
+      </button>
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-[#131313] border border-[#484847]/30 rounded-lg">
+        <span class="text-[#6B7280] text-[10px] uppercase font-bold tracking-wider">Resultado para</span>
+        <span class="text-white font-mono text-[11px] font-bold">{{ termoBusca() }}</span>
+      </div>
+    </div>
+
+    <!-- ─── CENÁRIO A: Lote de Produto ─── -->
+    @if (resultadoLote) {
+      <app-rastreabilidade-arvore-lote
+        [resultadoLote]="resultadoLote">
+      </app-rastreabilidade-arvore-lote>
+    }
+
+    <!-- ─── CENÁRIO B: Insumo (Recall) ─── -->
+    @if (resultadoInsumos) {
+      <app-rastreabilidade-arvore-recall
+        [resultadoInsumos]="resultadoInsumos"
+        [termoBusca]="termoBusca()">
+      </app-rastreabilidade-arvore-recall>
+
+      @if (paginationMeta; as meta) {
+        @if (meta.totalPaginas > 1) {
+          <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+        }
+      }
+    }
+
+  </div>
+  }
+
+</div>

@@ -1,0 +1,67 @@
+<div class="flex flex-col items-center gap-0">
+  <!-- Nó Raiz: Insumo -->
+  <div @treeRoot class="w-full max-w-2xl">
+    <div class="node-glow-red bg-[#0A0A0A] border-2 border-red-500/60 rounded-2xl p-6 shadow-[0_0_30px_rgba(220,38,38,0.12)] transition-all">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fca5a5" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold uppercase tracking-[1.5px] text-red-400">Alerta de Recall · Insumo Rastreado</div>
+          <div class="text-xl font-bold text-white font-mono">{{ termoBusca }}</div>
+        </div>
+      </div>
+      <p class="text-[12px] text-[#ADAAAA]">
+        Este insumo foi utilizado em <span class="text-white font-bold">{{ resultadoInsumos.length }}</span> lote(s) de produção abaixo.
+      </p>
+    </div>
+  </div>
+
+  <!-- Conector -->
+  <div @lineGrow class="w-px h-12 bg-gradient-to-b from-red-500/40 to-red-500/10"></div>
+  <div @fadeScale class="text-[9px] font-bold uppercase tracking-[2px] text-red-400/60 mb-3">
+    Lotes Afetados
+  </div>
+
+  <!-- Lotes afetados -->
+  <div @treeChildren class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+    @for (lote of resultadoInsumos; track lote.numero_lote) {
+    <div class="node-glow-red bg-[#131313] border border-red-500/30 hover:border-red-500/60 rounded-xl p-5 transition-all">
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <div class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Lote de Produção</div>
+          <div class="font-mono font-bold text-white text-sm">{{ lote.numero_lote }}</div>
+        </div>
+        <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded border"
+          [style.color]="getStatusConfig(lote.status).cor"
+          [style.background]="getStatusConfig(lote.status).corBg"
+          [style.border-color]="getStatusConfig(lote.status).corBorda">
+          {{ getStatusConfig(lote.status).label }}
+        </span>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Produto</span>
+          <span class="text-[11px] text-white font-medium">{{ lote.produto }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Data Produção</span>
+          <span class="text-[11px] text-[#ADAAAA]">{{ formatarData(lote.data_producao) }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider">Operador</span>
+          <span class="text-[11px] text-white">{{ lote.operador_nome }}</span>
+        </div>
+        @for (ins of lote.insumos_correspondentes; track ins.lote_interno) {
+        <div class="flex justify-between items-center pt-2 border-t border-red-500/10">
+          <span class="text-[9px] text-red-400/70 uppercase font-bold tracking-wider">Qtd. Usada</span>
+          <span class="text-sm font-bold text-red-300">{{ ins.quantidade }} <span class="text-[#6B7280] text-[9px]">un.</span></span>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+</div>

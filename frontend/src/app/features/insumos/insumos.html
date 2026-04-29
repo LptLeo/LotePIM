@@ -1,0 +1,119 @@
+<div class="page-enter flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-8 p-4 md:p-8 bg-[#0A0A0A]">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
+    <div class="flex flex-col mb-4 md:mb-0">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-white tracking-[-0.5px]">Gestão de Insumos</h1>
+      </div>
+      <span class="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6B7280]">Matéria-Prima e Lotes
+        Internos</span>
+    </div>
+
+    <div class="flex items-center gap-4 w-full md:w-auto">
+      <div class="flex items-center bg-[#131313] border border-[#484847]/30 rounded-lg px-4 py-2 w-full md:w-64">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-4 h-4 text-[#ADAAAA] mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input type="text" [value]="termoPesquisa()" (input)="onSearch($event)" placeholder="Buscar..."
+          class="bg-transparent text-[11px] text-white focus:outline-none w-full placeholder:text-[#6B7280]">
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-8 border-b border-[#484847]/30">
+    <button (click)="setAba('estoque')"
+      class="pb-2 px-2 text-[11px] font-bold uppercase tracking-[1px] transition-colors relative"
+      [class.text-[#00E5FF]]="abaAtiva() === 'estoque'" [class.text-[#6B7280]]="abaAtiva() !== 'estoque'">
+      Estoque Físico
+      @if (abaAtiva() === 'estoque') {
+      <div class="absolute -bottom-px left-0 w-full h-0.5 bg-[#00E5FF] shadow-[0_0_5px_rgba(0,229,255,0.5)]"></div>
+      }
+    </button>
+    <button (click)="setAba('catalogo')"
+      class="pb-2 px-2 text-[11px] font-bold uppercase tracking-[1px] transition-colors relative"
+      [class.text-[#00E5FF]]="abaAtiva() === 'catalogo'" [class.text-[#6B7280]]="abaAtiva() !== 'catalogo'">
+      Catálogo (Tipos de MP)
+      @if (abaAtiva() === 'catalogo') {
+      <div class="absolute -bottom-px left-0 w-full h-0.5 bg-[#00E5FF] shadow-[0_0_5px_rgba(0,229,255,0.5)]"></div>
+      }
+    </button>
+  </div>
+
+  @if (abaAtiva() === 'estoque') {
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-white text-sm uppercase tracking-wider font-bold">Resumo do Estoque</h2>
+    <button (click)="abrirModalEstoque()"
+      class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
+      + Registrar Entrada
+    </button>
+  </div>
+
+  <!-- Metric Cards Estoque -->
+  <app-metric-cards 
+    [totalRegistros]="totalRegistros()" 
+    [totalComSaldo]="totalComSaldo()" 
+    [totalEsgotados]="totalEsgotados()">
+  </app-metric-cards>
+
+  <!-- Content / Listing Estoque -->
+  <app-estoque-list 
+    [insumos]="insumos()" 
+    [carregando]="carregando()">
+  </app-estoque-list>
+
+  @if (paginationMetaEstoque(); as meta) {
+    @if (meta.totalPaginas > 1) {
+      <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+    }
+  }
+  }
+
+  @if (abaAtiva() === 'catalogo') {
+  <div class="flex justify-between items-center mb-4">
+    <div class="flex flex-col bg-[#131313] p-4 rounded-lg border border-[#484847]/30 min-w-[200px]">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px] mb-1">Tipos Cadastrados</span>
+      <span class="text-xl font-bold text-white">{{ totalCatalogo() }} <span
+          class="text-[#6B7280] text-[10px] uppercase font-bold">Matérias-Primas</span></span>
+    </div>
+    <button (click)="abrirModalNovaMp()"
+      class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
+      + Nova Matéria-Prima
+    </button>
+  </div>
+
+  <app-catalogo-table 
+    [catalogo]="catalogo()" 
+    [carregando]="carregando()">
+  </app-catalogo-table>
+
+  @if (paginationMetaCatalogo(); as meta) {
+    @if (meta.totalPaginas > 1) {
+      <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+    }
+  }
+  }
+</div>
+
+<!-- Modal Nova Matéria-Prima -->
+<app-nova-mp-modal
+  [isOpen]="modalAberto()"
+  [salvando]="salvandoMp()"
+  [erro]="erroMp()"
+  [categorias]="categoriasMp()"
+  (close)="fecharModalNovaMp()"
+  (save)="salvarNovaMp($event)">
+</app-nova-mp-modal>
+
+<!-- Modal Registrar Entrada de Estoque -->
+<app-registrar-entrada-modal
+  [isOpen]="modalEstoqueAberto()"
+  [salvando]="salvandoEstoque()"
+  [erro]="erroEstoque()"
+  [catalogo]="catalogo()"
+  (close)="fecharModalEstoque()"
+  (save)="salvarEstoque($event)">
+</app-registrar-entrada-modal>

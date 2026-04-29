@@ -1,0 +1,86 @@
+<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-6">
+
+  <!-- ── Estado: Carregando ── -->
+  @if (carregando()) {
+  <div class="flex flex-col items-center justify-center py-32 gap-4">
+    <div class="w-8 h-8 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Carregando produto...</p>
+  </div>
+  }
+
+  <!-- ── Estado: Erro ── -->
+  @else if (erro()) {
+  <div class="flex flex-col items-center justify-center py-32 gap-4">
+    <div class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md text-center max-w-md">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#fca5a5"
+        class="w-8 h-8 mx-auto mb-3">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+      </svg>
+      <p class="text-[#fca5a5] text-[13px] font-semibold mb-1">Erro ao carregar produto</p>
+      <p class="text-[#ADAAAA] text-[12px]">{{ erro() }}</p>
+    </div>
+    <button (click)="voltarParaLista()"
+      class="mt-2 px-5 py-2 border border-[#484847] text-[#ADAAAA] text-[12px] font-bold uppercase tracking-wider hover:bg-[#1a1a1a] transition-colors rounded-sm">
+      Voltar para a Lista
+    </button>
+  </div>
+  }
+
+  <!-- ── Conteúdo do Produto ── -->
+  @else if (produto()) {
+
+  <!-- Cabeçalho -->
+  <header class="flex flex-col gap-6">
+    <div class="flex items-center gap-4">
+      <button (click)="voltarParaLista()"
+        class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-all group shadow-lg"
+        title="Voltar para a lista">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"
+          class="w-5 h-5 group-hover:-translate-x-1 transition-transform">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+      </button>
+      <div class="h-6 w-px bg-[#484847]/30"></div>
+      <span class="text-[12px] font-bold text-[#ADAAAA] uppercase tracking-[2px]">Gestão de Produtos / Detalhes</span>
+    </div>
+
+    <!-- Título e Status -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+      <div>
+        <h2 class="font-bold text-[32px] leading-tight tracking-[-1px] text-white font-mono">
+          {{ produto()!.nome }}
+        </h2>
+        <p class="text-[16px] text-[#00E5FF] mt-1 font-medium tracking-wide">SKU: {{ produto()!.sku }}</p>
+      </div>
+
+      <div class="px-4 py-2 rounded-md text-[12px] font-bold uppercase tracking-[2px] shadow-sm border"
+        [style.color]="produto()!.ativo ? '#9EEE35' : '#ADAAAA'"
+        [style.background]="produto()!.ativo ? 'rgba(58,93,31,0.4)' : 'rgba(74,85,104,0.4)'"
+        [style.border-color]="produto()!.ativo ? '#9EEE35' : '#718096'">
+        {{ produto()!.ativo ? 'ATIVO' : 'INATIVO' }}
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Cards de Informações ── -->
+  <app-produto-info-cards [produto]="produto()!"></app-produto-info-cards>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ── Receita do Produto (Insumos) ── -->
+  <!-- ══════════════════════════════════════════ -->
+  <app-produto-receita
+    [produto]="produto()!"
+    [modoEdicao]="modoEdicaoReceita()"
+    [receitaEditada]="receitaEditada()"
+    [mpDisponiveis]="mpDisponiveis()"
+    [salvando]="salvandoReceita()"
+    (iniciarEdicao)="iniciarEdicaoReceita()"
+    (cancelarEdicao)="cancelarEdicaoReceita()"
+    (salvar)="salvarReceita()"
+    (addMp)="adicionarMateriaPrima($event)"
+    (removeMp)="removerItemReceita($event)"
+    (updateQtd)="atualizarQuantidade($event.index, $event.qtd)">
+  </app-produto-receita>
+  }
+</div>

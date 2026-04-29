@@ -1,0 +1,15 @@
+/* Conector SVG da árvore */
+.tree-line {
+  stroke: rgba(0, 229, 255, 0.3);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  fill: none;
+}
+
+.node-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+}
+
+.node-glow-red:hover {
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2), 0 0 40px rgba(220, 38, 38, 0.08);
+}

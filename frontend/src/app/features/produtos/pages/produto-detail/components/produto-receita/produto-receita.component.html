@@ -1,0 +1,131 @@
+<div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 mt-6">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <h3 class="text-[14px] font-bold uppercase tracking-[2px] text-white">Receita do Produto</h3>
+      <span
+        class="text-[11px] font-bold text-[#00E5FF] bg-[rgba(0,229,255,0.1)] border border-[#00E5FF] px-2.5 py-0.5 rounded">
+        @if (!modoEdicao) {
+          {{ produto.receita.length || 0 }} {{ (produto.receita.length === 1 ? 'item' : 'itens') }}
+        } @else {
+          {{ receitaEditada.length || 0 }} {{ (receitaEditada.length === 1 ? 'item' : 'itens') }}
+        }
+      </span>
+    </div>
+    <div>
+      @if (!modoEdicao) {
+        <button (click)="onIniciarEdicao()"
+          class="px-4 py-1.5 border border-[#484847] text-[#ADAAAA] text-[10px] font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-[#00E5FF] hover:border-[#00E5FF]/50 transition-colors rounded-sm">
+          Editar Receita
+        </button>
+      } @else {
+        <div class="flex gap-2">
+          <button (click)="onCancelarEdicao()" [disabled]="salvando"
+            class="px-4 py-1.5 border border-[#484847] text-[#fca5a5] text-[10px] font-bold uppercase tracking-wider hover:bg-red-950/40 transition-colors rounded-sm disabled:opacity-50">
+            Cancelar
+          </button>
+          <button (click)="onSalvar()" [disabled]="salvando || receitaEditada.length === 0"
+            class="px-4 py-1.5 bg-[#00E5FF] text-black text-[10px] font-bold uppercase tracking-wider hover:bg-[#00E5FF]/80 transition-colors rounded-sm disabled:opacity-50 flex items-center gap-2">
+            @if (salvando) {
+              Salvando...
+            } @else {
+              Salvar Alterações
+            }
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (!modoEdicao) {
+    <!-- MODO DE VISUALIZAÇÃO -->
+    @if (!produto.receita || produto.receita.length === 0) {
+    <p class="text-[12px] text-[#6B7280] italic py-4">Nenhuma matéria-prima vinculada a este produto.</p>
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-[#484847]/30">
+            <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Matéria-Prima</th>
+            <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">SKU</th>
+            <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Categoria</th>
+            <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Qtd. Necessária</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of produto.receita; track item.id || $index) {
+          <tr class="border-b border-[#1e1e1e] hover:bg-[#1a1a1a] transition-colors">
+            <td class="py-4 px-4 text-[13px] font-medium text-white">{{ item.materiaPrima.nome }}</td>
+            <td class="py-4 px-4">
+              <span class="font-mono text-[11px] text-[#00E5FF] bg-[rgba(0,229,255,0.05)] px-2 py-0.5 rounded">
+                {{ item.materiaPrima.sku_interno }}
+              </span>
+            </td>
+            <td class="py-4 px-4 text-[13px] text-[#ADAAAA]">{{ item.materiaPrima.categoria }}</td>
+            <td class="py-4 px-4 text-[13px] text-right font-bold text-white">
+              {{ item.quantidade }}
+              <span class="text-[10px] text-[#6B7280] ml-1">{{ item.unidade }}</span>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  } @else {
+    <!-- MODO DE EDIÇÃO -->
+    <div class="flex flex-col gap-4">
+      <div class="flex gap-3 items-end bg-[#0E0E0E] p-4 rounded border border-[#484847]/40">
+        <div class="flex-1">
+          <label class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block mb-1">Vincular Matéria-Prima</label>
+          <div class="relative">
+            <select #mpSelect class="w-full bg-[#131313] border border-[#484847]/80 rounded pl-3 pr-10 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer">
+              <option value="" disabled selected>Selecione para adicionar...</option>
+              @for (mp of mpDisponiveis; track mp.id) {
+                <option [value]="mp.id">{{ mp.nome }} ({{ mp.sku_interno }}) — {{ mp.unidade_medida }}</option>
+              }
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
+        <button type="button" (click)="onAddMp(mpSelect.value); mpSelect.value = ''"
+          [disabled]="!mpSelect.value"
+          class="px-4 py-2 bg-[#1A1A1A] border border-[#00E5FF]/30 text-[#00E5FF] text-[10px] font-bold uppercase tracking-wider rounded hover:bg-[#00E5FF]/10 disabled:opacity-30 transition-colors">
+          Adicionar
+        </button>
+      </div>
+
+      @if (receitaEditada.length === 0) {
+        <div class="py-6 text-center text-[#6B7280] text-xs italic">Nenhum item adicionado à receita.</div>
+      } @else {
+        <div class="flex flex-col gap-2">
+          @for (item of receitaEditada; track item.materiaPrima.id; let i = $index) {
+            <div class="flex items-center justify-between bg-[#0E0E0E] border border-[#484847]/30 p-3 rounded hover:border-[#00E5FF]/30 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-1.5 h-1.5 rounded-full bg-[#00E5FF]"></div>
+                <div>
+                  <span class="text-xs font-bold text-white block">{{ item.materiaPrima.nome }}</span>
+                  <span class="text-[10px] text-[#ADAAAA] uppercase">SKU: {{ item.materiaPrima.sku_interno }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="relative w-24">
+                  <input type="number" [value]="item.quantidade" (input)="onUpdateQtd(i, qtdInput.value)" #qtdInput
+                    [min]="item.unidade === 'UN' ? '1' : '0.01'"
+                    [step]="item.unidade === 'UN' ? '1' : '0.01'"
+                    class="w-full bg-[#1A1A1A] border border-[#484847]/60 rounded px-2 py-1 text-xs text-center text-white focus:outline-none focus:border-[#00E5FF]">
+                </div>
+                <span class="text-[10px] font-bold text-[#ADAAAA] w-6">{{ item.unidade }}</span>
+                <button type="button" (click)="onRemoveMp(i)" title="Remover item"
+                  class="w-7 h-7 rounded-full border border-red-900/50 text-red-400 hover:bg-red-950/60 hover:text-red-300 transition-colors flex items-center justify-center font-bold pb-0.5">
+                  ×
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

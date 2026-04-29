@@ -1,0 +1,64 @@
+<div (click)="cardClick.emit(prod.id)" class="bg-[#131313] border border-[#484847]/30 flex flex-col rounded-lg overflow-hidden hover:border-[#00E5FF]/40 transition-colors shadow-lg h-full cursor-pointer">
+  <!-- CARD HEADER -->
+  <div class="bg-[#1A1A1A] p-4 flex justify-between items-start border-b border-[#484847]/30">
+    <div class="flex flex-col">
+      <span class="text-white font-bold text-lg leading-tight">{{ prod.nome }}</span>
+      <span class="text-[#6B7280] text-xs font-bold font-mono mt-1">{{ prod.sku }}</span>
+    </div>
+
+    <div class="flex-shrink-0 ml-2">
+      @if (prod.ativo) {
+      <span
+        class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#00E5FF] text-[#00E5FF] bg-[rgba(0,229,255,0.1)]">
+        ATIVO
+      </span>
+      } @else {
+      <span
+        class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#dc2626] text-[#fca5a5] bg-[rgba(69,10,10,0.6)]">
+        INATIVO
+      </span>
+      }
+    </div>
+  </div>
+
+  <!-- CARD BODY -->
+  <div class="p-4 flex flex-col gap-3 flex-1">
+    <div class="flex justify-between items-center bg-[#1A1A1A]/50 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-wider">Categoria</span>
+      <span class="text-white text-xs">{{ prod.categoria }}</span>
+    </div>
+    <div class="flex justify-between items-center bg-[#1A1A1A]/50 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-wider">Linha Padrão</span>
+      <span class="text-[#00E5FF] text-xs font-bold">{{ prod.linha_padrao }}</span>
+    </div>
+    <div class="flex justify-between items-center bg-[#1A1A1A]/50 px-3 py-2 rounded">
+      <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-wider flex items-center gap-1">
+        Insumos na Receita
+        @if (!prod.receita || prod.receita.length === 0) {
+        <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse ml-0.5"
+          title="Alerta: Sem insumos listados"></span>
+        }
+      </span>
+      <span class="text-white text-xs">{{ prod.receita?.length || 0 }} itens</span>
+    </div>
+  </div>
+
+  <!-- CARD FOOTER -->
+  <div class="mt-auto border-t border-[#484847]/30 p-4 bg-[#0A0A0A] flex justify-between items-center">
+    <div class="flex flex-col">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Giro Produtivo</span>
+      <div class="flex items-end gap-1">
+        <span class="text-sm font-bold text-white">{{ prod.lotes?.length || 0 }}</span>
+        <span class="text-[10px] text-[#484847]">lotes</span>
+      </div>
+    </div>
+    <div class="flex flex-col items-center">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Cadastrado por</span>
+      <span class="text-[10px] text-[#ADAAAA]">{{ prod.criadoPor?.nome || 'Sistema' }}</span>
+    </div>
+    <div class="flex flex-col items-end">
+      <span class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">Atualização</span>
+      <span class="text-xs text-[#ADAAAA]">{{ formatarData(prod.atualizado_em) }}</span>
+    </div>
+  </div>
+</div>

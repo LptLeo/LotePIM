@@ -1,0 +1,11 @@
+<button [routerLink]="link" routerLinkActive="is-active"
+  class="relative group flex justify-center items-center w-full px-4 py-3 rounded-lg cursor-pointer text-[#ADAAAA] hover:bg-[#ADAAAA]/5 md:rounded-none lg:justify-start transition-all overflow-hidden">
+  <!-- Indicador lateral animado -->
+  <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-[#00E5FF] transition-all duration-300 group-hover:h-full group-[.is-active]:h-full shadow-[0_0_10px_#00E5FF]"></div>
+
+  <ng-content></ng-content>
+
+  <span class="hidden text-[14px] leading-[20px] tracking-[1.4px] lg:flex flex-col transition-all group-[.is-active]:font-bold group-[.is-active]:text-[#00E5FF] uppercase after:content-[attr(data-text)] after:font-bold after:h-0 after:invisible after:overflow-hidden after:pointer-events-none" [attr.data-text]="label">
+    {{ label }}
+  </span>
+</button>
