@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://lotepim.onrender.com'
+  apiUrl: 'https://lotepim.onrender.com/api'
 };
