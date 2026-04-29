@@ -122,6 +122,7 @@ export class ProdutoService {
       .leftJoinAndSelect("produto.receita", "receita")
       .leftJoinAndSelect("receita.materiaPrima", "materiaPrima")
       .leftJoinAndSelect("produto.criadoPor", "criadoPor")
+      .leftJoinAndSelect("produto.lotes", "lotes")
       .skip(skip)
       .take(limite)
       .orderBy("produto.nome", "ASC");
