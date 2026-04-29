@@ -1,12 +1,12 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProdutosService } from '../../services/produtos.service';
-import { Produto } from '../../../../shared/models/lote.models';
+import { ProdutosService } from '../../services/produtos.service.js';
+import { Produto } from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
 
-import { ProdutoInfoCardsComponent } from './components/produto-info-cards/produto-info-cards.component';
-import { ProdutoReceitaComponent } from './components/produto-receita/produto-receita.component';
+import { ProdutoInfoCardsComponent } from './components/produto-info-cards/produto-info-cards.component.js';
+import { ProdutoReceitaComponent } from './components/produto-receita/produto-receita.component.js';
 
 @Component({
   selector: 'app-produto-detail',

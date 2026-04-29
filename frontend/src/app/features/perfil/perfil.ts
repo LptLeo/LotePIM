@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { NgIf, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import { UsuarioService, UsuarioPerfil, UsuarioStats } from '../../core/services/usuario.service';
-import { AuthService } from '../../core/services/auth.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
+import { UsuarioService, UsuarioPerfil, UsuarioStats } from '../../core/services/usuario.service.js';
+import { AuthService } from '../../core/services/auth.service.js';
 import { forkJoin, finalize } from 'rxjs';
 
 @Component({

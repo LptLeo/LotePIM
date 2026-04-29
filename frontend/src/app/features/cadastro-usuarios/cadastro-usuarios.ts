@@ -3,17 +3,17 @@ import { Component, computed, effect, inject, signal, OnInit } from '@angular/co
 import { FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { FormConfigService } from '../../core/services/form-config.service';
-import { ToastService } from '../../core/services/toast.service';
-import { CreateUsuarioPayload, UsuarioPerfil, UsuarioService } from '../../core/services/usuario.service';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import { CheckboxFieldComponent } from '../../shared/components/form-controls/checkbox-field/checkbox-field';
-import { PasswordFieldComponent } from '../../shared/components/form-controls/password-field/password-field';
-import { SelectFieldComponent, SelectOption } from '../../shared/components/form-controls/select-field/select-field';
-import { TextInputFieldComponent } from '../../shared/components/form-controls/text-input-field/text-input-field';
-import { cadastroUsuarioPayloadSchema } from './schemas/cadastro-usuario.schema';
-import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
+import { AuthService } from '../../core/services/auth.service.js';
+import { FormConfigService } from '../../core/services/form-config.service.js';
+import { ToastService } from '../../core/services/toast.service.js';
+import { CreateUsuarioPayload, UsuarioPerfil, UsuarioService } from '../../core/services/usuario.service.js';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
+import { CheckboxFieldComponent } from '../../shared/components/form-controls/checkbox-field/checkbox-field.js';
+import { PasswordFieldComponent } from '../../shared/components/form-controls/password-field/password-field.js';
+import { SelectFieldComponent, SelectOption } from '../../shared/components/form-controls/select-field/select-field.js';
+import { TextInputFieldComponent } from '../../shared/components/form-controls/text-input-field/text-input-field.js';
+import { cadastroUsuarioPayloadSchema } from './schemas/cadastro-usuario.schema.js';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
 
 @Component({
   selector: 'app-cadastro-usuarios',

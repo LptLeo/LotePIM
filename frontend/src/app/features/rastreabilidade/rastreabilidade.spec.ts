@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Rastreabilidade } from './rastreabilidade';
+import { Rastreabilidade } from './rastreabilidade.js';
 
 describe('Rastreabilidade', () => {
   let component: Rastreabilidade;

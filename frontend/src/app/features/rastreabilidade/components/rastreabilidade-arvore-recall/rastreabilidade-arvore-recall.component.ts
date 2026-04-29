@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
-import { STATUS_CONFIG, LoteStatus } from '../../../../shared/models/lote.models';
-import type { ResultadoInsumo } from '../../rastreabilidade';
+import { STATUS_CONFIG, LoteStatus } from '../../../../shared/models/lote.models.js';
+import type { ResultadoInsumo } from '../../rastreabilidade.js';
 
 @Component({
   selector: 'app-rastreabilidade-arvore-recall',

@@ -1,19 +1,19 @@
 import { Routes } from '@angular/router';
-import { Login } from './features/login/login';
-import { Dashboard } from './features/dashboard/dashboard';
-import { Lote } from './features/lote/lote';
-import { LoteDetail } from './features/lote/pages/lote-detail/lote-detail';
-import { LoteNovo } from './features/lote/pages/lote-novo/lote-novo';
-import { Produtos } from './features/produtos/produtos';
-import { ProdutoNovo } from './features/produtos/pages/produto-novo/produto-novo';
-import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade';
-import { Configuracoes } from './features/configuracoes/configuracoes';
-import { Insumos } from './features/insumos/insumos';
-import { InsumoNovo } from './features/insumos/pages/insumo-novo/insumo-novo';
-import { Perfil } from './features/perfil/perfil';
-import { CadastroUsuarios } from './features/cadastro-usuarios/cadastro-usuarios';
-import { authGuard } from './core/guards/auth/auth-guard';
-import { MainLayout } from './core/layouts/main-layout/main-layout';
+import { Login } from './features/login/login.js';
+import { Dashboard } from './features/dashboard/dashboard.js';
+import { Lote } from './features/lote/lote.js';
+import { LoteDetail } from './features/lote/pages/lote-detail/lote-detail.js';
+import { LoteNovo } from './features/lote/pages/lote-novo/lote-novo.js';
+import { Produtos } from './features/produtos/produtos.js';
+import { ProdutoNovo } from './features/produtos/pages/produto-novo/produto-novo.js';
+import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade.js';
+import { Configuracoes } from './features/configuracoes/configuracoes.js';
+import { Insumos } from './features/insumos/insumos.js';
+import { InsumoNovo } from './features/insumos/pages/insumo-novo/insumo-novo.js';
+import { Perfil } from './features/perfil/perfil.js';
+import { CadastroUsuarios } from './features/cadastro-usuarios/cadastro-usuarios.js';
+import { authGuard } from './core/guards/auth/auth-guard.js';
+import { MainLayout } from './core/layouts/main-layout/main-layout.js';
 
 export const routes: Routes = [
   {

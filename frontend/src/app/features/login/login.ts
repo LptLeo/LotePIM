@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service.js';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({

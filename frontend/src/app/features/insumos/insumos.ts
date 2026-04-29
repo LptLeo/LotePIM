@@ -1,17 +1,17 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { InsumosService } from './services/insumos.service';
+import { InsumosService } from './services/insumos.service.js';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import type { InsumoEstoque } from '../../shared/models/lote.models';
+import { AuthService } from '../../core/services/auth.service.js';
+import type { InsumoEstoque } from '../../shared/models/lote.models.js';
 
-import { MetricCardsComponent } from './components/metric-cards/metric-cards.component';
-import { EstoqueListComponent } from './components/estoque-list/estoque-list.component';
-import { CatalogoTableComponent } from './components/catalogo-table/catalogo-table.component';
-import { NovaMpModalComponent } from './components/nova-mp-modal/nova-mp-modal.component';
-import { RegistrarEntradaModalComponent } from './components/registrar-entrada-modal/registrar-entrada-modal.component';
-import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
+import { MetricCardsComponent } from './components/metric-cards/metric-cards.component.js';
+import { EstoqueListComponent } from './components/estoque-list/estoque-list.component.js';
+import { CatalogoTableComponent } from './components/catalogo-table/catalogo-table.component.js';
+import { NovaMpModalComponent } from './components/nova-mp-modal/nova-mp-modal.component.js';
+import { RegistrarEntradaModalComponent } from './components/registrar-entrada-modal/registrar-entrada-modal.component.js';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
 
 @Component({
   selector: 'app-insumos',

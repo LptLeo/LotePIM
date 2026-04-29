@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import type { Produto, MateriaPrima } from '../../../shared/models/lote.models';
+import type { Produto, MateriaPrima } from '../../../shared/models/lote.models.js';
 
 const API_URL = 'http://localhost:3000/api';
 

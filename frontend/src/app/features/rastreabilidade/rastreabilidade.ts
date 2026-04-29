@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, finalize } from 'rxjs';
-import { STATUS_CONFIG, type LoteStatus } from '../../shared/models/lote.models';
-import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
+import { STATUS_CONFIG, type LoteStatus } from '../../shared/models/lote.models.js';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
 
 export interface AutocompleteSugestao {
   id: number;
@@ -63,9 +63,9 @@ export interface ResultadoInsumo {
 
 export type ResultadoRastreabilidade = ResultadoLote | ResultadoInsumo;
 
-import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component';
-import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component';
-import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component';
+import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component.js';
+import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component.js';
+import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component.js';
 
 @Component({
   selector: 'app-rastreabilidade',

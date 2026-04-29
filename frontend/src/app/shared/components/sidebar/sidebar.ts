@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router } from "@angular/router";
-import { AuthService } from "../../../core/services/auth.service";
-import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.component';
+import { AuthService } from "../../../core/services/auth.service.js";
+import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.component.js';
 
 @Component({
   selector: 'app-sidebar',

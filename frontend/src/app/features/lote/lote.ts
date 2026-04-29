@@ -1,16 +1,16 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoteFeatureService } from './services/lote.service';
-import { LoteDetalhe, STATUS_CONFIG, LoteStatus } from '../../shared/models/lote.models';
+import { LoteFeatureService } from './services/lote.service.js';
+import { LoteDetalhe, STATUS_CONFIG, LoteStatus } from '../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
-import { LoteCardComponent } from '../../shared/components/lote-card/lote-card';
-import { FilterTabsComponent, FilterTab } from '../../shared/components/filter-tabs/filter-tabs';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import { ConfiguracoesService } from '../../core/services/configuracoes.service';
-import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
+import { AuthService } from '../../core/services/auth.service.js';
+import { StatCardComponent } from '../../shared/components/stat-card/stat-card.js';
+import { LoteCardComponent } from '../../shared/components/lote-card/lote-card.js';
+import { FilterTabsComponent, FilterTab } from '../../shared/components/filter-tabs/filter-tabs.js';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
+import { ConfiguracoesService } from '../../core/services/configuracoes.service.js';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
 
 /** Fallback caso o backend não responda — 2 minutos como padrão de demo */
 const FALLBACK_DURACAO_MS = 2 * 60 * 1000;

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import type { LoteDetalhe } from '../../../shared/models/lote.models';
+import type { LoteDetalhe } from '../../../shared/models/lote.models.js';
 
 const API_URL = 'http://localhost:3000/api';
 

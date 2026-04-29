@@ -5,14 +5,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { switchMap, finalize } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 
-import { LoteFeatureService } from '../../services/lote.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { LoteFeatureService } from '../../services/lote.service.js';
+import { AuthService } from '../../../../core/services/auth.service.js';
 import {
   LoteDetalhe,
   LoteStatus,
   STATUS_CONFIG,
   StatusConfig,
-} from '../../../../shared/models/lote.models';
+} from '../../../../shared/models/lote.models.js';
 
 const TURNO_LABEL: Record<string, string> = {
   manha: 'Manhã',

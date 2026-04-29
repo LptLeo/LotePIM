@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LoteDetalhe, STATUS_CONFIG } from '../../models/lote.models';
+import { LoteDetalhe, STATUS_CONFIG } from '../../models/lote.models.js';
 
 @Component({
   selector: 'app-lote-card',

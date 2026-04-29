@@ -2,12 +2,12 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ProdutosService, CriarProdutoPayload } from '../../services/produtos.service';
-import type { MateriaPrima } from '../../../../shared/models/lote.models';
+import { ProdutosService, CriarProdutoPayload } from '../../services/produtos.service.js';
+import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
 
-import { WizardBaseComponent } from './components/wizard-base/wizard-base.component';
-import { WizardReceitaComponent } from './components/wizard-receita/wizard-receita.component';
+import { WizardBaseComponent } from './components/wizard-base/wizard-base.component.js';
+import { WizardReceitaComponent } from './components/wizard-receita/wizard-receita.component.js';
 
 @Component({
   selector: 'app-produto-novo',

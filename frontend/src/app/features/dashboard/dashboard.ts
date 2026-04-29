@@ -1,12 +1,12 @@
 import { Component, inject, computed } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { DashboardService } from "./services/dashboard.service";
-import { DashboardData } from './models/dashboard.interface';
+import { DashboardService } from "./services/dashboard.service.js";
+import { DashboardData } from './models/dashboard.interface.js';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import { ConfiguracoesService } from '../../core/services/configuracoes.service';
-import { AuthService } from '../../core/services/auth.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
+import { ConfiguracoesService } from '../../core/services/configuracoes.service.js';
+import { AuthService } from '../../core/services/auth.service.js';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 

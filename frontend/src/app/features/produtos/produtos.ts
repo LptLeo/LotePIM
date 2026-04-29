@@ -1,15 +1,15 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { ProdutosService } from './services/produtos.service';
+import { ProdutosService } from './services/produtos.service.js';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { ProdutoFilterButtonComponent } from './components/produto-filter-button/produto-filter-button';
-import { ProdutoCardComponent } from './components/produto-card/produto-card';
-import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import type { Produto } from '../../shared/models/lote.models';
-import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination';
+import { AuthService } from '../../core/services/auth.service.js';
+import { ProdutoFilterButtonComponent } from './components/produto-filter-button/produto-filter-button.js';
+import { ProdutoCardComponent } from './components/produto-card/produto-card.js';
+import { StatCardComponent } from '../../shared/components/stat-card/stat-card.js';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
+import type { Produto } from '../../shared/models/lote.models.js';
+import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
 
 @Component({
   selector: 'app-produtos',

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
-import { STATUS_CONFIG } from '../../../../shared/models/lote.models';
+import { STATUS_CONFIG } from '../../../../shared/models/lote.models.js';
 import type { ResultadoLote } from '../../rastreabilidade.ts';
 
 @Component({

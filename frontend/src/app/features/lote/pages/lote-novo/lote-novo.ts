@@ -2,9 +2,9 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../../core/services/auth.service';
-import { LoteFeatureService } from '../../services/lote.service';
-import type { Produto, ReceitaItem, InsumoEstoque } from '../../../../shared/models/lote.models';
+import { AuthService } from '../../../../core/services/auth.service.js';
+import { LoteFeatureService } from '../../services/lote.service.js';
+import type { Produto, ReceitaItem, InsumoEstoque } from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
 
 @Component({

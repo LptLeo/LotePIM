@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
-import { ToastService } from '../../../core/services/toast.service';
+import { ToastService } from '../../../core/services/toast.service.js';
 
 @Component({
   selector: 'app-toast',

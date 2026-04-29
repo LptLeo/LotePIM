@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
-import type { MateriaPrima } from '../../../../../../shared/models/lote.models';
+import type { MateriaPrima } from '../../../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-wizard-receita',

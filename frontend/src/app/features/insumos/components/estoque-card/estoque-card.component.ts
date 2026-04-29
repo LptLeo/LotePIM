@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { InsumoEstoque } from '../../../../shared/models/lote.models';
+import type { InsumoEstoque } from '../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-estoque-card',

@@ -4,10 +4,10 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 
-import { routes } from './app.routes';
+import { routes } from './app.routes.js';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { authInterceptor } from './core/interceptors/auth-interceptor';
-import { AuthService } from './core/services/auth.service';
+import { authInterceptor } from './core/interceptors/auth-interceptor.js';
+import { AuthService } from './core/services/auth.service.js';
 
 registerLocaleData(localePt, 'pt-BR');
 

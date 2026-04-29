@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Lote } from './lote';
+import { Lote } from './lote.js';
 
 describe('Lote', () => {
   let component: Lote;

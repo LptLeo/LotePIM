@@ -17,10 +17,10 @@ import {
   switchMap,
 } from 'rxjs/operators';
 
-import { HeaderService } from './services/header.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { NotificacaoService } from '../../../core/services/notificacao/notificacao.service';
-import { SugestaoItem, LoteStatus, STATUS_CONFIG } from '../../models/lote.models';
+import { HeaderService } from './services/header.service.js';
+import { AuthService } from '../../../core/services/auth.service.js';
+import { NotificacaoService } from '../../../core/services/notificacao/notificacao.service.js';
+import { SugestaoItem, LoteStatus, STATUS_CONFIG } from '../../models/lote.models.js';
 
 /** Padrão exato de número de lote gerado pelo backend */
 const LOTE_REGEX = /^LOTE-\d{8}-\d{3}$/;
