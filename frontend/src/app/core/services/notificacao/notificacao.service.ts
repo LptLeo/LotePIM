@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { timer, Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface Notificacao {
   id: number;
@@ -13,7 +14,7 @@ export interface Notificacao {
 @Injectable({ providedIn: 'root' })
 export class NotificacaoService implements OnDestroy {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:3000/api/notificacoes';
+  private readonly API_URL = `${environment.apiUrl}/notificacoes`;
   private pollingSub?: Subscription;
 
   notificacoes = signal<Notificacao[]>([]);

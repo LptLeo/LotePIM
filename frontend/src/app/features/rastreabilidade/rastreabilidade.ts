@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, finalize } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { STATUS_CONFIG, type LoteStatus } from '../../shared/models/lote.models.js';
 import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
 
@@ -63,9 +64,9 @@ export interface ResultadoInsumo {
 
 export type ResultadoRastreabilidade = ResultadoLote | ResultadoInsumo;
 
-import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component.js';
-import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component.js';
-import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component.js';
+import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component';
+import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component';
+import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component';
 
 @Component({
   selector: 'app-rastreabilidade',
@@ -113,7 +114,7 @@ export class Rastreabilidade implements OnInit {
         }
         this.buscandoSugestoes.set(true);
         return this.http.get<AutocompleteSugestao[]>(
-          `http://localhost:3000/api/rastreabilidade/autocomplete?q=${encodeURIComponent(q)}`
+          `${environment.apiUrl}/rastreabilidade/autocomplete?q=${encodeURIComponent(q)}`
         ).pipe(catchError(() => of([])));
       })
     ).subscribe(items => {
@@ -159,7 +160,7 @@ export class Rastreabilidade implements OnInit {
       .set('limite', '10');
 
     this.http.get<ResultadoRastreabilidade>(
-      `http://localhost:3000/api/rastreabilidade`,
+      `${environment.apiUrl}/rastreabilidade`,
       { params }
     ).pipe(finalize(() => this.buscando.set(false)))
     .subscribe({

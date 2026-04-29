@@ -14,13 +14,20 @@ import { Usuario } from "../entities/Usuario.js";
 
 dotenv.config();
 
+const isUrlConnection = process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_HOST.startsWith("postgres"));
+
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "postgres",
-  database: process.env.DB_NAME || "postgres",
+  ...(isUrlConnection
+    ? { url: (process.env.DATABASE_URL || process.env.DB_HOST) as string }
+    : {
+        host: process.env.DB_HOST || "localhost",
+        port: Number(process.env.DB_PORT) || 5432,
+        username: process.env.DB_USER || "postgres",
+        password: process.env.DB_PASSWORD || "postgres",
+        database: process.env.DB_NAME || "postgres",
+      }),
+  ssl: process.env.NODE_ENV === "production" || isUrlConnection ? { rejectUnauthorized: false } : false,
   entities: [
     ConsumoInsumo,
     Inspecao,

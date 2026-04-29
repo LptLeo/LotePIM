@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, catchError, of } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
 import { SugestaoItem } from '../../../models/lote.models.js';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = environment.apiUrl;
 const MIN_TERMO_LENGTH = 2;
 
 @Injectable({

@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import type { Produto, MateriaPrima } from '../../../shared/models/lote.models.js';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = environment.apiUrl;
 
 export interface RespostaPaginada<T> {
   itens: T[];

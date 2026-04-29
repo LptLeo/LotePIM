@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { DashboardData } from '../models/dashboard.interface.js';
 
 @Injectable({
@@ -8,7 +9,7 @@ import { DashboardData } from '../models/dashboard.interface.js';
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private API_URL = 'http://localhost:3000/api/metricas/dashboard';
+  private API_URL = `${environment.apiUrl}/metricas/dashboard`;
 
   getDashboardData(periodoLotes?: string, periodoUnidades?: string): Observable<DashboardData> {
     let params = new HttpParams();

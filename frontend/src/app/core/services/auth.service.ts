@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { catchError, of, ReplaySubject, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface UserInfo {
   id: number;
@@ -13,7 +14,7 @@ export interface UserInfo {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly AUTH_URL = 'http://localhost:3000/api/auth';
+  private readonly AUTH_URL = `${environment.apiUrl}/auth`;
 
   // Armazena o Access Token apenas em memória (proteção XSS)
   private tokenAcesso = signal<string | null>(null);

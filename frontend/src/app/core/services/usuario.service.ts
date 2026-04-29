@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface RespostaPaginada<T> {
   itens: T[];
@@ -50,7 +51,7 @@ export interface UpdateSenhaPayload {
 })
 export class UsuarioService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:3000/api/usuarios';
+  private readonly API_URL = `${environment.apiUrl}/usuarios`;
 
   getAll(filtros?: Record<string, string | number>) {
     let params = new HttpParams();
