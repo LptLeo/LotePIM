@@ -14,20 +14,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Configuração de Origens Permitidas
+const frontendUrl = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : '';
+
 const allowedOrigins = [
   "http://localhost:4200",
-  process.env.FRONTEND_URL,
-].filter(Boolean) as string[];
+  frontendUrl
+].filter(Boolean);
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permite requisições sem origin (como mobile apps ou curl) ou se estiver na lista
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Permite requisições sem origin ou se estiver na lista ou se for do render
+      if (!origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV === 'production' && origin.endsWith('.onrender.com'))) {
         callback(null, true);
       } else {
+        console.error(`Bloqueado pelo CORS. Origem: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
