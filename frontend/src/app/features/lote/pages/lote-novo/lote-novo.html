@@ -168,7 +168,7 @@
                 </span>
               </div>
               <span class="text-[10px] font-bold text-[#6B7280] uppercase">
-                {{ consumo.get('quantidade_necessaria')?.value }} {{ consumo.get('unidade')?.value }} / unidade
+                {{ consumo.get('quantidade_necessaria')?.value | number:'1.0-3' }} {{ consumo.get('unidade')?.value }} / unidade
               </span>
             </div>
 
@@ -182,7 +182,7 @@
                     <option [value]="0" disabled>Selecione um lote...</option>
                     @for (insumo of getInsumosParaMP(consumo.get('materia_prima_id')?.value); track insumo.id) {
                     <option [value]="insumo.id">
-                      {{ insumo.numero_lote_interno }} — {{ insumo.fornecedor }} (Saldo: {{ insumo.quantidade_atual }} {{ insumo.materiaPrima.unidade_medida }})
+                      {{ insumo.numero_lote_interno }} — {{ insumo.fornecedor }} (Saldo: {{ insumo.quantidade_atual | number:'1.0-3' }} {{ insumo.materiaPrima.unidade_medida }})
                     </option>
                     }
                   </select>

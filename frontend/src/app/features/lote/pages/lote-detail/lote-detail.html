@@ -148,7 +148,7 @@
             </td>
             <td class="table-cell text-[#ADAAAA]">{{ consumo.insumoEstoque.fornecedor }}</td>
             <td class="table-cell text-right font-bold text-white">
-              {{ consumo.quantidade_consumida }}
+              {{ consumo.quantidade_consumida | number:'1.0-3' }}
               <span class="text-[10px] text-[#6B7280] ml-1">{{ consumo.insumoEstoque.materiaPrima.unidade_medida }}</span>
             </td>
             <td class="table-cell text-right text-[#6B7280] text-[11px]">{{ formatarDataHora(consumo.registrado_em) }}</td>
