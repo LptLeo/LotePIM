@@ -11,34 +11,38 @@
 
   <!-- Campo de Busca -->
   <div class="w-full max-w-2xl animate-fade-in-up delay-150 z-20">
-    <div class="relative flex items-center bg-[#131313] border-2 border-[#484847]/60 rounded-2xl px-5 py-4 gap-4 transition-all focus-within:border-[#00E5FF]/60 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.08)] hover:border-[#484847]">
-      @if (buscandoSugestoes) {
-        <div class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin flex-shrink-0"></div>
-      } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#6B7280" class="w-5 h-5 flex-shrink-0">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-      }
-      <input
-        type="text"
-        [value]="termo"
-        (input)="onInput($event)"
-        (focus)="onFocus()"
-        (blur)="onBlur()"
-        (keyup.enter)="onSearch()"
-        placeholder="LOT-24042026-1 ou INS-24042026-1..."
-        class="flex-1 bg-transparent text-white text-base focus:outline-none placeholder:text-[#484847]"
-        autocomplete="off"
-      >
-      @if (termo) {
-        <button (click)="onClear()" class="text-[#484847] hover:text-white transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+    <div class="relative flex flex-col min-[425px]:flex-row items-stretch min-[425px]:items-center bg-[#131313] border-2 border-[#484847]/60 rounded-2xl p-2 min-[425px]:px-5 min-[425px]:py-4 gap-2 min-[425px]:gap-4 transition-all focus-within:border-[#00E5FF]/60 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.08)] hover:border-[#484847]">
+      
+      <div class="flex items-center gap-3 min-[425px]:gap-4 flex-1 px-2 py-1 min-[425px]:p-0">
+        @if (buscandoSugestoes) {
+          <div class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin flex-shrink-0"></div>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#6B7280" class="w-5 h-5 flex-shrink-0">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
-        </button>
-      }
+        }
+        <input
+          type="text"
+          [value]="termo"
+          (input)="onInput($event)"
+          (focus)="onFocus()"
+          (blur)="onBlur()"
+          (keyup.enter)="onSearch()"
+          placeholder="Lote ou Insumo..."
+          class="flex-1 bg-transparent text-white text-base focus:outline-none placeholder:text-[#484847] min-w-0"
+          autocomplete="off"
+        >
+        @if (termo) {
+          <button (click)="onClear()" class="text-[#484847] hover:text-white transition-colors flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+      </div>
+
       <button (click)="onSearch()"
-        class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[11px] font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] flex-shrink-0">
+        class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 min-[425px]:py-2 rounded-xl min-[425px]:rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] flex-shrink-0 w-full min-[425px]:w-auto">
         Buscar
       </button>
 

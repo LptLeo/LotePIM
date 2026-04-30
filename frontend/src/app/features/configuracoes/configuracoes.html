@@ -3,121 +3,193 @@
     mobileTitle="Ajustes" mobileSubtitle="TERMINAL CONFIG: ACTIVE">
   </app-page-header>
 
-  <!-- Seção Dashboard -->
-  <section class="space-y-4">
-    <div class="flex items-center gap-3 px-2">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-        class="size-6 min-w-[24px] min-h-[24px] text-[#00E5FF]">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-      </svg>
-      <h3 class="text-[#81ECFF] font-bold text-[14px] tracking-[1.4px] uppercase">Tela de Dashboard</h3>
+  <!-- Mobile View (Aparece apenas abaixo de 425px) -->
+  <div class="block min-[425px]:hidden space-y-6">
+    <div class="bg-[#1A1919] border border-[#2a2a2a] rounded-lg p-4 space-y-4">
+      <div class="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-[#00E5FF]">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+        </svg>
+        <h3 class="text-[12px] font-bold uppercase tracking-wider text-[#81ECFF]">Métricas do Dashboard</h3>
+      </div>
+      
+      <div class="space-y-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider">Período de Lotes</label>
+          <select [ngModel]="settings().dashboard.lotesComparacao" (ngModelChange)="updateDashboard('lotesComparacao', $event)"
+            class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none">
+            @for (opt of periodoOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider">Período de Unidades</label>
+          <select [ngModel]="settings().dashboard.unidadesComparacao" (ngModelChange)="updateDashboard('unidadesComparacao', $event)"
+            class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none">
+            @for (opt of periodoOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider">Meta Aprovação (%)</label>
+          <input type="number" [ngModel]="settings().dashboard.taxaAprovacaoAlvo" 
+            (input)="onNumericInput('taxaAprovacaoAlvo', $event.target, 'dashboard')"
+            class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none">
+        </div>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-        <!-- Lotes -->
-        <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-[#81ECFF]/10 p-2">
-                    <img class="w-[18px] h-[18px]" src="assets/icons/lotes-prod-icon.svg" alt="">
-                </div>
-                <h4 class="text-[12px] font-bold tracking-[1.2px] text-white">LOTES PRODUZIDOS</h4>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Comparação de Período</label>
-                <select [ngModel]="settings().dashboard.lotesComparacao" (ngModelChange)="updateDashboard('lotesComparacao', $event)"
-                    class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
-                    @for (opt of periodoOptions; track opt.value) {
-                        <option [value]="opt.value">{{ opt.label }}</option>
-                    }
-                </select>
-            </div>
+    <div class="bg-[#1A1919] border border-[#2a2a2a] rounded-lg p-4 space-y-4">
+      <div class="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-[#00E5FF]">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+        </svg>
+        <h3 class="text-[12px] font-bold uppercase tracking-wider text-[#81ECFF]">Configurações de Lotes</h3>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider">Período Acumulado</label>
+          <select [ngModel]="settings().lote.producaoTotalPeriodo" (ngModelChange)="updateLote('producaoTotalPeriodo', $event)"
+            class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none">
+            @for (opt of producaoOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
         </div>
 
-        <!-- Unidades -->
-        <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-[#81ECFF]/10 p-2">
-                    <img class="w-[18px] h-[18px]" src="assets/icons/products-prod-icon.svg" alt="">
-                </div>
-                <h4 class="text-[12px] font-bold tracking-[1.2px] text-white">UNIDADES PRODUZIDAS</h4>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Comparação de Período</label>
-                <select [ngModel]="settings().dashboard.unidadesComparacao" (ngModelChange)="updateDashboard('unidadesComparacao', $event)"
-                    class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
-                    @for (opt of periodoOptions; track opt.value) {
-                        <option [value]="opt.value">{{ opt.label }}</option>
-                    }
-                </select>
-            </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider">Base Cálculo Divisor</label>
+          <input type="number" step="0.1" [ngModel]="settings().lote.atividadeTempoRealBase"
+            (input)="onNumericInput('atividadeTempoRealBase', $event.target, 'lote')"
+            class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#DFFF00] outline-none">
         </div>
-
-        <!-- Taxa Aprovação -->
-        <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-[#81ECFF]/10 p-2">
-                    <img class="w-[18px] h-[18px]" src="assets/icons/approved-icon.svg" alt="">
-                </div>
-                <h4 class="text-[12px] font-bold tracking-[1.2px] text-white">TAXA DE APROVAÇÃO</h4>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Meta de Porcentagem (%)</label>
-                <input type="number" [ngModel]="settings().dashboard.taxaAprovacaoAlvo" 
-                    (input)="onNumericInput('taxaAprovacaoAlvo', $event.target, 'dashboard')"
-                    class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
-            </div>
-        </div>
+      </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Seção LOTE -->
-  <section class="space-y-4">
-    <div class="flex items-center gap-3 px-2">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-        class="size-6 min-w-[24px] min-h-[24px] text-[#00E5FF]">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-      </svg>
-      <h3 class="text-[#81ECFF] font-bold text-[14px] tracking-[1.4px] uppercase">Tela de Lotes</h3>
-    </div>
+  <!-- Seções Originais (Escondidas abaixo de 425px) -->
+  <div class="hidden min-[425px]:block space-y-6 lg:space-y-8">
+    <!-- Seção Dashboard -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-3 px-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="size-6 min-w-[24px] min-h-[24px] text-[#00E5FF]">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+        </svg>
+        <h3 class="text-[#81ECFF] font-bold text-[14px] tracking-[1.4px] uppercase">Tela de Dashboard</h3>
+      </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 pb-20">
-        <!-- Produção Total -->
-        <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-[#81ECFF]/10 p-2">
-                    <img class="w-[18px] h-[18px]" src="assets/icons/lotes-prod-icon.svg" alt="">
-                </div>
-                <h4 class="text-[12px] font-bold tracking-[1.2px] text-white uppercase">Produção Total Acumulada</h4>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Período de Seleção</label>
-                <select [ngModel]="settings().lote.producaoTotalPeriodo" (ngModelChange)="updateLote('producaoTotalPeriodo', $event)"
-                    class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
-                    @for (opt of producaoOptions; track opt.value) {
-                        <option [value]="opt.value">{{ opt.label }}</option>
-                    }
-                </select>
-            </div>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+          <!-- Lotes -->
+          <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
+              <div class="flex items-center gap-3">
+                  <div class="bg-[#81ECFF]/10 p-2">
+                      <img class="w-[18px] h-[18px]" src="assets/icons/lotes-prod-icon.svg" alt="">
+                  </div>
+                  <h4 class="text-[12px] font-bold tracking-[1.2px] text-white">LOTES PRODUZIDOS</h4>
+              </div>
+              <div class="flex flex-col gap-2">
+                  <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Comparação de Período</label>
+                  <select [ngModel]="settings().dashboard.lotesComparacao" (ngModelChange)="updateDashboard('lotesComparacao', $event)"
+                      class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
+                      @for (opt of periodoOptions; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                  </select>
+              </div>
+          </div>
 
-        <!-- Atividade Tempo Real -->
-        <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-[#DFFF00]/10 p-2">
-                    <img class="w-[18px] h-[18px]" src="assets/icons/search-icon.svg" alt="" style="filter: invert(88%) sepia(82%) saturate(419%) hue-rotate(15deg) brightness(108%) contrast(101%);">
-                </div>
-                <h4 class="text-[12px] font-bold tracking-[1.2px] text-white uppercase">Atividade em Tempo Real</h4>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Base de Cálculo (Divisor)</label>
-                <input type="number" step="0.1" [ngModel]="settings().lote.atividadeTempoRealBase"
-                    (input)="onNumericInput('atividadeTempoRealBase', $event.target, 'lote')"
-                    class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#DFFF00] outline-none transition-colors">
-                <p class="text-[10px] text-[#6B7280]">Valor flutuante para cálculo de porcentagem na interface.</p>
-            </div>
-        </div>
-    </div>
-  </section>
+          <!-- Unidades -->
+          <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
+              <div class="flex items-center gap-3">
+                  <div class="bg-[#81ECFF]/10 p-2">
+                      <img class="w-[18px] h-[18px]" src="assets/icons/products-prod-icon.svg" alt="">
+                  </div>
+                  <h4 class="text-[12px] font-bold tracking-[1.2px] text-white">UNIDADES PRODUZIDAS</h4>
+              </div>
+              <div class="flex flex-col gap-2">
+                  <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Comparação de Período</label>
+                  <select [ngModel]="settings().dashboard.unidadesComparacao" (ngModelChange)="updateDashboard('unidadesComparacao', $event)"
+                      class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
+                      @for (opt of periodoOptions; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                  </select>
+              </div>
+          </div>
+
+          <!-- Taxa Aprovação -->
+          <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
+              <div class="flex items-center gap-3">
+                  <div class="bg-[#81ECFF]/10 p-2">
+                      <img class="w-[18px] h-[18px]" src="assets/icons/approved-icon.svg" alt="">
+                  </div>
+                  <h4 class="text-[12px] font-bold tracking-[1.2px] text-white">TAXA DE APROVAÇÃO</h4>
+              </div>
+              <div class="flex flex-col gap-2">
+                  <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Meta de Porcentagem (%)</label>
+                  <input type="number" [ngModel]="settings().dashboard.taxaAprovacaoAlvo" 
+                      (input)="onNumericInput('taxaAprovacaoAlvo', $event.target, 'dashboard')"
+                      class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
+              </div>
+          </div>
+      </div>
+    </section>
+
+    <!-- Seção LOTE -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-3 px-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="size-6 min-w-[24px] min-h-[24px] text-[#00E5FF]">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+        </svg>
+        <h3 class="text-[#81ECFF] font-bold text-[14px] tracking-[1.4px] uppercase">Tela de Lotes</h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 pb-20">
+          <!-- Produção Total -->
+          <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
+              <div class="flex items-center gap-3">
+                  <div class="bg-[#81ECFF]/10 p-2">
+                      <img class="w-[18px] h-[18px]" src="assets/icons/lotes-prod-icon.svg" alt="">
+                  </div>
+                  <h4 class="text-[12px] font-bold tracking-[1.2px] text-white uppercase">Produção Total Acumulada</h4>
+              </div>
+              <div class="flex flex-col gap-2">
+                  <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Período de Seleção</label>
+                  <select [ngModel]="settings().lote.producaoTotalPeriodo" (ngModelChange)="updateLote('producaoTotalPeriodo', $event)"
+                      class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors">
+                      @for (opt of producaoOptions; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                  </select>
+              </div>
+          </div>
+
+          <!-- Atividade Tempo Real -->
+          <div class="bg-[#1A1919] p-6 border border-[#2a2a2a] rounded-[4px] flex flex-col gap-4">
+              <div class="flex items-center gap-3">
+                  <div class="bg-[#DFFF00]/10 p-2">
+                      <img class="w-[18px] h-[18px]" src="assets/icons/search-icon.svg" alt="" style="filter: invert(88%) sepia(82%) saturate(419%) hue-rotate(15deg) brightness(108%) contrast(101%);">
+                  </div>
+                  <h4 class="text-[12px] font-bold tracking-[1.2px] text-white uppercase">Atividade em Tempo Real</h4>
+              </div>
+              <div class="flex flex-col gap-2">
+                  <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]">Base de Cálculo (Divisor)</label>
+                  <input type="number" step="0.1" [ngModel]="settings().lote.atividadeTempoRealBase"
+                      (input)="onNumericInput('atividadeTempoRealBase', $event.target, 'lote')"
+                      class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#DFFF00] outline-none transition-colors">
+                  <p class="text-[10px] text-[#6B7280]">Valor flutuante para cálculo de porcentagem na interface.</p>
+              </div>
+          </div>
+      </div>
+    </section>
+  </div>
 </div>

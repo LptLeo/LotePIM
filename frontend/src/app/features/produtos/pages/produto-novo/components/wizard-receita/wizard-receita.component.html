@@ -16,7 +16,7 @@
   <!-- Dropdown para adicionar matéria-prima -->
   <div class="flex flex-col gap-2">
     <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Adicionar Matéria-Prima à Receita</label>
-    <div class="flex gap-3">
+    <div class="flex flex-col min-[425px]:flex-row gap-3">
       <div class="relative group flex-1">
         <select #mpSelect
           class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer">
@@ -32,7 +32,7 @@
       </div>
       <button type="button" (click)="onAddMp(mpSelect.value); mpSelect.value = ''"
         [disabled]="!mpSelect.value"
-        class="px-5 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-30 disabled:cursor-not-allowed">
+        class="w-full min-[425px]:w-auto px-5 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-30 disabled:cursor-not-allowed">
         + Adicionar
       </button>
     </div>
@@ -75,14 +75,14 @@
   }
 
   <!-- Ações Etapa 2 -->
-  <div class="mt-4 pt-6 border-t border-[#484847]/30 flex justify-between">
+  <div class="mt-4 pt-6 border-t border-[#484847]/30 flex flex-col min-[425px]:flex-row justify-between gap-4">
     <button type="button" (click)="onBack()"
-      class="px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
+      class="w-full min-[425px]:w-auto px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded">
       ← Voltar
     </button>
     <button type="button" (click)="onSave()"
       [disabled]="salvando"
-      class="px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+      class="w-full min-[425px]:w-auto px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,255,0.2)]">
       @if (salvando) {
         Salvando...
       } @else {

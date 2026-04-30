@@ -55,6 +55,10 @@ export class Header implements OnInit, OnDestroy {
     this.router.navigate(['/app/perfil']);
   }
 
+  goToConfiguracoes() {
+    this.router.navigate(['/app/configuracoes']);
+  }
+
   // ── Estado da pesquisa ──────────────────────────────────────────────────
 
   termoPesquisa = '';

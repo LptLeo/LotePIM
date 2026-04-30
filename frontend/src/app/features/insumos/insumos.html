@@ -73,14 +73,14 @@
   }
 
   @if (abaAtiva() === 'catalogo') {
-  <div class="flex justify-between items-center mb-4">
-    <div class="flex flex-col bg-[#131313] p-4 rounded-lg border border-[#484847]/30 min-w-[200px]">
+  <div class="flex flex-col min-[425px]:flex-row justify-between items-start min-[425px]:items-center gap-4 mb-4">
+    <div class="flex flex-col bg-[#131313] p-4 rounded-lg border border-[#484847]/30 w-full min-[425px]:min-w-[200px] min-[425px]:w-auto">
       <span class="text-[#ADAAAA] text-[10px] uppercase font-bold tracking-[1.5px] mb-1">Tipos Cadastrados</span>
       <span class="text-xl font-bold text-white">{{ totalCatalogo() }} <span
           class="text-[#6B7280] text-[10px] uppercase font-bold">Matérias-Primas</span></span>
     </div>
     <button (click)="abrirModalNovaMp()"
-      class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
+      class="w-full min-[425px]:w-auto bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[10px] font-bold uppercase tracking-wider px-6 py-3 min-[425px]:py-2.5 rounded shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all">
       + Nova Matéria-Prima
     </button>
   </div>
