@@ -60,7 +60,7 @@
   @else if (erro()) {
   <div class="bg-red-950/20 border border-red-500/30 p-8 rounded-md text-center">
     <p class="text-red-400 text-sm">{{ erro() }}</p>
-    <button (click)="carregarLotes()" class="mt-4 text-[#00E5FF] text-xs font-bold uppercase underline">Tentar
+    <button (click)="lotesResource.reload()" class="mt-4 text-[#00E5FF] text-xs font-bold uppercase underline">Tentar
       novamente</button>
   </div>
   }

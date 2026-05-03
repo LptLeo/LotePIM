@@ -1,11 +1,12 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, catchError, of, finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { STATUS_CONFIG, type LoteStatus } from '../../shared/models/lote.models.js';
 import { PaginationComponent, PaginationMeta } from '../../shared/components/pagination/pagination.js';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
 
 export interface AutocompleteSugestao {
   id: number;
@@ -64,9 +65,9 @@ export interface ResultadoInsumo {
 
 export type ResultadoRastreabilidade = ResultadoLote | ResultadoInsumo;
 
-import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component';
-import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component';
-import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component';
+import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component.js';
+import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component.js';
+import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component.js';
 
 @Component({
   selector: 'app-rastreabilidade',
@@ -82,57 +83,67 @@ import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilida
   templateUrl: './rastreabilidade.html',
   styleUrl: './rastreabilidade.css',
 })
-export class Rastreabilidade implements OnInit {
+export class Rastreabilidade {
   private http = inject(HttpClient);
 
-  // Search state
+  // Search input state
   termoBusca = signal('');
-  sugestoes = signal<AutocompleteSugestao[]>([]);
+  termoBuscaEfetuada = signal(''); // Dispara o rastreio real
   mostrarDropdown = signal(false);
-  buscandoSugestoes = signal(false);
-
-  // Result state
-  resultado = signal<ResultadoRastreabilidade | null>(null);
-  buscando = signal(false);
-  erro = signal<string | null>(null);
-  modoResultado = signal(false);
   currentPage = signal(1);
-
-  private busca$ = new Subject<string>();
 
   readonly STATUS_CONFIG = STATUS_CONFIG;
 
-  ngOnInit(): void {
-    this.busca$.pipe(
-      debounceTime(250),
-      distinctUntilChanged(),
-      switchMap(q => {
-        if (q.length < 2) {
-          this.sugestoes.set([]);
-          this.buscandoSugestoes.set(false);
-          return of([]);
-        }
-        this.buscandoSugestoes.set(true);
-        return this.http.get<AutocompleteSugestao[]>(
-          `${environment.apiUrl}/rastreabilidade/autocomplete?q=${encodeURIComponent(q)}`
-        ).pipe(catchError(() => of([])));
-      })
-    ).subscribe(items => {
-      this.sugestoes.set(items as AutocompleteSugestao[]);
-      this.buscandoSugestoes.set(false);
-      this.mostrarDropdown.set((items as any[]).length > 0);
-    });
-  }
+  /** 
+   * Resource para Autocomplete.
+   * Reage a mudanças no termo de busca digitado.
+   */
+  sugestoesResource = rxResource({
+    params: () => ({ q: this.termoBusca() }),
+    stream: ({ params: resourceParams }) => {
+      if (resourceParams.q.length < 2) return of([]);
+      return this.http.get<AutocompleteSugestao[]>(
+        `${environment.apiUrl}/rastreabilidade/autocomplete?q=${encodeURIComponent(resourceParams.q)}`
+      );
+    }
+  });
+
+  /**
+   * Resource para o Rastreio Real.
+   * Reage quando termoBuscaEfetuada ou currentPage mudam.
+   */
+  rastreioResource = rxResource({
+    params: () => ({ 
+      termo: this.termoBuscaEfetuada(),
+      pagina: this.currentPage()
+    }),
+    stream: ({ params: resourceParams }) => {
+      if (!resourceParams.termo) return of(null);
+      const params = new HttpParams()
+        .set('termo', resourceParams.termo)
+        .set('pagina', String(resourceParams.pagina))
+        .set('limite', '10');
+
+      return this.http.get<ResultadoRastreabilidade>(
+        `${environment.apiUrl}/rastreabilidade`,
+        { params }
+      );
+    }
+  });
+
+  // Derivações reativas
+  sugestoes = computed(() => this.sugestoesResource.value() || []);
+  buscandoSugestoes = computed(() => this.sugestoesResource.isLoading());
+  
+  resultado = computed(() => this.rastreioResource.value());
+  buscando = computed(() => this.rastreioResource.isLoading());
+  erro = computed(() => this.rastreioResource.error() ? 'Nenhum resultado encontrado ou falha no servidor.' : null);
+  modoResultado = computed(() => !!this.termoBuscaEfetuada());
 
   onInput(event: Event): void {
     const v = (event.target as HTMLInputElement).value;
     this.termoBusca.set(v);
-    this.busca$.next(v);
-    if (!v || v.length < 2) {
-      this.mostrarDropdown.set(false);
-    } else {
-      this.mostrarDropdown.set(true);
-    }
+    this.mostrarDropdown.set(v.length >= 2);
   }
 
   onFocus(): void {
@@ -144,47 +155,24 @@ export class Rastreabilidade implements OnInit {
   selecionarSugestao(s: AutocompleteSugestao): void {
     this.termoBusca.set(s.texto_exibicao);
     this.mostrarDropdown.set(false);
-    this.currentPage.set(1);
     this.buscar(s.texto_exibicao);
   }
 
   buscar(termo?: string): void {
-    const q = termo ?? this.termoBusca();
-    if (!q.trim()) return;
-    this.buscando.set(true);
-    this.erro.set(null);
+    const q = (termo ?? this.termoBusca()).trim();
+    if (!q) return;
     
-    let params = new HttpParams()
-      .set('termo', q)
-      .set('pagina', String(this.currentPage()))
-      .set('limite', '10');
-
-    this.http.get<ResultadoRastreabilidade>(
-      `${environment.apiUrl}/rastreabilidade`,
-      { params }
-    ).pipe(finalize(() => this.buscando.set(false)))
-    .subscribe({
-      next: (res) => {
-        this.resultado.set(res);
-        this.modoResultado.set(true);
-      },
-      error: (err) => {
-        this.erro.set(err.error?.message ?? 'Nenhum resultado encontrado.');
-      }
-    });
+    this.currentPage.set(1);
+    this.termoBuscaEfetuada.set(q);
   }
 
   onPageChange(pagina: number): void {
     this.currentPage.set(pagina);
-    this.buscar();
   }
 
   novaBusca(): void {
-    this.modoResultado.set(false);
-    this.resultado.set(null);
-    this.erro.set(null);
+    this.termoBuscaEfetuada.set('');
     this.termoBusca.set('');
-    this.sugestoes.set([]);
     this.currentPage.set(1);
   }
 
@@ -194,21 +182,21 @@ export class Rastreabilidade implements OnInit {
     }, 150);
   }
 
-  // Typed helpers
-  get resultadoLote(): ResultadoLote['resultado'] | null {
+  // Typed helpers (computed para máxima performance)
+  resultadoLote = computed(() => {
     const r = this.resultado();
     return r?.tipo === 'lote' ? r.resultado : null;
-  }
+  });
 
-  get resultadoInsumos(): ResultadoInsumo['resultado']['itens'] | null {
+  resultadoInsumos = computed(() => {
     const r = this.resultado();
     return r?.tipo === 'insumo' ? r.resultado.itens : null;
-  }
+  });
 
-  get paginationMeta(): PaginationMeta | null {
+  paginationMeta = computed(() => {
     const r = this.resultado();
     return r?.tipo === 'insumo' ? r.resultado.meta : null;
-  }
+  });
 
   formatarData(data?: string | null): string {
     if (!data) return '—';

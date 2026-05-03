@@ -1,9 +1,9 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { switchMap, finalize } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { LoteFeatureService } from '../../services/lote.service.js';
 import { AuthService } from '../../../../core/services/auth.service.js';
@@ -13,6 +13,7 @@ import {
   STATUS_CONFIG,
   StatusConfig,
 } from '../../../../shared/models/lote.models.js';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 const TURNO_LABEL: Record<string, string> = {
   manha: 'Manhã',
@@ -27,19 +28,33 @@ const TURNO_LABEL: Record<string, string> = {
   templateUrl: './lote-detail.html',
   styleUrl: './lote-detail.css',
 })
-export class LoteDetail implements OnInit {
+export class LoteDetail {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private loteService = inject(LoteFeatureService);
   authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
-  lote = signal<LoteDetalhe | null>(null);
-  carregando = signal(true);
-  erro = signal<string | null>(null);
+  /** Signal que reflete o ID atual da rota */
+  params = toSignal(this.route.paramMap);
+  loteId = computed(() => Number(this.params()?.get('id')));
+
+  /** 
+   * Resource Reativo: Busca o lote sempre que o ID mudar.
+   */
+  loteResource = rxResource({
+    params: () => ({ id: this.loteId() }),
+    stream: ({ params }) => this.loteService.getLoteById(params.id)
+  });
+
+  // Derivações reativas
+  lote = computed(() => this.loteResource.value() || null);
+  carregando = computed(() => this.loteResource.isLoading());
+  erro = computed(() => this.loteResource.error() ? 'Não foi possível carregar os dados do lote.' : null);
+  
   processando = signal(false);
 
-  /** Formulário de inspeção — o resultado é calculado automaticamente no backend */
+  /** Formulário de inspeção */
   formInspecao = this.fb.nonNullable.group({
     quantidade_reprovada: [0, [Validators.required, Validators.min(0)]],
     descricao_desvio: [''],
@@ -47,9 +62,32 @@ export class LoteDetail implements OnInit {
 
   qtdReprovadaInput = signal(0);
 
+  constructor() {
+    /** 
+     * Sincroniza a validação do formulário com a quantidade planejada do lote 
+     * assim que o lote é carregado ou alterado.
+     */
+    effect(() => {
+      const loteAtual = this.lote();
+      if (loteAtual) {
+        const qtyCtrl = this.formInspecao.get('quantidade_reprovada');
+        qtyCtrl?.setValidators([
+          Validators.required,
+          Validators.min(0),
+          Validators.max(loteAtual.quantidade_planejada),
+        ]);
+        qtyCtrl?.updateValueAndValidity();
+      }
+    });
+
+    /** Sincroniza o sinal de preview com as mudanças no formulário */
+    this.formInspecao.get('quantidade_reprovada')?.valueChanges.subscribe((val) => {
+      this.qtdReprovadaInput.set(Number(val) || 0);
+    });
+  }
+
   /**
    * Preview da taxa de aprovação para feedback visual ao inspetor.
-   * O cálculo definitivo acontece no backend.
    */
   taxaAprovacaoPreview = computed(() => {
     const planejada = this.lote()?.quantidade_planejada || 0;
@@ -78,50 +116,6 @@ export class LoteDetail implements OnInit {
 
   dataAtual = new Date().toISOString();
 
-  ngOnInit(): void {
-    this.carregarLote();
-
-    this.formInspecao.get('quantidade_reprovada')?.valueChanges.subscribe((val) => {
-      this.qtdReprovadaInput.set(Number(val) || 0);
-    });
-  }
-
-  carregarLote(): void {
-    this.route.paramMap
-      .pipe(
-        switchMap((params) => {
-          const id = Number(params.get('id'));
-          if (!id || isNaN(id)) {
-            this.erro.set('ID do lote inválido.');
-            this.carregando.set(false);
-            return EMPTY;
-          }
-          this.carregando.set(true);
-          this.erro.set(null);
-          return this.loteService.getLoteById(id);
-        })
-      )
-      .subscribe({
-        next: (lote) => {
-          this.lote.set(lote);
-          this.carregando.set(false);
-
-          /** Limita a quantidade reprovada ao total planejado */
-          const qtyCtrl = this.formInspecao.get('quantidade_reprovada');
-          qtyCtrl?.setValidators([
-            Validators.required,
-            Validators.min(0),
-            Validators.max(lote.quantidade_planejada),
-          ]);
-          qtyCtrl?.updateValueAndValidity();
-        },
-        error: () => {
-          this.erro.set('Não foi possível carregar os dados do lote.');
-          this.carregando.set(false);
-        },
-      });
-  }
-
   salvarInspecao(): void {
     const l = this.lote();
     if (!l || this.formInspecao.invalid) return;
@@ -137,7 +131,7 @@ export class LoteDetail implements OnInit {
       .registrarInspecao(l.id, payload)
       .pipe(finalize(() => this.processando.set(false)))
       .subscribe({
-        next: () => this.carregarLote(),
+        next: () => this.loteResource.reload(),
         error: (err) =>
           alert('Erro: ' + (err.error?.message || 'Erro desconhecido.')),
       });

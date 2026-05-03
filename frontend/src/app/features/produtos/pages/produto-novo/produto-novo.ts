@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProdutosService, CriarProdutoPayload } from '../../services/produtos.service.js';
 import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 import { WizardBaseComponent } from './components/wizard-base/wizard-base.component.js';
 import { WizardReceitaComponent } from './components/wizard-receita/wizard-receita.component.js';
@@ -15,7 +16,7 @@ import { WizardReceitaComponent } from './components/wizard-receita/wizard-recei
   imports: [CommonModule, ReactiveFormsModule, WizardBaseComponent, WizardReceitaComponent],
   templateUrl: './produto-novo.html',
 })
-export class ProdutoNovo implements OnInit {
+export class ProdutoNovo {
   private fb = inject(FormBuilder);
   private produtosService = inject(ProdutosService);
   private router = inject(Router);
@@ -26,8 +27,16 @@ export class ProdutoNovo implements OnInit {
   salvando = signal(false);
   erro = signal<string | null>(null);
 
-  categoriasExistentes = signal<string[]>([]);
-  materiasPrimas = signal<MateriaPrima[]>([]);
+  categoriasResource = rxResource({
+    stream: () => this.produtosService.getCategorias()
+  });
+
+  mpsResource = rxResource({
+    stream: () => this.produtosService.getMateriasPrimas()
+  });
+
+  categoriasExistentes = computed(() => this.categoriasResource.value() || []);
+  materiasPrimas = computed(() => this.mpsResource.value() || []);
 
   // ─── Formulário da Etapa 1: Dados Base ───
   formBase = this.fb.nonNullable.group({
@@ -68,18 +77,6 @@ export class ProdutoNovo implements OnInit {
     const idsUsados = this.mpIdsNaReceita();
     return this.materiasPrimas().filter((mp) => !idsUsados.includes(mp.id));
   });
-
-  ngOnInit(): void {
-    this.produtosService.getCategorias().subscribe({
-      next: (ctgs) => this.categoriasExistentes.set(ctgs),
-      error: () => {},
-    });
-
-    this.produtosService.getMateriasPrimas().subscribe({
-      next: (mps) => this.materiasPrimas.set(mps),
-      error: (e) => console.error('Falha ao carregar catálogo:', e),
-    });
-  }
 
   // ─── Navegação do Wizard ───
 

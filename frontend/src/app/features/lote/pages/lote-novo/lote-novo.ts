@@ -6,11 +6,13 @@ import { AuthService } from '../../../../core/services/auth.service.js';
 import { LoteFeatureService } from '../../services/lote.service.js';
 import type { Produto, ReceitaItem, InsumoEstoque } from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { LoteInsumoItemComponent } from './components/lote-insumo-item/lote-insumo-item.js';
 
 @Component({
   selector: 'app-lote-novo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LoteInsumoItemComponent],
   templateUrl: './lote-novo.html',
 })
 export class LoteNovo implements OnInit {
@@ -19,7 +21,12 @@ export class LoteNovo implements OnInit {
   private loteService = inject(LoteFeatureService);
   private router = inject(Router);
 
-  produtos = signal<Produto[]>([]);
+  /** Resource para carregar os produtos cadastrados */
+  produtosResource = rxResource({
+    stream: () => this.loteService.getProdutos()
+  });
+
+  produtos = computed(() => this.produtosResource.value() || []);
   salvando = signal(false);
   erro = signal<string | null>(null);
 
@@ -72,18 +79,13 @@ export class LoteNovo implements OnInit {
 
   private getTurnoAtual(): 'manha' | 'tarde' | 'noite' {
     const hora = new Date().getHours();
-    // Manhã: 06:00 às 11:59
     if (hora >= 6 && hora < 12) return 'manha';
-    // Tarde: 12:00 às 17:59
     if (hora >= 12 && hora < 18) return 'tarde';
-    // Noite: 18:00 às 05:59
     return 'noite';
   }
 
   ngOnInit(): void {
-    this.carregarProdutos();
-
-    /** Desabilita data_validade quando sem_validade está marcado */
+    /** Reação automática para a validade */
     this.form.controls.sem_validade.valueChanges.subscribe(sem => {
       if (sem) {
         this.form.controls.data_validade.disable();
@@ -94,7 +96,7 @@ export class LoteNovo implements OnInit {
     });
     this.form.controls.data_validade.disable();
 
-    /** Multiplica a quantidade consumida dinamicamente caso o operador mude a quantidade planejada do lote */
+    /** Reação automática para recalcular quantidades sugeridas de consumo */
     this.form.controls.quantidade_planejada.valueChanges.subscribe(qtd => {
       const qtdPlanejada = Number(qtd) || 1;
       this.consumosArray.controls.forEach(ctrl => {
@@ -112,16 +114,9 @@ export class LoteNovo implements OnInit {
       });
     });
 
-    /** Ouve a mudança de produto_id para redesenhar a receita e reagir perfeitamente ao formControl */
+    /** Reação automática para mudança de produto */
     this.form.controls.produto_id.valueChanges.subscribe(() => {
       this.onProdutoChange();
-    });
-  }
-
-  carregarProdutos(): void {
-    this.loteService.getProdutos().subscribe({
-      next: (prods) => this.produtos.set(prods),
-      error: () => this.erro.set('Falha ao carregar lista de produtos.'),
     });
   }
 
@@ -133,7 +128,6 @@ export class LoteNovo implements OnInit {
     const produtoId = Number(this.form.controls.produto_id.value);
     const produto = this.produtos().find(p => p.id === produtoId);
 
-    /** Limpa consumos anteriores */
     this.consumosArray.clear();
     this.receitaAtual.set([]);
     this.insumosDisponiveis.set(new Map());
@@ -144,7 +138,6 @@ export class LoteNovo implements OnInit {
 
     const qtdPlanejada = Number(this.form.controls.quantidade_planejada.value) || 1;
 
-    /** Cria um FormGroup de consumo para cada item da receita */
     for (const item of produto.receita) {
       let consumidoInicial = item.quantidade * qtdPlanejada;
       if (item.unidade !== 'UN') consumidoInicial = Number(consumidoInicial.toFixed(2));
@@ -162,8 +155,7 @@ export class LoteNovo implements OnInit {
       );
     }
 
-    /** Busca insumos disponíveis filtrados pelas matérias-primas da receita */
-    const mpIds = produto.receita.map(r => r.materiaPrima.id);
+    const mpIds = produto.receita.map((r: any) => r.materiaPrima.id);
     this.carregandoInsumos.set(true);
 
     this.loteService.getInsumosDisponiveis(mpIds)
@@ -183,7 +175,6 @@ export class LoteNovo implements OnInit {
       });
   }
 
-  /** Retorna os insumos em estoque filtrados para uma matéria-prima específica */
   getInsumosParaMP(materiaPrimaId: number): InsumoEstoque[] {
     return this.insumosDisponiveis().get(materiaPrimaId) ?? [];
   }

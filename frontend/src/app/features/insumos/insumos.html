@@ -110,10 +110,10 @@
 
 <!-- Modal Registrar Entrada de Estoque -->
 <app-registrar-entrada-modal
-  [isOpen]="modalEstoqueAberto()"
-  [salvando]="salvandoEstoque()"
-  [erro]="erroEstoque()"
-  [catalogo]="catalogo()"
-  (close)="fecharModalEstoque()"
-  (save)="salvarEstoque($event)">
+[isOpen]="modalEstoqueAberto()"
+[salvando]="salvandoEstoque()"
+[erro]="erroEstoque()"
+[catalogo]="catalogoCompleto()"
+(close)="fecharModalEstoque()"
+(save)="salvarEstoque($event)">
 </app-registrar-entrada-modal>

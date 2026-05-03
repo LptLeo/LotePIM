@@ -1,0 +1,50 @@
+<div [formGroup]="formGroup()"
+  class="bg-[#0E0E0E] border border-[#484847]/40 rounded-md p-4 flex flex-col gap-3">
+  <!-- Header do item -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-1.5 h-1.5 rounded-full bg-[#00E5FF]"></div>
+      <span class="text-[11px] font-bold uppercase tracking-wider text-white">
+        {{ formGroup().get('materia_prima_nome')?.value }}
+      </span>
+    </div>
+    <span class="text-[10px] font-bold text-[#6B7280] uppercase">
+      {{ formGroup().get('quantidade_necessaria')?.value | number:'1.0-3' }} {{ formGroup().get('unidade')?.value }} / unidade
+    </span>
+  </div>
+
+  <!-- Dropdown de lote de insumo + Quantidade -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="sm:col-span-2 flex flex-col gap-1">
+      <label class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]">Lote de Estoque *</label>
+      <div class="relative group">
+        <select formControlName="insumo_estoque_id"
+          class="w-full bg-[#131313] border border-[#484847]/60 rounded pl-3 pr-10 py-2 text-[12px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer">
+          <option [value]="0" disabled>Selecione um lote...</option>
+          @for (insumo of insumosDisponiveis(); track insumo.id) {
+          <option [value]="insumo.id">
+            {{ insumo.numero_lote_interno }} — {{ insumo.fornecedor }} (Saldo: {{ insumo.quantidade_atual | number:'1.0-3' }} {{ insumo.materiaPrima.unidade_medida }})
+          </option>
+          }
+        </select>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#ADAAAA] pointer-events-none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]">Qtd. a Consumir *</label>
+      <div class="relative">
+        <input type="number" formControlName="quantidade_consumida"
+          [min]="formGroup().get('unidade')?.value === 'UN' ? '1' : '0.01'"
+          [step]="formGroup().get('unidade')?.value === 'UN' ? '1' : '0.01'"
+          class="w-full bg-[#131313] border border-[#484847]/60 rounded pl-3 pr-10 py-2 text-[12px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors">
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#ADAAAA]">
+          {{ formGroup().get('unidade')?.value }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

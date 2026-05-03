@@ -39,20 +39,20 @@
     </div>
 
     <!-- ─── CENÁRIO A: Lote de Produto ─── -->
-    @if (resultadoLote) {
+    @if (resultadoLote(); as rLote) {
       <app-rastreabilidade-arvore-lote
-        [resultadoLote]="resultadoLote">
+        [resultadoLote]="rLote">
       </app-rastreabilidade-arvore-lote>
     }
 
     <!-- ─── CENÁRIO B: Insumo (Recall) ─── -->
-    @if (resultadoInsumos) {
+    @if (resultadoInsumos(); as rInsumos) {
       <app-rastreabilidade-arvore-recall
-        [resultadoInsumos]="resultadoInsumos"
+        [resultadoInsumos]="rInsumos"
         [termoBusca]="termoBusca()">
       </app-rastreabilidade-arvore-recall>
 
-      @if (paginationMeta; as meta) {
+      @if (paginationMeta(); as meta) {
         @if (meta.totalPaginas > 1) {
           <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
         }
