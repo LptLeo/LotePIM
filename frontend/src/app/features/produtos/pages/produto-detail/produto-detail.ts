@@ -2,7 +2,11 @@ import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProdutosService } from '../../services/produtos.service.js';
-import type { Produto, ReceitaItem, MateriaPrima } from '../../../../shared/models/lote.models.js';
+import type {
+  Produto,
+  ReceitaItem,
+  MateriaPrima,
+} from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service.js';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
@@ -22,18 +26,18 @@ export class ProdutoDetail {
   private produtosService = inject(ProdutosService);
   private authService = inject(AuthService);
 
-  // ── Rota reativa ──
+  //  Rota reativa
   private params = toSignal(this.route.paramMap);
   private produtoId = computed(() => Number(this.params()?.get('id')));
 
-  // ── Resources Declarativos ──
+  //  Resources Declarativos
   /**
    * Resource do produto: recarrega automaticamente se o ID da rota mudar.
    * Elimina ngOnInit + subscribe manual.
    */
   produtoResource = rxResource<Produto, { id: number }>({
     params: () => ({ id: this.produtoId() }),
-    stream: ({ params }) => this.produtosService.getProdutoById(params.id),
+    stream: ({ params }) => this.produtosService.buscarPorId(params.id),
   });
 
   /**
@@ -41,18 +45,20 @@ export class ProdutoDetail {
    * Fonte de verdade para o seletor de edição da receita.
    */
   materiasResource = rxResource<MateriaPrima[], void>({
-    stream: () => this.produtosService.getMateriasPrimas(),
+    stream: () => this.produtosService.listarMateriasPrimas(),
   });
 
-  // ── Derivações reativas ──
+  //  Derivações reativas
   produto = computed(() => this.produtoResource.value() ?? null);
   carregando = computed(() => this.produtoResource.isLoading());
   erro = computed(() =>
-    this.produtoResource.error() ? 'Não foi possível carregar os detalhes do produto. Ele pode não existir ou o servidor está offline.' : null,
+    this.produtoResource.error()
+      ? 'Não foi possível carregar os detalhes do produto. Ele pode não existir ou o servidor está offline.'
+      : null,
   );
   materiasPrimas = computed(() => this.materiasResource.value() ?? []);
 
-  // ── Estado local de edição ──
+  //  Estado local de edição
   modoEdicaoReceita = signal<boolean>(false);
   /**
    * Cópia editável da receita — inicializada/resetada via effect
@@ -62,7 +68,7 @@ export class ProdutoDetail {
   salvandoReceita = signal<boolean>(false);
   alterandoStatus = signal<boolean>(false);
 
-  // ── Erros de ação (inline, sem alert()) ──
+  //  Erros de ação (inline, sem alert())
   erroReceita = signal<string | null>(null);
 
   /**
@@ -197,7 +203,9 @@ export class ProdutoDetail {
       .subscribe({
         next: () => this.produtoResource.reload(),
         error: (err) =>
-          this.erroReceita.set(err.error?.message || 'Erro ao alterar o status do produto.'),
+          this.erroReceita.set(
+            err.error?.message || 'Erro ao alterar o status do produto.',
+          ),
       });
   }
 }

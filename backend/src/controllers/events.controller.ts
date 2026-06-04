@@ -1,32 +1,18 @@
-import type { Request, Response, NextFunction } from 'express';
-import { SseService } from '../services/sse.service.js';
+import type { Request, Response } from 'express';
+import type { SseService } from '../services/sse.service.js';
 import { getRequisitante } from '../utils/auth.utils.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
 
-const sseService = SseService.instancia;
+export class EventsController {
+  constructor(private readonly sseService: SseService) {}
 
-/**
- * POST /api/events/ticket
- * Gera um ticket temporário (UUID v4, TTL 30s, uso único) para autenticar
- * a conexão SSE sem expor o JWT na URL.
- * Requer: authGuard + roleGuard (qualquer perfil autenticado)
- */
-export const gerarTicket = (req: Request, res: Response, next: NextFunction): void => {
-  try {
+  gerarTicket = asyncHandler(async (req: Request, res: Response) => {
     const requisitante = getRequisitante(req);
-    const ticket = sseService.gerarTicket(requisitante.id);
+    const ticket = this.sseService.gerarTicket(requisitante.id);
     res.json({ ticket });
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-/**
- * GET /api/events/stream?ticket=<uuid>
- * Abre a conexão SSE. Autenticado via ticket (sem Bearer token na URL).
- * Sem authGuard — o ticket é a autenticação neste endpoint.
- */
-export const conectarStream = (req: Request, res: Response, next: NextFunction): void => {
-  try {
+  conectarStream = asyncHandler(async (req: Request, res: Response) => {
     const { ticket } = req.query as { ticket?: string };
 
     if (!ticket) {
@@ -34,27 +20,22 @@ export const conectarStream = (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    const userId = sseService.validarTicket(ticket);
+    const userId = this.sseService.validarTicket(ticket);
     if (!userId) {
       res.status(401).json({ message: 'Ticket inválido ou expirado.' });
       return;
     }
 
-    // Configura headers SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    // Desativa buffering em proxies reversos (Nginx, Render)
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
-    sseService.adicionarCliente(res);
+    this.sseService.adicionarCliente(res);
 
-    // Remove o cliente quando a conexão fechar (aba fechada, logout, etc.)
     req.on('close', () => {
-      sseService.removerCliente(res);
+      this.sseService.removerCliente(res);
     });
-  } catch (e) {
-    next(e);
-  }
-};
+  });
+}

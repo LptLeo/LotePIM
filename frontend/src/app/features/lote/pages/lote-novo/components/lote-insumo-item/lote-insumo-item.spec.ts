@@ -20,7 +20,12 @@ describe('LoteInsumoItemComponent (via Wrapper)', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestWrapperComponent, LoteInsumoItemComponent, ReactiveFormsModule, CommonModule],
+      imports: [
+        TestWrapperComponent,
+        LoteInsumoItemComponent,
+        ReactiveFormsModule,
+        CommonModule,
+      ],
       providers: [FormBuilder, DecimalPipe],
     }).compileComponents();
 

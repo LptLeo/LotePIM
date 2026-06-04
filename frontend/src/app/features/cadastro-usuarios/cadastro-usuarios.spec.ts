@@ -82,14 +82,16 @@ describe('CadastroUsuarios', () => {
       email: 'teste@teste.com',
       perfil: 'operador' as const,
       senha: '123',
-      ativo: true
+      ativo: true,
     };
     usuarioServiceMock.create.mockReturnValue(of({}));
 
     component.salvarUsuario(payload);
 
     expect(usuarioServiceMock.create).toHaveBeenCalledWith(payload);
-    expect(toastServiceMock.success).toHaveBeenCalledWith('Colaborador cadastrado com sucesso.');
+    expect(toastServiceMock.success).toHaveBeenCalledWith(
+      'Colaborador cadastrado com sucesso.',
+    );
     expect(component.telaAtiva()).toBe('listagem');
   });
 
@@ -99,7 +101,7 @@ describe('CadastroUsuarios', () => {
       email: 'teste@teste.com',
       perfil: 'operador' as const,
       senha: '123',
-      ativo: true
+      ativo: true,
     };
     const erroMock = { error: { message: 'E-mail já cadastrado' } };
     usuarioServiceMock.create.mockReturnValue(throwError(() => erroMock));
@@ -107,7 +109,9 @@ describe('CadastroUsuarios', () => {
     component.salvarUsuario(payload);
 
     expect(component.erroApi()).toBe('E-mail já cadastrado');
-    expect(toastServiceMock.error).toHaveBeenCalledWith('Falha ao cadastrar colaborador.');
+    expect(toastServiceMock.error).toHaveBeenCalledWith(
+      'Falha ao cadastrar colaborador.',
+    );
     expect(component.salvando()).toBe(false);
   });
 
@@ -119,7 +123,9 @@ describe('CadastroUsuarios', () => {
     component.deativarUsuario(id);
 
     expect(usuarioServiceMock.delete).toHaveBeenCalledWith(id);
-    expect(toastServiceMock.success).toHaveBeenCalledWith('Colaborador desativado com sucesso.');
+    expect(toastServiceMock.success).toHaveBeenCalledWith(
+      'Colaborador desativado com sucesso.',
+    );
   });
 
   it('Deve reativar usuário após confirmação do toast', () => {
@@ -130,6 +136,8 @@ describe('CadastroUsuarios', () => {
     component.reativarUsuario(id);
 
     expect(usuarioServiceMock.reativar).toHaveBeenCalledWith(id);
-    expect(toastServiceMock.success).toHaveBeenCalledWith('Colaborador reativado com sucesso.');
+    expect(toastServiceMock.success).toHaveBeenCalledWith(
+      'Colaborador reativado com sucesso.',
+    );
   });
 });

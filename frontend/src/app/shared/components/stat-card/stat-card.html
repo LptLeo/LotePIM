@@ -7,7 +7,10 @@
   ></div>
 
   <div class="flex items-center gap-2 mb-4 relative z-10">
-    <h3 class="text-[#6B7280] text-[10px] font-bold uppercase truncate" [ngClass]="trackingClass">
+    <h3
+      class="text-[#6B7280] text-[10px] font-bold uppercase truncate"
+      [ngClass]="trackingClass"
+    >
       {{ title }}
     </h3>
     <span *ngIf="tooltip" class="text-[#6B7280] cursor-help" [title]="tooltip">

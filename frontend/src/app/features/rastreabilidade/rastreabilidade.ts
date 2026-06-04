@@ -60,7 +60,11 @@ export interface ResultadoInsumo {
       data_producao: string;
       status: LoteStatus;
       operador_nome: string;
-      insumos_correspondentes: { nome: string; lote_interno: string; quantidade: number }[];
+      insumos_correspondentes: {
+        nome: string;
+        lote_interno: string;
+        quantidade: number;
+      }[];
     }[];
     meta: PaginationMeta;
   };
@@ -127,9 +131,12 @@ export class Rastreabilidade {
         .set('pagina', String(resourceParams.pagina))
         .set('limite', '10');
 
-      return this.http.get<ResultadoRastreabilidade>(`${environment.apiUrl}/rastreabilidade`, {
-        params,
-      });
+      return this.http.get<ResultadoRastreabilidade>(
+        `${environment.apiUrl}/rastreabilidade`,
+        {
+          params,
+        },
+      );
     },
   });
 
@@ -143,7 +150,7 @@ export class Rastreabilidade {
   });
 
   buscando = computed(() => this.rastreioResource.isLoading());
-  
+
   erro = computed(() => {
     const error = this.rastreioResource.error() as any;
     if (!error) return null;

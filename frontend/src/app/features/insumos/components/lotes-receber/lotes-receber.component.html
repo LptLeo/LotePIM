@@ -30,8 +30,8 @@
           >
           <h2 class="text-xs font-bold text-white uppercase tracking-[0.5px]">
             @if (lotes.length > 0) {
-              Existem <span class="text-[#00E5FF]">{{ lotes.length }}</span> lotes pendentes de
-              recebimento
+              Existem <span class="text-[#00E5FF]">{{ lotes.length }}</span> lotes
+              pendentes de recebimento
             } @else {
               Logística em dia: Nenhum lote para receber
             }
@@ -61,7 +61,11 @@
           class="size-4 text-[#6B7280] transition-transform duration-300"
           [class.rotate-180]="isExpanded()"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m19.5 8.25-7.5 7.5-7.5-7.5"
+          />
         </svg>
       </div>
     </button>
@@ -69,9 +73,14 @@
     @if (isExpanded()) {
       <div class="mt-4 animate-fade-in">
         @if (lotes.length > 0) {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" [@listAnimation]="lotes.length">
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            [@listAnimation]="lotes.length"
+          >
             @for (lote of lotes; track lote.id) {
-              <ng-container *ngTemplateOutlet="cardLote; context: { $implicit: lote }"></ng-container>
+              <ng-container
+                *ngTemplateOutlet="cardLote; context: { $implicit: lote }"
+              ></ng-container>
             }
           </div>
         } @else {
@@ -88,14 +97,20 @@
         <h2 class="text-white text-sm uppercase tracking-wider font-bold">
           Logística: Lotes a Receber
         </h2>
-        <span class="bg-[#00E5FF]/20 text-[#00E5FF] px-2 py-0.5 rounded text-[10px] font-bold">{{
-          lotes.length
-        }}</span>
+        <span
+          class="bg-[#00E5FF]/20 text-[#00E5FF] px-2 py-0.5 rounded text-[10px] font-bold"
+          >{{ lotes.length }}</span
+        >
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" [@listAnimation]="lotes.length">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        [@listAnimation]="lotes.length"
+      >
         @for (lote of lotes; track lote.id) {
-          <ng-container *ngTemplateOutlet="cardLote; context: { $implicit: lote }"></ng-container>
+          <ng-container
+            *ngTemplateOutlet="cardLote; context: { $implicit: lote }"
+          ></ng-container>
         }
       </div>
     </div>
@@ -125,7 +140,9 @@
         />
       </svg>
     </div>
-    <h3 class="text-[#ADAAAA] text-sm font-bold uppercase tracking-[1px] mb-1">Logística em dia</h3>
+    <h3 class="text-[#ADAAAA] text-sm font-bold uppercase tracking-[1px] mb-1">
+      Logística em dia
+    </h3>
     <p class="text-[#6B7280] text-[11px] text-center max-w-[280px]">
       Nenhum lote de insumo aguardando recebimento ou em trânsito no momento.
     </p>
@@ -150,10 +167,13 @@
       <!-- Header do Card -->
       <div class="flex justify-between items-start mb-3">
         <div class="flex flex-col">
-          <span class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-1">{{
-            lote.materiaPrima.categoria
-          }}</span>
-          <h3 class="text-sm font-bold text-white uppercase">{{ lote.materiaPrima.nome }}</h3>
+          <span
+            class="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider mb-1"
+            >{{ lote.materiaPrima.categoria }}</span
+          >
+          <h3 class="text-sm font-bold text-white uppercase">
+            {{ lote.materiaPrima.nome }}
+          </h3>
         </div>
 
         <!-- Badge Dinâmico -->
@@ -178,11 +198,15 @@
       <div class="flex flex-col gap-1.5 mb-4">
         <div class="flex justify-between items-center text-[11px]">
           <span class="text-[#6B7280]">Fornecedor:</span>
-          <span class="text-white font-medium truncate max-w-[150px]">{{ lote.fornecedor }}</span>
+          <span class="text-white font-medium truncate max-w-[150px]">{{
+            lote.fornecedor
+          }}</span>
         </div>
         <div class="flex justify-between items-center text-[11px]">
           <span class="text-[#6B7280]">Lote REF:</span>
-          <span class="text-white font-medium">{{ lote.numero_lote_fornecedor || 'N/A' }}</span>
+          <span class="text-white font-medium">{{
+            lote.numero_lote_fornecedor || 'N/A'
+          }}</span>
         </div>
         <div class="flex justify-between items-center text-[11px]">
           <span class="text-[#6B7280]">Quantidade Esperada:</span>

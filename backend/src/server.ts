@@ -2,17 +2,23 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { AppDataSource } from './config/AppDataSource.js';
+import { appDataSource } from './config/appDataSource.js';
 import routes from './routes/index.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { ProgressaoService } from './services/progressao.service.js';
+import { NotificacaoService } from './services/notificacao.service.js';
 import { InsumoEstoqueService } from './services/insumoEstoque.service.js';
+import { sseService } from './services/sse.service.js';
+import { InsumoEstoque } from './entities/InsumoEstoque.js';
+import { Lote } from './entities/Lote.js';
+import { Notificacao } from './entities/Notificacao.js';
+import { Usuario } from './entities/Usuario.js';
 import { env, isProduction, isTest } from './config/env.js';
+import { logger } from './utils/logger.js';
 
 export const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-
 app.use(
   cors({
     origin: isProduction ? env.ALLOWED_ORIGINS : true,
@@ -21,31 +27,43 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
-
-app.use(express.json()); // Permite receber json
-app.use(cookieParser()); // Anexa os cookies nas requisições
-app.set('trust proxy', 1); // 'trust proxy' diz para acreditar no servidor intermediário e 1 que
-// tem que ser o primeiro servidor intermediario
-
+app.use(express.json());
+app.use(cookieParser());
+app.set('trust proxy', 1);
 app.use('/api', routes);
 app.use(errorHandler);
 
+async function inicializarServidor(): Promise<void> {
+  await appDataSource.initialize();
+  logger.info('Banco de dados conectado com sucesso.');
+
+  const notificacaoService = new NotificacaoService(
+    appDataSource.getRepository(Notificacao),
+    appDataSource.getRepository(Usuario),
+  );
+
+  const insumoService = new InsumoEstoqueService(
+    appDataSource.getRepository(InsumoEstoque),
+    notificacaoService,
+    appDataSource,
+    sseService,
+  );
+  await insumoService.resgatarLotesTravados();
+
+  const progressao = new ProgressaoService(
+    appDataSource.getRepository(Lote),
+    notificacaoService,
+    sseService,
+  );
+  progressao.iniciar();
+
+  app.listen(env.PORT, () => {
+    logger.info(`Servidor rodando na porta ${env.PORT} (${env.NODE_ENV})`);
+  });
+}
+
 if (!isTest) {
-  AppDataSource.initialize()
-    .then(async () => {
-      console.log('Banco de dados conectado com sucesso.');
-
-      const insumoService = new InsumoEstoqueService();
-      await insumoService.resgatarLotesTravados();
-
-      const progressao = new ProgressaoService();
-      progressao.iniciar();
-
-      app.listen(env.PORT, () => {
-        console.log(`Servidor rodando na porta ${env.PORT} (${env.NODE_ENV})`);
-      });
-    })
-    .catch((error) => {
-      console.error('Erro ao conectar com o banco:', error);
-    });
+  inicializarServidor().catch((error) => {
+    logger.error('Erro ao conectar com o banco:', error);
+  });
 }

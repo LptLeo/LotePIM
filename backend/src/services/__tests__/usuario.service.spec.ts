@@ -1,7 +1,9 @@
 import { jest } from '@jest/globals';
-import { PerfilUsuario } from '../../entities/Usuario.js';
-
-type JestMock = ReturnType<typeof jest.fn>;
+import { PerfilUsuario, type Usuario } from '../../entities/Usuario.js';
+import type { Repository } from 'typeorm';
+import type { Lote } from '../../entities/Lote.js';
+import type { Inspecao } from '../../entities/Inspecao.js';
+import type { Produto } from '../../entities/Produto.js';
 
 const mockUserRepo = {
   findOne: jest.fn(() => Promise.resolve(null as unknown)),
@@ -15,7 +17,7 @@ const mockLoteRepo = { count: jest.fn(() => Promise.resolve(0)) };
 const mockInspecaoRepo = { count: jest.fn(() => Promise.resolve(0)) };
 const mockProdutoRepo = { count: jest.fn(() => Promise.resolve(0)) };
 
-const mockAppDataSource = {
+const mockappDataSource = {
   getRepository: jest.fn((entity: { name: string }) => {
     if (entity.name === 'Usuario') return mockUserRepo;
     if (entity.name === 'Lote') return mockLoteRepo;
@@ -30,37 +32,50 @@ const mockBcrypt = {
   compare: jest.fn(() => Promise.resolve(true)),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: mockAppDataSource,
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
+  appDataSource: mockappDataSource,
 }));
 
 jest.unstable_mockModule('bcrypt', () => ({
   default: mockBcrypt,
 }));
 
-const { UsuarioService } = await import('../usuario.service.js');
+const { UsuarioService: usuarioService } = await import('../usuario.service.js');
 
 describe('UsuarioService', () => {
-  let service: InstanceType<typeof UsuarioService>;
+  let service: InstanceType<typeof usuarioService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new UsuarioService();
+    const usuarioDeps = {
+      usuarioRepo: mockUserRepo as unknown as Repository<Usuario>,
+      loteRepo: mockLoteRepo as unknown as Repository<Lote>,
+      inspecaoRepo: mockInspecaoRepo as unknown as Repository<Inspecao>,
+      produtoRepo: mockProdutoRepo as unknown as Repository<Produto>,
+    };
+    service = new usuarioService(usuarioDeps);
   });
 
   describe('findById', () => {
     it('deve lançar erro se o usuário não for encontrado', async () => {
-      (mockUserRepo.findOne as JestMock).mockResolvedValue(null);
-      await expect(service.findById(1, { id: 1, perfil: PerfilUsuario.GESTOR })).rejects.toThrow(
-        'Usuário não encontrado',
+      (mockUserRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(null),
       );
+      await expect(
+        service.buscarPorId(1, { id: 1, perfil: PerfilUsuario.GESTOR }),
+      ).rejects.toThrow('Usuário não encontrado');
     });
 
     it('deve retornar o usuário se encontrado e tiver permissão', async () => {
       const userMock = { id: 1, nome: 'Teste', email: 't@t.com', ativo: true };
-      (mockUserRepo.findOne as JestMock).mockResolvedValue(userMock);
+      (mockUserRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(userMock),
+      );
 
-      const result = await service.findById(1, { id: 1, perfil: PerfilUsuario.GESTOR });
+      const result = await service.buscarPorId(1, {
+        id: 1,
+        perfil: PerfilUsuario.GESTOR,
+      });
 
       expect(result.nome).toBe('Teste');
     });
@@ -77,18 +92,26 @@ describe('UsuarioService', () => {
     const req = { id: 1, perfil: PerfilUsuario.GESTOR };
 
     it('deve lançar erro se o e-mail já estiver em uso', async () => {
-      (mockUserRepo.findOne as JestMock).mockResolvedValue({ id: 2 });
+      (mockUserRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({ id: 2 }),
+      );
 
-      await expect(service.create(dto, req)).rejects.toThrow(/já está em uso/);
+      await expect(service.criar(dto, req)).rejects.toThrow(/já está em uso/);
     });
 
     it('deve criar e salvar o novo usuário', async () => {
-      (mockUserRepo.findOne as JestMock).mockResolvedValue(null);
-      (mockUserRepo.findOneBy as JestMock).mockResolvedValue({ id: 1, nome: 'Admin' });
-      (mockUserRepo.create as JestMock).mockReturnValue({ ...dto, id: 10 });
-      (mockUserRepo.save as JestMock).mockResolvedValue({ ...dto, id: 10 });
+      (mockUserRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(null),
+      );
+      (mockUserRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({ id: 1, nome: 'Admin' }),
+      );
+      (mockUserRepo.create as unknown as jest.Mock).mockReturnValue({ ...dto, id: 10 });
+      (mockUserRepo.save as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({ ...dto, id: 10 }),
+      );
 
-      const result = await service.create(dto, req);
+      const result = await service.criar(dto, req);
 
       expect(result.id).toBe(10);
       expect(mockBcrypt.hash).toHaveBeenCalledWith('123', 12);
@@ -106,10 +129,16 @@ describe('UsuarioService', () => {
         addSelect: jest.fn().mockReturnThis(),
         getOne: jest.fn(() => Promise.resolve({ id: 1, senha_hash: 'hash' })),
       };
-      (mockUserRepo.createQueryBuilder as JestMock).mockReturnValue(mockQueryBuilder);
-      (mockBcrypt.compare as JestMock).mockResolvedValue(false);
+      (mockUserRepo.createQueryBuilder as unknown as jest.Mock).mockReturnValue(
+        mockQueryBuilder,
+      );
+      (mockBcrypt.compare as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(false),
+      );
 
-      await expect(service.updateSenha(1, dto, req)).rejects.toThrow('Senha atual incorreta');
+      await expect(service.atualizarSenha(1, dto, req)).rejects.toThrow(
+        'Senha atual incorreta',
+      );
     });
 
     it('deve atualizar a senha se a atual estiver correta', async () => {
@@ -119,10 +148,14 @@ describe('UsuarioService', () => {
         addSelect: jest.fn().mockReturnThis(),
         getOne: jest.fn(() => Promise.resolve(userMock)),
       };
-      (mockUserRepo.createQueryBuilder as JestMock).mockReturnValue(mockQueryBuilder);
-      (mockBcrypt.compare as JestMock).mockResolvedValue(true);
+      (mockUserRepo.createQueryBuilder as unknown as jest.Mock).mockReturnValue(
+        mockQueryBuilder,
+      );
+      (mockBcrypt.compare as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(true),
+      );
 
-      await service.updateSenha(1, dto, req);
+      await service.atualizarSenha(1, dto, req);
 
       expect(mockBcrypt.hash).toHaveBeenCalledWith('456', 12);
       expect(mockUserRepo.save).toHaveBeenCalled();

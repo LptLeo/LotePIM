@@ -13,5 +13,5 @@ import { CommonModule } from '@angular/common';
 export class StatCardComponent {
   @Input({ required: true }) title!: string;
   @Input() tooltip?: string;
-  @Input() trackingClass: string = 'tracking-[1px]';
+  @Input() trackingClass = 'tracking-[1px]';
 }

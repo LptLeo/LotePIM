@@ -1,4 +1,6 @@
-<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-6">
+<div
+  class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-6"
+>
   <!-- Header -->
   <header class="flex flex-col gap-6">
     <div class="flex items-center gap-4">
@@ -85,7 +87,11 @@
               stroke="currentColor"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </div>
           @if (fieldErrors()['produto_id']) {
@@ -110,7 +116,10 @@
               class="w-full h-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 flex justify-between items-center transition-colors hover:border-[#00E5FF] group"
               [class.border-red-500]="fieldErrors()['data_producao']"
             >
-              <span class="text-sm font-medium" [class.text-[#ADAAAA]]="!form.value.data_producao">
+              <span
+                class="text-sm font-medium"
+                [class.text-[#ADAAAA]]="!form.value.data_producao"
+              >
                 {{ dataFormatada }}
               </span>
               <svg
@@ -164,11 +173,17 @@
               stroke="currentColor"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </div>
           @if (fieldErrors()['turno']) {
-            <span class="text-[10px] text-red-400 font-medium">{{ fieldErrors()['turno'] }}</span>
+            <span class="text-[10px] text-red-400 font-medium">{{
+              fieldErrors()['turno']
+            }}</span>
           }
         </div>
       </div>
@@ -237,9 +252,9 @@
         ></textarea>
       </div>
 
-      <!-- ═══════════════════════════════════════════════════════ -->
+      <!--  -->
       <!-- Seção de Consumos (gerada dinamicamente pela receita) -->
-      <!-- ═══════════════════════════════════════════════════════ -->
+      <!--  -->
 
       @if ((produtoSelecionado()?.receita?.length ?? 0) > 0) {
         <div class="border-t border-[#484847]/30 pt-6 mt-2">
@@ -275,7 +290,8 @@
           }
 
           <p class="text-[12px] text-[#6B7280] mb-4">
-            Selecione quais lotes de insumo em estoque serão consumidos para fabricar este lote.
+            Selecione quais lotes de insumo em estoque serão consumidos para fabricar este
+            lote.
           </p>
 
           @if (carregandoInsumos()) {
@@ -283,7 +299,9 @@
               <div
                 class="w-4 h-4 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"
               ></div>
-              <span class="text-[12px] text-[#6B7280]">Carregando insumos disponíveis...</span>
+              <span class="text-[12px] text-[#6B7280]"
+                >Carregando insumos disponíveis...</span
+              >
             </div>
           }
 
@@ -291,7 +309,9 @@
             @for (consumo of consumosArray.controls; track i; let i = $index) {
               <app-lote-insumo-item
                 [formGroup]="consumo"
-                [insumosDisponiveis]="getInsumosParaMP(consumo.controls.materia_prima_id.value)"
+                [insumosDisponiveis]="
+                  getInsumosParaMP(consumo.controls.materia_prima_id.value)
+                "
               >
               </app-lote-insumo-item>
             }

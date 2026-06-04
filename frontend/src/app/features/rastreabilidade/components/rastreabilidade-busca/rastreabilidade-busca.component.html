@@ -22,8 +22,8 @@
     </div>
     <h2 class="text-3xl font-bold tracking-tight">Rastreabilidade Total</h2>
     <p class="text-[#ADAAAA] text-sm max-w-md">
-      Consulte a árvore completa de insumos de um lote ou identifique o alcance de um recall em
-      segundos.
+      Consulte a árvore completa de insumos de um lote ou identifique o alcance de um
+      recall em segundos.
     </p>
   </div>
 
@@ -32,7 +32,9 @@
     <div
       class="relative flex flex-col min-[425px]:flex-row items-stretch min-[425px]:items-center bg-[#131313] border-2 border-[#484847]/60 rounded-2xl p-2 min-[425px]:px-5 min-[425px]:py-4 gap-2 min-[425px]:gap-4 transition-all focus-within:border-[#00E5FF]/60 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.08)] hover:border-[#484847]"
     >
-      <div class="flex items-center gap-3 min-[425px]:gap-4 flex-1 px-2 py-1 min-[425px]:p-0">
+      <div
+        class="flex items-center gap-3 min-[425px]:gap-4 flex-1 px-2 py-1 min-[425px]:p-0"
+      >
         @if (buscandoSugestoes) {
           <div
             class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin flex-shrink-0"
@@ -77,7 +79,11 @@
               stroke="currentColor"
               class="w-4 h-4"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         }
@@ -105,13 +111,15 @@
                   class="w-2 h-2 rounded-full"
                   [class]="sug.tipo === 'LOTE_PRODUTO' ? 'bg-[#00E5FF]' : 'bg-orange-400'"
                 ></span>
-                <span class="text-sm font-mono font-medium text-[#ADAAAA] group-hover:text-white">{{
-                  sug.texto_exibicao
-                }}</span>
+                <span
+                  class="text-sm font-mono font-medium text-[#ADAAAA] group-hover:text-white"
+                  >{{ sug.texto_exibicao }}</span
+                >
               </div>
-              <span class="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider">{{
-                sug.tipo === 'LOTE_PRODUTO' ? 'Lote Produção' : 'Lote Insumo'
-              }}</span>
+              <span
+                class="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider"
+                >{{ sug.tipo === 'LOTE_PRODUTO' ? 'Lote Produção' : 'Lote Insumo' }}</span
+              >
             </button>
           }
         </div>
@@ -143,13 +151,15 @@
     <div class="flex items-center gap-2">
       <span class="w-2 h-2 rounded-full bg-[#00E5FF]"></span>
       <span class="text-[11px] text-[#6B7280]"
-        >Lotes de produção: <span class="text-[#ADAAAA] font-mono">LOT-DDMMAAAA-X</span></span
+        >Lotes de produção:
+        <span class="text-[#ADAAAA] font-mono">LOT-DDMMAAAA-X</span></span
       >
     </div>
     <div class="flex items-center gap-2">
       <span class="w-2 h-2 rounded-full bg-orange-400"></span>
       <span class="text-[11px] text-[#6B7280]"
-        >Lotes de insumo: <span class="text-[#ADAAAA] font-mono">INS-DDMMAAAA-X</span></span
+        >Lotes de insumo:
+        <span class="text-[#ADAAAA] font-mono">INS-DDMMAAAA-X</span></span
       >
     </div>
   </div>

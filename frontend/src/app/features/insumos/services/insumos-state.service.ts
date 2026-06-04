@@ -5,9 +5,12 @@ import {
   InsumosService,
   FiltrosEstoque,
   FiltrosCatalogo,
-  OrdenacaoEstoque
+  OrdenacaoEstoque,
 } from './insumos.service.js';
-import { SseClientService, type SseEvento } from '../../../core/services/sse-client.service.js';
+import {
+  SseClientService,
+  type SseEvento,
+} from '../../../core/services/sse-client.service.js';
 import type { InsumoEstoque } from '../../../shared/models/lote.models.js';
 
 @Injectable()
@@ -56,7 +59,8 @@ export class InsumosStateService {
       pagina: 1,
       limite: 100,
       fornecedor: this.abaAtiva() === 'estoque' ? this.filtroFornecedor().trim() : '',
-      ordenarPor: this.abaAtiva() === 'estoque' ? this.ordenarPor() : ('' as OrdenacaoEstoque),
+      ordenarPor:
+        this.abaAtiva() === 'estoque' ? this.ordenarPor() : ('' as OrdenacaoEstoque),
       status: 'a_caminho,pendente',
     }),
     stream: ({ params }) => this.insumosService.getAll(params),
@@ -109,7 +113,9 @@ export class InsumosStateService {
   paginationMetaEstoque = computed(() => this.estoqueResource.value()?.meta || null);
   paginationMetaCatalogo = computed(() => this.catalogoResource.value()?.meta || null);
 
-  carregando = computed(() => this.estoqueResource.isLoading() || this.catalogoResource.isLoading());
+  carregando = computed(
+    () => this.estoqueResource.isLoading() || this.catalogoResource.isLoading(),
+  );
 
   totalRegistros = computed(() => this.contagemResource.value()?.total || 0);
   totalComSaldo = computed(() => this.contagemResource.value()?.comSaldo || 0);

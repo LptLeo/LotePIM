@@ -39,11 +39,11 @@ export class Produtos {
   ultimaAtualizacao = signal(new Date().toLocaleTimeString('pt-BR'));
 
   categoriasResource = rxResource({
-    stream: () => this.produtosService.getCategorias(),
+    stream: () => this.produtosService.listarCategorias(),
   });
 
   linhasResource = rxResource({
-    stream: () => this.produtosService.getLinhas(),
+    stream: () => this.produtosService.listarLinhas(),
   });
 
   categoriasExistentes = computed(() => this.categoriasResource.value() || []);
@@ -63,12 +63,12 @@ export class Produtos {
       pagina: this.currentPage(),
       limite: 10,
     }),
-    stream: ({ params }) => this.produtosService.getProdutos(params),
+    stream: ({ params }) => this.produtosService.listar(params),
   });
 
   /** Resource para as contagens globais de filtros */
   contagemResource = rxResource({
-    stream: () => this.produtosService.getContagem(),
+    stream: () => this.produtosService.obterContagem(),
   });
 
   // Derivações reativas do resource para o template
@@ -87,8 +87,8 @@ export class Produtos {
         total: 0,
         ativos: 0,
         inativos: 0,
-        sem_insumos: 0,
-        mais_produzidos: 0,
+        semInsumos: 0,
+        maisProduzidos: 0,
       },
   );
 
@@ -96,7 +96,7 @@ export class Produtos {
     total: this.contagens().total,
     ativos: this.contagens().ativos,
     inativos: this.contagens().inativos,
-    sem_insumos: this.contagens().sem_insumos,
+    sem_insumos: this.contagens().semInsumos,
     mais_produzido: this.produtos().length > 0 ? this.produtos()[0].nome : '—',
   }));
 

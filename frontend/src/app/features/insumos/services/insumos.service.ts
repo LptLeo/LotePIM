@@ -8,7 +8,12 @@ const API_URL = environment.apiUrl;
 
 import type { RespostaPaginada } from '../../../shared/models/pagination.models.js';
 
-export type StatusInsumo = 'disponivel' | 'esgotado' | 'a_caminho' | 'pendente' | 'em_uso';
+export type StatusInsumo =
+  | 'disponivel'
+  | 'esgotado'
+  | 'a_caminho'
+  | 'pendente'
+  | 'em_uso';
 
 export type OrdenacaoEstoque =
   | 'menor_estoque'
@@ -62,7 +67,9 @@ export class InsumosService {
   /** Lista lotes de insumo com paginação e filtros */
   getAll(filtros?: FiltrosEstoque): Observable<RespostaPaginada<InsumoEstoque>> {
     const params = this.montarHttpParams(filtros);
-    return this.http.get<RespostaPaginada<InsumoEstoque>>(`${API_URL}/insumos-estoque`, { params });
+    return this.http.get<RespostaPaginada<InsumoEstoque>>(`${API_URL}/insumos-estoque`, {
+      params,
+    });
   }
 
   /** Busca um lote de insumo por ID */
@@ -89,13 +96,19 @@ export class InsumosService {
 
   /** Altera o status de um lote (ex: de 'a_caminho' para 'disponivel') */
   atualizarStatus(id: number, status: StatusInsumo): Observable<InsumoEstoque> {
-    return this.http.patch<InsumoEstoque>(`${API_URL}/insumos-estoque/${id}/status`, { status });
+    return this.http.patch<InsumoEstoque>(`${API_URL}/insumos-estoque/${id}/status`, {
+      status,
+    });
   }
 
   /** Lista matérias-primas do catálogo com paginação e filtros */
-  getMateriasPrimasPaginado(filtros?: FiltrosCatalogo): Observable<RespostaPaginada<MateriaPrima>> {
+  getMateriasPrimasPaginado(
+    filtros?: FiltrosCatalogo,
+  ): Observable<RespostaPaginada<MateriaPrima>> {
     const params = this.montarHttpParams(filtros);
-    return this.http.get<RespostaPaginada<MateriaPrima>>(`${API_URL}/materias-primas`, { params });
+    return this.http.get<RespostaPaginada<MateriaPrima>>(`${API_URL}/materias-primas`, {
+      params,
+    });
   }
 
   /** Lista matérias-primas do catálogo (sem paginação, mas com limite alto) */
@@ -116,7 +129,7 @@ export class InsumosService {
     return this.http.get<string[]>(`${API_URL}/materias-primas/categorias`);
   }
 
-  /** 
+  /**
    * Método privado auxiliar para converter objetos de filtro em HttpParams,
    * removendo automaticamente valores nulos ou vazios (Pattern DRY).
    */

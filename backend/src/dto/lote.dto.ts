@@ -1,58 +1,69 @@
 import { z } from 'zod';
-import { PaginacaoQueryDto } from './paginacao.dto.js';
+import { paginacaoQuerySchema } from './paginacao.dto.js';
+import { LoteStatus } from '../entities/Lote.js';
+import { dateOrNull, turnoSchema } from '../utils/zod.utils.js';
 
-export const ListLotesQueryDto = PaginacaoQueryDto.extend({
+// === QUERIES ===
+
+export const listLotesQuerySchema = paginacaoQuerySchema.extend({
   status: z.string().optional(),
 });
 
-export type ListLotesQueryDto = z.infer<typeof ListLotesQueryDto>;
+export type ListLotesQueryDto = z.infer<typeof listLotesQuerySchema>;
 
-const turnoSchema = z.enum(['manha', 'tarde', 'noite'], {
-  message: 'Turno inválido. Valores aceitos: manha, tarde, noite.',
+export const sugestaoQuerySchema = z.object({
+  q: z.string().min(1),
 });
 
-/** Cada item de consumo vincula um lote de InsumoEstoque à ordem de produção */
+// === SCHEMAS DE CRIAÇÃO ===
+
 const consumoItemSchema = z.object({
-  insumo_estoque_id: z.coerce.number().int().positive('ID do lote de insumo inválido.'),
-  quantidade_consumida: z.coerce.number().positive('A quantidade deve ser maior que zero.'),
+  insumo_estoque_id: z.coerce
+    .number()
+    .int()
+    .positive({ error: 'ID do lote de insumo inválido.' }),
+  quantidade_consumida: z.coerce
+    .number()
+    .positive({ error: 'A quantidade deve ser maior que zero.' }),
 });
 
 export const criarLoteSchema = z.object({
   produto_id: z.coerce
-    .number({ message: 'O produto é obrigatório.' })
+    .number({ error: 'O produto é obrigatório.' })
     .int()
-    .positive('ID do produto inválido.'),
+    .positive({ error: 'ID do produto inválido.' }),
 
-  data_producao: z.coerce.date({
-    message: 'A data de produção é obrigatória e deve ser válida.',
+  data_producao: dateOrNull().refine((d) => d !== null, {
+    error: 'Data de produçao obrigatória.',
   }),
 
   turno: turnoSchema,
 
-  quantidade_planejada: z
-    .number({ message: 'A quantidade planejada é obrigatória.' })
+  quantidade_planejada: z.coerce
+    .number({ error: 'A quantidade planejada é obrigatória.' })
     .int()
-    .positive('A quantidade deve ser maior que zero.'),
+    .positive({ error: 'A quantidade deve ser maior que zero.' }),
 
-  data_validade: z.coerce.date().nullable().optional().default(null),
+  data_validade: dateOrNull().optional().default(null),
 
   observacoes: z.string().max(1000).optional().default(''),
 
-  /** Lista de lotes de insumo a consumir na abertura do lote */
   consumos: z
     .array(consumoItemSchema)
-    .min(1, 'É obrigatório vincular pelo menos 1 lote de insumo.'),
+    .min(1, { error: 'É obrigatório vincular pelo menos 1 lote de insumo.' }),
 });
 
 export type CriarLoteDTO = z.infer<typeof criarLoteSchema>;
 
+// === SCHEMA DE TRANSIÇÃO DE STATUS ===
+
 export const transicaoStatusSchema = z.object({
   status: z.enum([
-    'em_producao',
-    'aguardando_inspecao',
-    'aprovado',
-    'aprovado_restricao',
-    'reprovado',
+    LoteStatus.EM_PRODUCAO,
+    LoteStatus.AGUARDANDO_INSPECAO,
+    LoteStatus.APROVADO,
+    LoteStatus.APROVADO_RESTRICAO,
+    LoteStatus.REPROVADO,
   ]),
 });
 

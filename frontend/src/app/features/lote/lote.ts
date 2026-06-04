@@ -6,7 +6,10 @@ import { STATUS_CONFIG } from '../../shared/models/lote.models.js';
 import { AuthService } from '../../core/services/auth.service.js';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.js';
 import { LoteCardComponent } from '../../shared/components/lote-card/lote-card.js';
-import { FilterTabsComponent, FilterTab } from '../../shared/components/filter-tabs/filter-tabs.js';
+import {
+  FilterTabsComponent,
+  FilterTab,
+} from '../../shared/components/filter-tabs/filter-tabs.js';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
 import { ConfiguracoesService } from '../../core/services/configuracoes.service.js';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.js';
@@ -113,7 +116,8 @@ export class Lote {
 
   duracaoMs = computed(
     () =>
-      (this.configResource.value()?.tempo_producao_minutos || 0) * 60 * 1000 || FALLBACK_DURACAO_MS,
+      (this.configResource.value()?.tempo_producao_minutos || 0) * 60 * 1000 ||
+      FALLBACK_DURACAO_MS,
   );
 
   producaoTotalLabel = computed(() => {
@@ -127,10 +131,13 @@ export class Lote {
     return map[p] || 'Produção Total';
   });
 
-  producaoTotalAcumulada = computed(() => this.dashboardResource.value()?.unidades_mes || 0);
+  producaoTotalAcumulada = computed(
+    () => this.dashboardResource.value()?.unidades_mes || 0,
+  );
 
   statsCargaSistema = computed(() => {
-    const baseValue = this.configuracoesService.settings().lote.atividadeTempoRealBase || 5;
+    const baseValue =
+      this.configuracoesService.settings().lote.atividadeTempoRealBase || 5;
     const emProducao = this.contagemPorStatus()['em_producao'] || 0;
     return parseFloat(((emProducao / baseValue) * 100).toFixed(1));
   });

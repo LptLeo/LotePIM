@@ -1,6 +1,12 @@
 import request from 'supertest';
 import { app } from '../../server.js';
-import { startTestContainer, stopTestContainer, limparBanco, criarUsuarioTeste } from './integration.setup.js';
+import { PerfilUsuario } from '../../entities/Usuario.js';
+import {
+  startTestContainer,
+  stopTestContainer,
+  limparBanco,
+  criarUsuarioTeste,
+} from './integration.setup.js';
 
 describe('Fluxo de Produção (Integração)', () => {
   let tokenOperador: string;
@@ -15,19 +21,19 @@ describe('Fluxo de Produção (Integração)', () => {
 
   beforeEach(async () => {
     await limparBanco();
-    const op = await criarUsuarioTeste('operador' as any);
+    const op = await criarUsuarioTeste(PerfilUsuario.OPERADOR);
     tokenOperador = op.token;
   });
 
   it('deve realizar o fluxo completo: criar produto -> registrar entrada -> abrir lote', async () => {
     // 1. Criar Matéria-prima (Gestor necessário)
-    const { token: tokenGestor } = await criarUsuarioTeste('gestor' as any);
-    
+    const { token: tokenGestor } = await criarUsuarioTeste(PerfilUsuario.GESTOR);
+
     const mpRes = await request(app)
       .post('/api/materias-primas')
       .set('Authorization', `Bearer ${tokenGestor}`)
       .send({ nome: 'Insumo Teste', unidade_medida: 'UN', categoria: 'Teste' });
-    
+
     expect([200, 201]).toContain(mpRes.status);
     const mpId = mpRes.body.id;
 
@@ -41,7 +47,7 @@ describe('Fluxo de Produção (Integração)', () => {
         categoria: 'Teste',
         linha_padrao: 'Linha A',
         percentual_ressalva: 10,
-        receita: [{ materia_prima_id: mpId, quantidade: 1, unidade: 'UN' }]
+        receita: [{ materia_prima_id: mpId, quantidade: 1, unidade: 'UN' }],
       });
     expect([200, 201]).toContain(prodRes.status);
     const produtoId = prodRes.body.id;
@@ -55,7 +61,7 @@ describe('Fluxo de Produção (Integração)', () => {
         quantidade_inicial: 100,
         fornecedor: 'Forn Teste',
         turno: 'manha',
-        numero_lote_fornecedor: 'LOT-F-123'
+        numero_lote_fornecedor: 'LOT-F-123',
       });
     expect([200, 201]).toContain(estoqueRes.status);
     const estoqueId = estoqueRes.body.id;
@@ -69,9 +75,9 @@ describe('Fluxo de Produção (Integração)', () => {
         quantidade_planejada: 10,
         turno: 'manha',
         data_producao: new Date().toISOString(),
-        consumos: [{ insumo_estoque_id: estoqueId, quantidade_consumida: 10 }]
+        consumos: [{ insumo_estoque_id: estoqueId, quantidade_consumida: 10 }],
       });
-    
+
     expect([200, 201]).toContain(loteRes.status);
     expect(loteRes.body.status).toBe('em_producao');
     expect(loteRes.body.numero_lote).toBeDefined();

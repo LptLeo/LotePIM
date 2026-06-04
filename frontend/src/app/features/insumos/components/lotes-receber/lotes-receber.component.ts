@@ -41,7 +41,13 @@ import type { InsumoEstoque } from '../../../../shared/models/lote.models.js';
           [
             animate(
               '200ms ease-in',
-              style({ opacity: 0, transform: 'scale(0.9)', height: 0, margin: 0, padding: 0 }),
+              style({
+                opacity: 0,
+                transform: 'scale(0.9)',
+                height: 0,
+                margin: 0,
+                padding: 0,
+              }),
             ),
           ],
           { optional: true },
@@ -58,9 +64,15 @@ import type { InsumoEstoque } from '../../../../shared/models/lote.models.js';
       }
 
       @keyframes pulse-glow {
-        0% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
-        50% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.5); }
-        100% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
+        0% {
+          box-shadow: 0 0 5px rgba(0, 229, 255, 0.2);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+        100% {
+          box-shadow: 0 0 5px rgba(0, 229, 255, 0.2);
+        }
       }
     `,
   ],
@@ -71,7 +83,7 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
   @Output() receber = new EventEmitter<number>();
 
   isExpanded = signal(false);
-  
+
   // Armazena IDs de lotes que ainda não foram "vistos" pelo usuário
   unseenIds = signal<Set<number>>(new Set());
   private knownIds = new Set<number>();
@@ -80,13 +92,13 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['lotes'] && this.lotes) {
-      const currentIds = this.lotes.map(l => l.id);
-      
+      const currentIds = this.lotes.map((l) => l.id);
+
       // Detecta novos IDs que acabaram de chegar via SSE ou carregamento
       let mudou = false;
-      currentIds.forEach(id => {
+      currentIds.forEach((id) => {
         if (!this.knownIds.has(id)) {
-          this.unseenIds.update(set => {
+          this.unseenIds.update((set) => {
             set.add(id);
             return set;
           });
@@ -94,7 +106,7 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
           mudou = true;
         }
       });
-      
+
       if (mudou) {
         this.observeCards();
       }
@@ -109,7 +121,7 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
     // 1. Intersection Observer: Detecta quando o card aparece fisicamente na tela
     this.observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const id = Number(entry.target.getAttribute('data-lote-id'));
             if (this.unseenIds().has(id)) {
@@ -121,12 +133,12 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
           }
         });
       },
-      { threshold: 0.5 } // Pelo menos 50% do card visível
+      { threshold: 0.5 }, // Pelo menos 50% do card visível
     );
 
     // 2. Page Visibility API: Se o usuário voltar do Alt+Tab, re-checa o que está visível
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
-    
+
     this.observeCards();
   }
 
@@ -138,7 +150,7 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
 
   private observeCards(): void {
     if (!this.observer) return;
-    
+
     // Pequeno delay para garantir que o DOM renderizou após o OnChanges
     setTimeout(() => {
       const cards = this.el.nativeElement.querySelectorAll('[data-lote-id]');
@@ -147,7 +159,7 @@ export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestro
   }
 
   private markAsSeen(id: number): void {
-    this.unseenIds.update(set => {
+    this.unseenIds.update((set) => {
       set.delete(id);
       return new Set(set); // Nova instância para disparar reatividade do Signal
     });

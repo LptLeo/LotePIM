@@ -1,12 +1,13 @@
 import request from 'supertest';
 import { app } from '../../server.js';
+import { PerfilUsuario } from '../../entities/Usuario.js';
 import {
   startTestContainer,
   stopTestContainer,
   limparBanco,
   criarUsuarioTeste,
 } from './integration.setup.js';
-import { AppDataSource } from '../../config/AppDataSource.js';
+import { appDataSource } from '../../config/appDataSource.js';
 import { Produto } from '../../entities/Produto.js';
 
 describe('Produtos (Integração)', () => {
@@ -22,13 +23,15 @@ describe('Produtos (Integração)', () => {
 
   beforeEach(async () => {
     await limparBanco();
-    const gestor = await criarUsuarioTeste('gestor' as any);
+    const gestor = await criarUsuarioTeste(PerfilUsuario.GESTOR);
     tokenGestor = gestor.token;
   });
 
   describe('POST /api/produtos', () => {
     it('deve retornar 401 se nenhum token for enviado', async () => {
-      const response = await request(app).post('/api/produtos').send({ nome: 'Produto Sem Auth' });
+      const response = await request(app)
+        .post('/api/produtos')
+        .send({ nome: 'Produto Sem Auth' });
 
       expect(response.status).toBe(401);
       expect(response.body.message).toMatch(/Token ausente/);
@@ -63,7 +66,7 @@ describe('Produtos (Integração)', () => {
       expect(response.body.nome).toBe(payload.nome);
 
       // Verificação de persistência real no banco do Docker
-      const produtoRepo = AppDataSource.getRepository(Produto);
+      const produtoRepo = appDataSource.getRepository(Produto);
       const produtoNoBanco = await produtoRepo.findOneBy({ nome: payload.nome });
 
       expect(produtoNoBanco).toBeDefined();

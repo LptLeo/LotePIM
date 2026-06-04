@@ -40,7 +40,7 @@
               {{ insumo.materiaPrima.unidade_medida }})
             </option>
           } @empty {
-            <option [value]="0" disabled>❌ Estoque esgotado!</option>
+            <option [value]="0" disabled>Estoque esgotado!</option>
           }
         </select>
         <svg
@@ -51,7 +51,11 @@
           stroke="currentColor"
           class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#ADAAAA] pointer-events-none"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m19.5 8.25-7.5 7.5-7.5-7.5"
+          />
         </svg>
       </div>
     </div>
@@ -68,7 +72,9 @@
           [step]="formGroup().get('unidade')?.value === 'UN' ? '1' : '0.01'"
           class="w-full bg-[#131313] border border-[#484847]/60 rounded pl-3 pr-10 py-2 text-[12px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors"
         />
-        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#ADAAAA]">
+        <span
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-[#ADAAAA]"
+        >
           {{ formGroup().get('unidade')?.value }}
         </span>
       </div>

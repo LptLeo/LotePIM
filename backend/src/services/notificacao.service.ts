@@ -1,44 +1,33 @@
-import { Repository } from 'typeorm';
-import { AppDataSource } from '../config/AppDataSource.js';
+import type { Repository } from 'typeorm';
 import { Notificacao, TipoNotificacao } from '../entities/Notificacao.js';
 import { Usuario, PerfilUsuario } from '../entities/Usuario.js';
-import { AppError } from '../errors/AppError.js';
+import { findOneOrFail } from '../utils/orm.utils.js';
 
 export class NotificacaoService {
-  private notificacaoRepo: Repository<Notificacao>;
-  private usuarioRepo: Repository<Usuario>;
+  constructor(
+    private readonly notificacaoRepo: Repository<Notificacao>,
+    private readonly usuarioRepo: Repository<Usuario>,
+  ) {}
 
-  constructor() {
-    this.notificacaoRepo = AppDataSource.getRepository(Notificacao);
-    this.usuarioRepo = AppDataSource.getRepository(Usuario);
-  }
-
-  async listarPorUsuario(usuarioId: number) {
+  public async listarPorUsuario(usuarioId: number): Promise<Notificacao[]> {
     return this.notificacaoRepo.find({
       where: { usuario: { id: usuarioId } },
       order: { criado_em: 'DESC' },
     });
   }
 
-  async marcarComoLida(id: number, usuarioId: number) {
-    const notificacao = await this.notificacaoRepo.findOne({
-      where: { id, usuario: { id: usuarioId } },
-    });
-
-    if (!notificacao) {
-      throw new AppError('Notificação não encontrada.', 404);
-    }
-
+  public async marcarComoLida(id: number, usuarioId: number): Promise<Notificacao> {
+    const notificacao = await this.validarExistenciaNotificacao(id, usuarioId);
     notificacao.lida = true;
     return this.notificacaoRepo.save(notificacao);
   }
 
-  async criarNotificacaoParaPerfis(
+  public async criarNotificacaoParaPerfis(
     mensagem: string,
     tipo: TipoNotificacao,
     perfis: PerfilUsuario[],
     metadata?: Notificacao['metadata'],
-  ) {
+  ): Promise<void> {
     const usuarios = await this.usuarioRepo
       .createQueryBuilder('usuario')
       .where('usuario.perfil IN (:...perfis) AND usuario.ativo = true', { perfis })
@@ -58,17 +47,30 @@ export class NotificacaoService {
     await this.notificacaoRepo.save(notificacoes);
   }
 
-  async criarNotificacaoParaUsuario(
+  public async criarNotificacaoParaUsuario(
     mensagem: string,
     tipo: TipoNotificacao,
     usuario: Usuario,
     metadata?: Notificacao['metadata'],
-  ) {
+  ): Promise<void> {
     const notificacao = new Notificacao();
     notificacao.mensagem = mensagem;
     notificacao.tipo = tipo;
     notificacao.usuario = usuario;
     notificacao.metadata = metadata || null;
     await this.notificacaoRepo.save(notificacao);
+  }
+
+  // === VALIDADORAS ===
+
+  private validarExistenciaNotificacao(
+    id: number,
+    usuarioId: number,
+  ): Promise<Notificacao> {
+    return findOneOrFail(
+      this.notificacaoRepo,
+      { where: { id, usuario: { id: usuarioId } } },
+      'Notificação',
+    );
   }
 }

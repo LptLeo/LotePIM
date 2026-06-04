@@ -10,7 +10,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 })
 export class WizardBaseComponent {
   @Input() formBase!: FormGroup;
-  @Input() skuPreview: string = '';
+  @Input() skuPreview = '';
   @Input() categoriasExistentes: string[] = [];
 
   @Output() cancel = new EventEmitter<void>();

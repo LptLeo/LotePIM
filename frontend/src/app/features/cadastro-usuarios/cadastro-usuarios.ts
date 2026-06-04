@@ -19,12 +19,7 @@ import { UserFormComponent } from './components/user-form/user-form.js';
 @Component({
   selector: 'app-cadastro-usuarios',
   standalone: true,
-  imports: [
-    CommonModule,
-    PageHeaderComponent,
-    UserListComponent,
-    UserFormComponent,
-  ],
+  imports: [CommonModule, PageHeaderComponent, UserListComponent, UserFormComponent],
   templateUrl: './cadastro-usuarios.html',
 })
 export class CadastroUsuarios {
@@ -139,7 +134,9 @@ export class CadastroUsuarios {
           this.voltarParaListagem();
         },
         error: (err) => {
-          this.erroApi.set(err?.error?.message ?? 'Não foi possível cadastrar o colaborador.');
+          this.erroApi.set(
+            err?.error?.message ?? 'Não foi possível cadastrar o colaborador.',
+          );
           this.toastService.error('Falha ao cadastrar colaborador.');
         },
       });
@@ -155,11 +152,13 @@ export class CadastroUsuarios {
             this.usuariosResource.reload();
           },
           error: (err) => {
-            this.toastService.error(err?.error?.message ?? 'Falha ao desativar colaborador.');
+            this.toastService.error(
+              err?.error?.message ?? 'Falha ao desativar colaborador.',
+            );
           },
         });
       },
-      'Desativar'
+      'Desativar',
     );
   }
 
@@ -173,11 +172,13 @@ export class CadastroUsuarios {
             this.usuariosResource.reload();
           },
           error: (err) => {
-            this.toastService.error(err?.error?.message ?? 'Falha ao reativar colaborador.');
+            this.toastService.error(
+              err?.error?.message ?? 'Falha ao reativar colaborador.',
+            );
           },
         });
       },
-      'Reativar'
+      'Reativar',
     );
   }
 }

@@ -1,19 +1,27 @@
 import { Router } from 'express';
-import * as ctrl from '../controllers/inspecao.controller.js';
 import { validateBody } from '../middlewares/validateBody.js';
 import { registrarInspecaoSchema } from '../dto/inspecao.dto.js';
-import { roleGuard } from '../middlewares/roleGuard.js';
-import { PerfilUsuario } from '../entities/Usuario.js';
+import { appDataSource } from '../config/appDataSource.js';
+import { Inspecao } from '../entities/Inspecao.js';
+import { Lote } from '../entities/Lote.js';
+import { Usuario } from '../entities/Usuario.js';
+import { InspecaoService } from '../services/inspecao.service.js';
+import { InspecaoController } from '../controllers/inspecao.controller.js';
 
-const router = Router({ mergeParams: true });
+const inspecaoService = new InspecaoService(
+  appDataSource.getRepository(Inspecao),
+  appDataSource.getRepository(Lote),
+  appDataSource.getRepository(Usuario),
+  appDataSource,
+);
+const inspecaoController = new InspecaoController(inspecaoService);
+const inspecaoRoutes = Router({ mergeParams: true });
 
-router.get('/', ctrl.buscarPorLote);
-// Apenas INSPETOR (e GESTOR) podem registrar inspeções
-router.post(
+inspecaoRoutes.get('/', inspecaoController.buscarPorLote);
+inspecaoRoutes.post(
   '/',
-  roleGuard(PerfilUsuario.INSPETOR),
   validateBody(registrarInspecaoSchema),
-  ctrl.registrar,
+  inspecaoController.registrar,
 );
 
-export default router;
+export default inspecaoRoutes;

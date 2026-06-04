@@ -33,7 +33,9 @@ import { CommonModule } from '@angular/common';
       } @else {
         <div class="flex items-center gap-2">
           @if (showText()) {
-            <span class="text-[10px] text-red-500/40 font-bold uppercase tracking-wider">Desativado</span>
+            <span class="text-[10px] text-red-500/40 font-bold uppercase tracking-wider"
+              >Desativado</span
+            >
           }
           <button
             (click)="onReactivate.emit(id())"
@@ -69,6 +71,8 @@ export class UserActionsComponent {
   onDeactivate = output<number>();
   onReactivate = output<number>();
 
-  buttonClass = "p-1.5 md:p-2 text-red-400/60 hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer border border-red-400/10 md:border-red-400/20";
-  reactivateButtonClass = "p-1.5 md:p-2 text-[#00E5FF]/60 hover:text-[#00E5FF] hover:bg-[#00E5FF]/10 rounded transition-all cursor-pointer border border-[#00E5FF]/10 md:border-[#00E5FF]/20";
+  buttonClass =
+    'p-1.5 md:p-2 text-red-400/60 hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer border border-red-400/10 md:border-red-400/20';
+  reactivateButtonClass =
+    'p-1.5 md:p-2 text-[#00E5FF]/60 hover:text-[#00E5FF] hover:bg-[#00E5FF]/10 rounded transition-all cursor-pointer border border-[#00E5FF]/10 md:border-[#00E5FF]/20';
 }

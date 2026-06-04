@@ -1,38 +1,40 @@
 import { jest } from '@jest/globals';
-import { LoteStatus } from '../../entities/Lote.js';
+import type { Repository } from 'typeorm';
+import { LoteStatus, type Lote } from '../../entities/Lote.js';
+import type { NotificacaoService } from '../notificacao.service.js';
+import type { SseService } from '../sse.service.js';
 
-type JestMock = ReturnType<typeof jest.fn>;
-
-const mockLoteRepo = { find: jest.fn(), save: jest.fn() };
+const mockLoteRepo = {
+  find: jest.fn<() => Promise<Lote[]>>(),
+  save: jest.fn<(lote: Lote) => Promise<Lote>>(),
+};
 const mockNotificacaoService = { criarNotificacaoParaPerfis: jest.fn() };
+const mockSseService = { emitir: jest.fn() };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: {
-    getRepository: jest.fn(() => mockLoteRepo),
-  },
-}));
-
-jest.unstable_mockModule('../notificacao.service.js', () => ({
-  NotificacaoService: jest.fn(() => mockNotificacaoService),
-}));
-
-const { ProgressaoService } = await import('../progressao.service.js');
+const { ProgressaoService: progressaoService } = await import('../progressao.service.js');
 
 describe('ProgressaoService', () => {
-  let service: InstanceType<typeof ProgressaoService>;
+  let service: InstanceType<typeof progressaoService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new ProgressaoService();
+    service = new progressaoService(
+      mockLoteRepo as unknown as Repository<Lote>,
+      mockNotificacaoService as unknown as NotificacaoService,
+      mockSseService as unknown as SseService,
+    );
     process.env.TEMPO_PRODUCAO_MINUTOS = '2';
   });
 
   it('deve avançar lotes expirados e enviar notificação', async () => {
-    const loteExpirado = { id: 1, numero_lote: 'L-01', status: LoteStatus.EM_PRODUCAO };
-    mockLoteRepo.find.mockResolvedValue([loteExpirado] as never);
+    const loteExpirado = {
+      id: 1,
+      numero_lote: 'L-01',
+      status: LoteStatus.EM_PRODUCAO,
+    } as unknown as Lote;
+    mockLoteRepo.find.mockResolvedValue([loteExpirado]);
 
-    // Acessa o método privado executar via cast de any para teste
-    await (service as any).executar();
+    await (service as unknown as { executar: () => Promise<void> }).executar();
 
     expect(loteExpirado.status).toBe(LoteStatus.AGUARDANDO_INSPECAO);
     expect(mockLoteRepo.save).toHaveBeenCalledWith(loteExpirado);
@@ -42,14 +44,19 @@ describe('ProgressaoService', () => {
       ['inspetor'],
       { link: '/app/lote/1' },
     );
+    expect(mockSseService.emitir).toHaveBeenCalledWith('lote:status_alterado', {
+      id: 1,
+      status: LoteStatus.AGUARDANDO_INSPECAO,
+    });
   });
 
   it('não deve fazer nada se não houver lotes expirados', async () => {
-    mockLoteRepo.find.mockResolvedValue([] as never);
+    mockLoteRepo.find.mockResolvedValue([]);
 
-    await (service as any).executar();
+    await (service as unknown as { executar: () => Promise<void> }).executar();
 
     expect(mockLoteRepo.save).not.toHaveBeenCalled();
     expect(mockNotificacaoService.criarNotificacaoParaPerfis).not.toHaveBeenCalled();
+    expect(mockSseService.emitir).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
-  InsumosService, 
-  RegistrarEntradaForm, 
-  CriarInsumoEstoquePayload, 
-  OrdenacaoEstoque 
+import {
+  InsumosService,
+  RegistrarEntradaForm,
+  CriarInsumoEstoquePayload,
+  OrdenacaoEstoque,
 } from './services/insumos.service.js';
 import { InsumosStateService } from './services/insumos-state.service.js';
 import { AuthService } from '../../core/services/auth.service.js';
@@ -104,7 +104,8 @@ export class Insumos {
     this.salvandoMp.set(true);
     this.erroMp.set(null);
 
-    this.insumosService.criarMateriaPrima(payload)
+    this.insumosService
+      .criarMateriaPrima(payload)
       .pipe(finalize(() => this.salvandoMp.set(false)))
       .subscribe({
         next: () => {
@@ -123,7 +124,8 @@ export class Insumos {
 
     const formattedPayload = this.montarPayloadEntradaEstoque(payload);
 
-    this.insumosService.create(formattedPayload)
+    this.insumosService
+      .create(formattedPayload)
       .pipe(finalize(() => this.salvandoEstoque.set(false)))
       .subscribe({
         next: () => {
@@ -147,7 +149,9 @@ export class Insumos {
     this.insumosService.createBulk(payload).subscribe({
       next: (lotes) => {
         this.state.lotesReceberResource.reload();
-        this.toastService.success(`Pedido realizado! ${lotes.length} lotes estão a caminho.`);
+        this.toastService.success(
+          `Pedido realizado! ${lotes.length} lotes estão a caminho.`,
+        );
       },
       error: (err) => {
         this.toastService.error(err.error?.message || 'Erro ao processar o pedido.');
@@ -177,7 +181,9 @@ export class Insumos {
     };
   }
 
-  private montarPayloadEntradaEstoque(payload: RegistrarEntradaForm): CriarInsumoEstoquePayload {
+  private montarPayloadEntradaEstoque(
+    payload: RegistrarEntradaForm,
+  ): CriarInsumoEstoquePayload {
     return {
       materia_prima_id: Number(payload.materia_prima_id),
       numero_lote_fornecedor: payload.numero_lote_fornecedor,

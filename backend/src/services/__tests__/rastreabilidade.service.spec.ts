@@ -1,15 +1,16 @@
 import { jest } from '@jest/globals';
-import { AppError } from '../../errors/AppError.js';
 import { PerfilUsuario } from '../../entities/Usuario.js';
 import type { Requisitante } from '../../utils/auth.utils.js';
-
-type JestMock = ReturnType<typeof jest.fn>;
+import type { Repository } from 'typeorm';
+import type { Lote } from '../../entities/Lote.js';
+import type { ConsumoInsumo } from '../../entities/ConsumoInsumo.js';
+import type { InsumoEstoque } from '../../entities/InsumoEstoque.js';
 
 const mockLoteRepo = { createQueryBuilder: jest.fn() };
 const mockInsumoRepo = { createQueryBuilder: jest.fn(), findOne: jest.fn() };
 const mockConsumoRepo = { createQueryBuilder: jest.fn() };
 
-const mockAppDataSource = {
+const mockappDataSource = {
   getRepository: jest.fn((entity: { name?: string } | string | unknown) => {
     const name = (entity as { name?: string }).name || (entity as string);
     if (name === 'Lote') return mockLoteRepo;
@@ -19,33 +20,42 @@ const mockAppDataSource = {
   }),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: mockAppDataSource,
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
+  appDataSource: mockappDataSource,
 }));
 
-const { RastreabilidadeService } = await import('../rastreabilidade.service.js');
+const { RastreabilidadeService: rastreabilidadeService } =
+  await import('../rastreabilidade.service.js');
 
 describe('RastreabilidadeService', () => {
-  let service: InstanceType<typeof RastreabilidadeService>;
+  let service: InstanceType<typeof rastreabilidadeService>;
   const req: Requisitante = { id: 1, perfil: PerfilUsuario.GESTOR };
   const query = { pagina: 1, limite: 10 };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new RastreabilidadeService();
+    service = new rastreabilidadeService(
+      mockLoteRepo as unknown as Repository<Lote>,
+      mockConsumoRepo as unknown as Repository<ConsumoInsumo>,
+      mockInsumoRepo as unknown as Repository<InsumoEstoque>,
+    );
   });
 
   describe('consultar', () => {
-
     it('deve chamar consultarPorLote quando o termo inicia com LOT-', async () => {
       const mockQB = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockResolvedValue({ id: 1, numero_lote: 'LOT-123' }),
+        getOne: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve({ id: 1, numero_lote: 'LOT-123' })),
       };
-      mockLoteRepo.createQueryBuilder.mockReturnValue(mockQB as any);
+      mockLoteRepo.createQueryBuilder.mockReturnValue(mockQB as unknown);
 
-      const result = await service.consultar('LOT-123', query, req);
+      const result = (await service.consultar('LOT-123', query, req)) as unknown as {
+        tipo: 'lote';
+        resultado: { numero_lote: string };
+      };
 
       expect(result.tipo).toBe('lote');
       expect(result.resultado.numero_lote).toBe('LOT-123');
@@ -53,33 +63,48 @@ describe('RastreabilidadeService', () => {
 
     it('deve chamar consultarPorInsumo quando o termo NÃO inicia com LOT-', async () => {
       // Mock para verificar se insumo existe
-      mockInsumoRepo.findOne.mockResolvedValue({ id: 10, numero_lote_interno: 'INS-123' });
+      (mockInsumoRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({ id: 10, numero_lote_interno: 'INS-123' }),
+      );
 
       // Mock para contagem (subquery)
       const mockQBCount = {
         select: jest.fn().mockReturnThis(),
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([{ lote_id: 1 }]),
+        getRawMany: jest.fn().mockImplementation(() => Promise.resolve([{ lote_id: 1 }])),
       };
       // Mock para busca real
       const mockQBData = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          {
-            lote: { id: 1, numero_lote: 'L-1', produto: { nome: 'P' }, data_producao: new Date() },
-            insumoEstoque: { materiaPrima: { nome: 'MP' }, numero_lote_interno: 'INS-1' },
-          },
-        ]),
+        getMany: jest.fn().mockImplementation(() =>
+          Promise.resolve([
+            {
+              lote: {
+                id: 1,
+                numero_lote: 'L-1',
+                produto: { nome: 'P' },
+                data_producao: new Date(),
+              },
+              insumoEstoque: {
+                materiaPrima: { nome: 'MP' },
+                numero_lote_interno: 'INS-1',
+              },
+            },
+          ]),
+        ),
       };
 
       mockConsumoRepo.createQueryBuilder
-        .mockReturnValueOnce(mockQBCount as any)
-        .mockReturnValueOnce(mockQBData as any);
+        .mockReturnValueOnce(mockQBCount as unknown)
+        .mockReturnValueOnce(mockQBData as unknown);
 
-      const result = await service.consultar('INS-123', query, req);
+      const result = (await service.consultar('INS-123', query, req)) as unknown as {
+        tipo: 'insumo';
+        resultado: { itens: unknown[] };
+      };
 
       expect(result.tipo).toBe('insumo');
       expect(result.resultado.itens.length).toBe(1);
@@ -89,9 +114,9 @@ describe('RastreabilidadeService', () => {
       const mockQB = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockResolvedValue(null),
+        getOne: jest.fn().mockImplementation(() => Promise.resolve(null)),
       };
-      mockLoteRepo.createQueryBuilder.mockReturnValue(mockQB as any);
+      mockLoteRepo.createQueryBuilder.mockReturnValue(mockQB as unknown);
 
       await expect(service.consultar('LOT-999', query, req)).rejects.toThrow(
         /Nenhum lote encontrado/,

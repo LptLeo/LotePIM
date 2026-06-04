@@ -12,7 +12,7 @@ export class ProdutoFilterButtonComponent {
   @Input({ required: true }) label!: string;
   @Input({ required: true }) count!: number | string;
   @Input({ required: true }) active!: boolean;
-  @Input() isWarning: boolean = false;
+  @Input() isWarning = false;
 
   @Output() action = new EventEmitter<string>();
 }

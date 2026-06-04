@@ -4,7 +4,11 @@ import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface SseEvento {
-  tipo: 'insumo:criado' | 'insumo:status_alterado' | 'lote:criado' | 'lote:status_alterado';
+  tipo:
+    | 'insumo:criado'
+    | 'insumo:status_alterado'
+    | 'lote:criado'
+    | 'lote:status_alterado';
   dados: { id: number; status?: string };
 }
 

@@ -25,8 +25,8 @@ export class PaginationComponent {
     const current = Number(this.meta.paginaAtual);
     const range = 2; // Quantas páginas mostrar antes/depois da atual
 
-    let start = Math.max(1, current - range);
-    let end = Math.min(total, current + range);
+    const start = Math.max(1, current - range);
+    const end = Math.min(total, current + range);
 
     const pagesArr: (number | string)[] = [];
 

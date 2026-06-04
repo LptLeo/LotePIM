@@ -1,7 +1,7 @@
-// ──────────────────────────────────────────────
+//
 // Modelos compartilhados — tipagem explícita
 // Cada interface reflete exatamente o contrato da API
-// ──────────────────────────────────────────────
+//
 
 export type LoteStatus =
   | 'em_producao'
@@ -12,7 +12,7 @@ export type LoteStatus =
 
 export type InsumoEstoqueStatus = 'a_caminho' | 'pendente' | 'disponivel';
 
-// ── Entidades Base ──
+//  Entidades Base
 
 export interface MateriaPrima {
   id: number;
@@ -79,7 +79,7 @@ export interface Inspecao {
   inspetor: Operador;
 }
 
-// ── Lote de Produção ──
+//  Lote de Produção
 
 export interface LoteDetalhe {
   id: number;
@@ -98,7 +98,7 @@ export interface LoteDetalhe {
   inspecao: Inspecao | null;
 }
 
-// ── Sugestão de Busca ──
+//  Sugestão de Busca
 
 export interface SugestaoItem {
   tipo: 'lote' | 'produto';
@@ -108,7 +108,7 @@ export interface SugestaoItem {
   status?: LoteStatus;
 }
 
-// ── DTOs de Operação ──
+//  DTOs de Operação
 
 export interface CriarLoteConsumoDTO {
   insumo_estoque_id: number;
@@ -130,9 +130,9 @@ export interface RegistrarInspecaoDTO {
   descricao_desvio?: string;
 }
 
-// ──────────────────────────────────────────────
+//
 // Helpers de status
-// ──────────────────────────────────────────────
+//
 
 export interface StatusConfig {
   label: string;

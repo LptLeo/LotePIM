@@ -5,7 +5,7 @@ import { map, take } from 'rxjs';
 
 /**
  * Guard que protege rotas baseadas no perfil do usuário.
- * 
+ *
  * @param perfisPermitidos Lista de perfis que podem acessar a rota.
  * Nota: O perfil 'gestor' sempre tem acesso concedido.
  */

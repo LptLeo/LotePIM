@@ -1,9 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProdutosService, CriarProdutoPayload } from '../../services/produtos.service.js';
-import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
 import { finalize } from 'rxjs';
 import { rxResource } from '@angular/core/rxjs-interop';
 
@@ -13,7 +12,12 @@ import { WizardReceitaComponent } from './components/wizard-receita/wizard-recei
 @Component({
   selector: 'app-produto-novo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, WizardBaseComponent, WizardReceitaComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    WizardBaseComponent,
+    WizardReceitaComponent,
+  ],
   templateUrl: './produto-novo.html',
 })
 export class ProdutoNovo {
@@ -28,22 +32,25 @@ export class ProdutoNovo {
   erro = signal<string | null>(null);
 
   categoriasResource = rxResource({
-    stream: () => this.produtosService.getCategorias(),
+    stream: () => this.produtosService.listarCategorias(),
   });
 
   mpsResource = rxResource({
-    stream: () => this.produtosService.getMateriasPrimas(),
+    stream: () => this.produtosService.listarMateriasPrimas(),
   });
 
   categoriasExistentes = computed(() => this.categoriasResource.value() || []);
   materiasPrimas = computed(() => this.mpsResource.value() || []);
 
-  // ─── Formulário da Etapa 1: Dados Base ───
+  //  Formulário da Etapa 1: Dados Base
   formBase = this.fb.nonNullable.group({
     nome: ['', [Validators.required, Validators.minLength(2)]],
     categoria: ['', [Validators.required]],
     linha_padrao: ['Linha A', [Validators.required]],
-    percentual_ressalva: [10, [Validators.required, Validators.min(0), Validators.max(100)]],
+    percentual_ressalva: [
+      10,
+      [Validators.required, Validators.min(0), Validators.max(100)],
+    ],
     ativo: [true],
   });
 
@@ -62,12 +69,14 @@ export class ProdutoNovo {
     return `PRD-${base}`;
   });
 
-  // ─── Formulário da Etapa 2: Receita ───
+  //  Formulário da Etapa 2: Receita
   receitaArray = this.fb.array<FormGroup>([]);
 
   /** Matérias-primas já adicionadas à receita (IDs) */
   mpIdsNaReceita = computed(() => {
-    return this.receitaArray.controls.map((fg) => fg.get('materia_prima_id')?.value as number);
+    return this.receitaArray.controls.map(
+      (fg) => fg.get('materia_prima_id')?.value as number,
+    );
   });
 
   /** Matérias-primas disponíveis para adicionar (filtradas) */
@@ -76,7 +85,7 @@ export class ProdutoNovo {
     return this.materiasPrimas().filter((mp) => !idsUsados.includes(mp.id));
   });
 
-  // ─── Navegação do Wizard ───
+  //  Navegação do Wizard
 
   avancarEtapa(): void {
     if (this.formBase.invalid) {
@@ -90,7 +99,7 @@ export class ProdutoNovo {
     this.etapaAtual.set(1);
   }
 
-  // ─── Manipulação da Receita ───
+  //  Manipulação da Receita
 
   adicionarItemReceita(materiaPrimaId: number): void {
     const mpId = Number(materiaPrimaId);
@@ -128,7 +137,7 @@ export class ProdutoNovo {
     this.receitaArray.removeAt(index);
   }
 
-  // ─── Submit Final ───
+  //  Submit Final
 
   voltarParaLista(): void {
     this.router.navigate(['/app/produtos']);
@@ -159,11 +168,12 @@ export class ProdutoNovo {
     };
 
     this.produtosService
-      .criarProduto(payload)
+      .criar(payload)
       .pipe(finalize(() => this.salvando.set(false)))
       .subscribe({
         next: () => this.router.navigate(['/app/produtos']),
-        error: (err) => this.erro.set(err.error?.message || 'Não foi possível salvar o produto.'),
+        error: (err) =>
+          this.erro.set(err.error?.message || 'Não foi possível salvar o produto.'),
       });
   }
 }

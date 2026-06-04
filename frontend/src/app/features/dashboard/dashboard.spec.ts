@@ -19,7 +19,11 @@ describe('Dashboard', () => {
 
     mockConfigService = {
       settings: signal({
-        dashboard: { lotesComparacao: 'mes', unidadesComparacao: 'mes', taxaAprovacaoAlvo: 95 },
+        dashboard: {
+          lotesComparacao: 'mes',
+          unidadesComparacao: 'mes',
+          taxaAprovacaoAlvo: 95,
+        },
       }),
     };
 

@@ -1,13 +1,13 @@
 import { jest } from '@jest/globals';
 import { AppError } from '../../errors/AppError.js';
-import { TipoNotificacao } from '../../entities/Notificacao.js';
-
-type JestMock = ReturnType<typeof jest.fn>;
+import { TipoNotificacao, type Notificacao } from '../../entities/Notificacao.js';
+import { PerfilUsuario, type Usuario } from '../../entities/Usuario.js';
+import type { Repository } from 'typeorm';
 
 const mockNotifRepo = { find: jest.fn(), findOne: jest.fn(), save: jest.fn() };
 const mockUserRepo = { createQueryBuilder: jest.fn() };
 
-const mockAppDataSource = {
+const mockappDataSource = {
   getRepository: jest.fn((entity: { name?: string } | string | unknown) => {
     const name = (entity as { name?: string }).name || (entity as string);
     if (name === 'Notificacao') return mockNotifRepo;
@@ -16,30 +16,41 @@ const mockAppDataSource = {
   }),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: mockAppDataSource,
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
+  appDataSource: mockappDataSource,
 }));
 
-const { NotificacaoService } = await import('../notificacao.service.js');
+const { NotificacaoService: notificacaoService } =
+  await import('../notificacao.service.js');
 
 describe('NotificacaoService', () => {
-  let service: InstanceType<typeof NotificacaoService>;
+  let service: InstanceType<typeof notificacaoService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new NotificacaoService();
+    service = new notificacaoService(
+      mockNotifRepo as unknown as Repository<Notificacao>,
+      mockUserRepo as unknown as Repository<Usuario>,
+    );
   });
 
   describe('marcarComoLida', () => {
     it('deve lançar erro se a notificação não existir para o usuário', async () => {
-      mockNotifRepo.findOne.mockResolvedValue(null as never);
-      await expect(service.marcarComoLida(1, 10)).rejects.toThrow('Notificação não encontrada.');
+      (mockNotifRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(null),
+      );
+
+      await expect(service.marcarComoLida(1, 10)).rejects.toThrow(AppError);
     });
 
-    it('deve marcar como lida e salvar', async () => {
+    it('deve marcar a notificação como lida', async () => {
       const mockNotif = { id: 1, lida: false };
-      mockNotifRepo.findOne.mockResolvedValue(mockNotif as never);
-      mockNotifRepo.save.mockResolvedValue({ ...mockNotif, lida: true } as never);
+      (mockNotifRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(mockNotif),
+      );
+      (mockNotifRepo.save as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({ ...mockNotif, lida: true }),
+      );
 
       const result = await service.marcarComoLida(1, 10);
       expect(result.lida).toBe(true);
@@ -52,11 +63,13 @@ describe('NotificacaoService', () => {
       const mockUsers = [{ id: 1 }, { id: 2 }];
       const mockQB = {
         where: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(mockUsers),
+        getMany: jest.fn().mockImplementation(() => Promise.resolve(mockUsers)),
       };
       mockUserRepo.createQueryBuilder.mockReturnValue(mockQB);
 
-      await service.criarNotificacaoParaPerfis('Mensagem', TipoNotificacao.SISTEMA, ['gestor']);
+      await service.criarNotificacaoParaPerfis('Mensagem', TipoNotificacao.SISTEMA, [
+        PerfilUsuario.GESTOR,
+      ]);
 
       expect(mockNotifRepo.save).toHaveBeenCalledWith(
         expect.arrayContaining([

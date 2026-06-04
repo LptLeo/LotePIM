@@ -1,7 +1,17 @@
 import { Component, effect, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { MateriaPrima, InsumoEstoque } from '../../../../shared/models/lote.models.js';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import type {
+  MateriaPrima,
+  InsumoEstoque,
+} from '../../../../shared/models/lote.models.js';
 
 /** Interface para o payload que sai do modal para o componente pai */
 export interface PedidoInsumoItem {
@@ -44,8 +54,8 @@ export class PedirInsumosModalComponent {
   });
 
   constructor() {
-    /** 
-     * Reage à abertura do modal. 
+    /**
+     * Reage à abertura do modal.
      * Sempre que 'isOpen' mudar para true, reinicializamos os dados.
      */
     effect(() => {
@@ -63,11 +73,14 @@ export class PedirInsumosModalComponent {
    */
   initForm(): void {
     this.itensArray.clear();
-    
+
     this.catalogo().forEach((mp) => {
       const lotes = this.estoqueMap().get(mp.id) || [];
-      const saldoAtual = lotes.reduce((acc, lote) => acc + Number(lote.quantidade_atual), 0);
-      
+      const saldoAtual = lotes.reduce(
+        (acc, lote) => acc + Number(lote.quantidade_atual),
+        0,
+      );
+
       // Garantimos 3 casas decimais para evitar imprecisões de float
       const saldoArredondado = Math.round(saldoAtual * 1000) / 1000;
 
@@ -82,7 +95,7 @@ export class PedirInsumosModalComponent {
             validators: [Validators.required, Validators.min(0.01)],
             nonNullable: true,
           }),
-        })
+        }),
       );
     });
   }
@@ -96,17 +109,17 @@ export class PedirInsumosModalComponent {
    */
   onConfirm(): void {
     const todosItens = this.itensArray.getRawValue();
-    
+
     const selecionados: PedidoInsumoItem[] = todosItens
-      .filter(item => item.selecionado)
-      .map(item => ({
+      .filter((item) => item.selecionado)
+      .map((item) => ({
         materia_prima_id: item.materia_prima_id,
         quantidade: item.quantidade,
         nome: item.nome,
       }));
 
     if (selecionados.length === 0) return;
-    
+
     this.confirm.emit(selecionados);
   }
 }

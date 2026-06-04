@@ -45,7 +45,8 @@ export class InsumoNovo implements OnInit {
     // Carregar catálogo
     this.insumosService.getMateriasPrimas().subscribe({
       next: (mp: MateriaPrima[]) => this.materiasPrimasExistentes.set(mp),
-      error: (e: Error) => this.erro.set(e.message || 'Falha ao carregar catálogo de matérias-primas.'),
+      error: (e: Error) =>
+        this.erro.set(e.message || 'Falha ao carregar catálogo de matérias-primas.'),
     });
   }
 

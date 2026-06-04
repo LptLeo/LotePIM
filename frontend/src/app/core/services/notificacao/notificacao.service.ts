@@ -49,11 +49,15 @@ export class NotificacaoService implements OnDestroy {
   }
 
   marcarComoLida(id: number) {
-    this.http.patch<Notificacao>(`${this.API_URL}/${id}/lida`, {}).subscribe((atualizada) => {
-      const atualizadas = this.notificacoes().map((n) => (n.id === id ? atualizada : n));
-      this.notificacoes.set(atualizadas);
-      this.atualizarContagem(atualizadas);
-    });
+    this.http
+      .patch<Notificacao>(`${this.API_URL}/${id}/lida`, {})
+      .subscribe((atualizada) => {
+        const atualizadas = this.notificacoes().map((n) =>
+          n.id === id ? atualizada : n,
+        );
+        this.notificacoes.set(atualizadas);
+        this.atualizarContagem(atualizadas);
+      });
   }
 
   private atualizarContagem(lista: Notificacao[]) {

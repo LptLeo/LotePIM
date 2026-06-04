@@ -1,7 +1,12 @@
 import { Component, computed, inject, signal, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -68,12 +73,18 @@ export class LoteDetail {
 
   /** Formulário de inspeção tipado */
   formInspecao = this.fb.nonNullable.group<InspecaoFormGroup>({
-    quantidade_reprovada: this.fb.nonNullable.control(0, [Validators.required, Validators.min(0)]),
+    quantidade_reprovada: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(0),
+    ]),
     descricao_desvio: this.fb.nonNullable.control(''),
   });
 
   /** Signal vinculado diretamente ao valor do input do formulário */
-  qtdReprovadaInput = toSignal(this.formInspecao.controls.quantidade_reprovada.valueChanges, { initialValue: 0 });
+  qtdReprovadaInput = toSignal(
+    this.formInspecao.controls.quantidade_reprovada.valueChanges,
+    { initialValue: 0 },
+  );
 
   constructor() {
     /**
@@ -98,9 +109,7 @@ export class LoteDetail {
     this.sseService.eventos$
       .pipe(
         takeUntilDestroyed(),
-        filter(
-          (e) => e.tipo === 'lote:status_alterado' && e.dados.id === this.loteId(),
-        ),
+        filter((e) => e.tipo === 'lote:status_alterado' && e.dados.id === this.loteId()),
       )
       .subscribe(() => this.loteResource.reload());
   }
@@ -152,7 +161,10 @@ export class LoteDetail {
           this.formInspecao.reset();
           this.loteResource.reload();
         },
-        error: (err) => this.erroInspecao.set(err.error?.message || 'Não foi possível registrar a inspeção.'),
+        error: (err) =>
+          this.erroInspecao.set(
+            err.error?.message || 'Não foi possível registrar a inspeção.',
+          ),
       });
   }
 

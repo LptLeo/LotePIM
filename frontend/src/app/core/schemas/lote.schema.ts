@@ -9,11 +9,16 @@ const consumoItemSchema = z.object({
     .number()
     .int()
     .positive('Selecione um lote de estoque válido para este insumo.'),
-  quantidade_consumida: z.coerce.number().positive('A quantidade deve ser maior que zero.'),
+  quantidade_consumida: z.coerce
+    .number()
+    .positive('A quantidade deve ser maior que zero.'),
 });
 
 export const criarLoteSchema = z.object({
-  produto_id: z.coerce.number().int().positive('Selecione um produto para iniciar a produção.'),
+  produto_id: z.coerce
+    .number()
+    .int()
+    .positive('Selecione um produto para iniciar a produção.'),
 
   data_producao: z.string().min(1, 'A data de produção é obrigatória.'),
 
@@ -28,7 +33,10 @@ export const criarLoteSchema = z.object({
 
   sem_validade: z.boolean().optional(),
 
-  observacoes: z.string().max(1000, 'A observação deve ter no máximo 1000 caracteres.').optional(),
+  observacoes: z
+    .string()
+    .max(1000, 'A observação deve ter no máximo 1000 caracteres.')
+    .optional(),
 
   consumos: z
     .array(consumoItemSchema)

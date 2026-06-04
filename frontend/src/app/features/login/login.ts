@@ -46,7 +46,9 @@ export class Login {
           return;
         }
 
-        this.errorMessage.set(err.error?.message || 'Ocorreu um erro inesperado ao fazer login.');
+        this.errorMessage.set(
+          err.error?.message || 'Ocorreu um erro inesperado ao fazer login.',
+        );
       },
     });
   }

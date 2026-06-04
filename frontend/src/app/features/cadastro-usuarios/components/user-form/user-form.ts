@@ -1,8 +1,19 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors, FormControl, FormGroup } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+  FormControl,
+  FormGroup,
+} from '@angular/forms';
 import { TextInputFieldComponent } from '../../../../shared/components/form-controls/text-input-field/text-input-field.js';
-import { SelectFieldComponent, SelectOption } from '../../../../shared/components/form-controls/select-field/select-field.js';
+import {
+  SelectFieldComponent,
+  SelectOption,
+} from '../../../../shared/components/form-controls/select-field/select-field.js';
 import { CheckboxFieldComponent } from '../../../../shared/components/form-controls/checkbox-field/checkbox-field.js';
 import { PasswordFieldComponent } from '../../../../shared/components/form-controls/password-field/password-field.js';
 import { ConfiguracoesGlobaisService } from '../../../../core/services/configuracoes-globais/configuracoes-globais.service.js';
@@ -30,7 +41,6 @@ export interface UserFormControls {
   ],
   templateUrl: './user-form.html',
 })
-
 export class UserFormComponent {
   private fb = inject(FormBuilder);
   private configuracoesGlobais = inject(ConfiguracoesGlobaisService);
@@ -48,14 +58,20 @@ export class UserFormComponent {
   submitted = signal(false);
 
   // Criação do formulário diretamente aqui (mais simples e isolado)
-  form: FormGroup<UserFormControls> = this.fb.nonNullable.group({
-    nome: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    perfil: ['operador', [Validators.required]],
-    senha: ['', [Validators.required, Validators.minLength(this.config().minLengthSenha)]],
-    confirmarSenha: ['', [Validators.required]],
-    ativo: [true],
-  }, { validators: [this.validarSenhasIguais] }) as FormGroup<UserFormControls>; // Validação de formulario inteiro.
+  form: FormGroup<UserFormControls> = this.fb.nonNullable.group(
+    {
+      nome: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      perfil: ['operador', [Validators.required]],
+      senha: [
+        '',
+        [Validators.required, Validators.minLength(this.config().minLengthSenha)],
+      ],
+      confirmarSenha: ['', [Validators.required]],
+      ativo: [true],
+    },
+    { validators: [this.validarSenhasIguais] },
+  ) as FormGroup<UserFormControls>; // Validação de formulario inteiro.
 
   // Ação de clique no botão Cadastrar
   enviarFormulario(): void {
@@ -82,7 +98,8 @@ export class UserFormComponent {
   gerarSenhaVinculada = this.gerarSenhaAleatoria.bind(this);
 
   gerarSenhaAleatoria(): void {
-    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
+    const caracteres =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
     let senhaGerada = '';
     const tamanho = this.config().tamanhoSenhaGerada || 12;
 

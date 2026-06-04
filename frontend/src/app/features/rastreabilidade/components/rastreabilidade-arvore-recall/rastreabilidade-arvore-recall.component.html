@@ -32,15 +32,18 @@
       </div>
       <p class="text-[12px] text-[#ADAAAA]">
         Este insumo foi utilizado em
-        <span class="text-white font-bold">{{ resultadoInsumos.length }}</span> lote(s) de produção
-        abaixo.
+        <span class="text-white font-bold">{{ resultadoInsumos.length }}</span> lote(s) de
+        produção abaixo.
       </p>
     </div>
   </div>
 
   <!-- Conector -->
   <div @lineGrow class="w-px h-12 bg-gradient-to-b from-red-500/40 to-red-500/10"></div>
-  <div @fadeScale class="text-[9px] font-bold uppercase tracking-[2px] text-red-400/60 mb-3">
+  <div
+    @fadeScale
+    class="text-[9px] font-bold uppercase tracking-[2px] text-red-400/60 mb-3"
+  >
     Lotes Afetados
   </div>
 
@@ -55,7 +58,9 @@
             <div class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">
               Lote de Produção
             </div>
-            <div class="font-mono font-bold text-white text-sm">{{ lote.numero_lote }}</div>
+            <div class="font-mono font-bold text-white text-sm">
+              {{ lote.numero_lote }}
+            </div>
           </div>
           <span
             class="text-[9px] font-bold uppercase px-2 py-0.5 rounded border"
@@ -77,7 +82,9 @@
             <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider"
               >Data Produção</span
             >
-            <span class="text-[11px] text-[#ADAAAA]">{{ formatarData(lote.data_producao) }}</span>
+            <span class="text-[11px] text-[#ADAAAA]">{{
+              formatarData(lote.data_producao)
+            }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider"
@@ -86,20 +93,27 @@
             <span class="text-[11px] text-white">{{ lote.operador_nome }}</span>
           </div>
           @for (ins of lote.insumos_correspondentes; track ins.lote_interno) {
-            <div class="flex justify-between items-center pt-2 border-t border-red-500/10">
+            <div
+              class="flex justify-between items-center pt-2 border-t border-red-500/10"
+            >
               <span class="text-[9px] text-red-400/70 uppercase font-bold tracking-wider"
                 >Qtd. Usada</span
               >
               <span class="text-sm font-bold text-red-300"
-                >{{ ins.quantidade }} <span class="text-[#6B7280] text-[9px]">un.</span></span
+                >{{ ins.quantidade }}
+                <span class="text-[#6B7280] text-[9px]">un.</span></span
               >
             </div>
           }
         </div>
       </div>
     } @empty {
-      <div class="col-span-full p-10 bg-[#131313] border border-[#484847]/30 rounded-xl text-center">
-        <p class="text-[#ADAAAA] text-sm">Este insumo ainda não foi utilizado em nenhum lote de produção.</p>
+      <div
+        class="col-span-full p-10 bg-[#131313] border border-[#484847]/30 rounded-xl text-center"
+      >
+        <p class="text-[#ADAAAA] text-sm">
+          Este insumo ainda não foi utilizado em nenhum lote de produção.
+        </p>
       </div>
     }
   </div>

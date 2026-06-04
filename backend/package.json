@@ -16,6 +16,7 @@
     "test:integration": "NODE_OPTIONS=--experimental-vm-modules cross-env NODE_ENV=test jest --testPathPatterns=src/routes/__tests__ --runInBand --forceExit --detectOpenHandles",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
   },
   "keywords": [],

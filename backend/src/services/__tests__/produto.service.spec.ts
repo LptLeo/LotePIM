@@ -1,15 +1,23 @@
 import { jest } from '@jest/globals';
 import { AppError } from '../../errors/AppError.js';
-import { PerfilUsuario } from '../../entities/Usuario.js';
+import { PerfilUsuario, type Usuario } from '../../entities/Usuario.js';
+import type { DataSource, Repository } from 'typeorm';
+import type { Produto } from '../../entities/Produto.js';
+import type { ReceitaItem } from '../../entities/ReceitaItem.js';
+import type { MateriaPrima } from '../../entities/MateriaPrima.js';
 import type { Requisitante } from '../../utils/auth.utils.js';
-
-type JestMock = ReturnType<typeof jest.fn>;
+import type { NotificacaoService } from '../../services/notificacao.service.js';
 
 const mockProdutoRepo = { findOneBy: jest.fn(), findOne: jest.fn(), save: jest.fn() };
 const mockReceitaRepo = { delete: jest.fn(), save: jest.fn() };
 const mockMpRepo = { findOneBy: jest.fn() };
 const mockUserRepo = { findOneBy: jest.fn() };
-const mockManager = { create: jest.fn(), save: jest.fn(), findOne: jest.fn(), delete: jest.fn() };
+const mockManager = {
+  create: jest.fn(),
+  save: jest.fn(),
+  findOne: jest.fn(),
+  delete: jest.fn(),
+};
 
 const mockAppDataSource = {
   getRepository: jest.fn((entity: { name?: string } | string | unknown) => {
@@ -20,11 +28,13 @@ const mockAppDataSource = {
     if (name === 'Usuario') return mockUserRepo;
     return {};
   }),
-  transaction: jest.fn(async (cb: (em: typeof mockManager) => Promise<unknown>) => await cb(mockManager)),
+  transaction: jest.fn(
+    async (cb: (em: typeof mockManager) => Promise<unknown>) => await cb(mockManager),
+  ),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: mockAppDataSource,
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
+  appDataSource: mockAppDataSource,
 }));
 
 jest.unstable_mockModule('../notificacao.service.js', () => ({
@@ -33,15 +43,24 @@ jest.unstable_mockModule('../notificacao.service.js', () => ({
   })),
 }));
 
-const { ProdutoService } = await import('../produto.service.js');
+const { ProdutoService: produtoService } = await import('../produto.service.js');
 
 describe('ProdutoService', () => {
-  let service: InstanceType<typeof ProdutoService>;
+  let service: InstanceType<typeof produtoService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUserRepo.findOneBy.mockResolvedValue({ id: 1 } as never);
-    service = new ProdutoService();
+    mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve({ id: 1 }));
+    service = new produtoService({
+      produtoRepo: mockProdutoRepo as unknown as Repository<Produto>,
+      receitaRepo: mockReceitaRepo as unknown as Repository<ReceitaItem>,
+      mpRepo: mockMpRepo as unknown as Repository<MateriaPrima>,
+      usuarioRepo: mockUserRepo as unknown as Repository<Usuario>,
+      dataSource: mockAppDataSource as unknown as DataSource,
+      notificacaoService: {
+        criarNotificacaoParaPerfis: jest.fn(),
+      } as unknown as NotificacaoService,
+    });
   });
 
   describe('criar', () => {
@@ -56,33 +75,40 @@ describe('ProdutoService', () => {
     };
 
     it('deve lançar erro se o criador não for encontrado', async () => {
-      (mockUserRepo.findOneBy as JestMock).mockResolvedValue(null);
+      mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
 
       await expect(service.criar(dtoMock, requisitanteMock)).rejects.toThrow(AppError);
       await expect(service.criar(dtoMock, requisitanteMock)).rejects.toThrow(
-        'Criador não encontrado.',
+        'Criador não encontrado(a).',
       );
     });
 
     it('deve lançar erro se a matéria prima não for encontrada', async () => {
-      (mockMpRepo.findOneBy as JestMock).mockResolvedValue(null);
-      (mockManager.save as JestMock).mockResolvedValueOnce({ id: 10 });
+      mockMpRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
+      mockManager.save.mockImplementation(() => Promise.resolve({ id: 10 }));
 
       await expect(service.criar(dtoMock, requisitanteMock)).rejects.toThrow(AppError);
       await expect(service.criar(dtoMock, requisitanteMock)).rejects.toThrow(
-        'Matéria-prima ID 100 não encontrada.',
+        'Matéria-prima ID 100 não encontrado(a).',
       );
     });
 
     it('deve criar o produto e receita com sucesso', async () => {
-      (mockMpRepo.findOneBy as JestMock).mockResolvedValue({ id: 100, nome: 'MP 1' });
+      mockMpRepo.findOneBy.mockImplementation(() =>
+        Promise.resolve({ id: 100, nome: 'MP 1' }),
+      );
 
       const produtoSalvoMock = { id: 10, nome: 'Produto Teste' };
-      (mockManager.create as JestMock).mockReturnValue(produtoSalvoMock);
-      (mockManager.save as JestMock).mockResolvedValue(produtoSalvoMock);
+      mockManager.create.mockReturnValue(produtoSalvoMock);
+      mockManager.save.mockImplementation(() => Promise.resolve(produtoSalvoMock));
 
-      const produtoCompletoMock = { id: 10, nome: 'Produto Teste', sku: 'PRD-PRODUTOTESTE', receita: [] };
-      (mockManager.findOne as JestMock).mockResolvedValue(produtoCompletoMock);
+      const produtoCompletoMock = {
+        id: 10,
+        nome: 'Produto Teste',
+        sku: 'PRD-PRODUTOTESTE',
+        receita: [],
+      };
+      mockManager.findOne.mockImplementation(() => Promise.resolve(produtoCompletoMock));
 
       const result = await service.criar(dtoMock, requisitanteMock);
 
@@ -96,8 +122,10 @@ describe('ProdutoService', () => {
     const requisitanteMock: Requisitante = { id: 1, perfil: PerfilUsuario.GESTOR };
 
     it('deve lançar erro se o produto não for encontrado', async () => {
-      (mockProdutoRepo.findOneBy as JestMock).mockResolvedValue(null);
-      await expect(service.alternarStatus(1, false, requisitanteMock)).rejects.toThrow(AppError);
+      mockProdutoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
+      await expect(service.alternarStatus(1, false, requisitanteMock)).rejects.toThrow(
+        AppError,
+      );
       await expect(service.alternarStatus(1, false, requisitanteMock)).rejects.toThrow(
         'Produto não encontrado.',
       );
@@ -105,10 +133,12 @@ describe('ProdutoService', () => {
 
     it('deve alterar o status e retornar o produto atualizado', async () => {
       const produtoMock = { id: 1, ativo: true };
-      (mockProdutoRepo.findOneBy as JestMock).mockResolvedValue(produtoMock);
+      mockProdutoRepo.findOneBy.mockImplementation(() => Promise.resolve(produtoMock));
 
       const produtoAtualizadoMock = { id: 1, ativo: false };
-      (mockProdutoRepo.findOne as JestMock).mockResolvedValue(produtoAtualizadoMock);
+      mockProdutoRepo.findOne.mockImplementation(() =>
+        Promise.resolve(produtoAtualizadoMock),
+      );
 
       const result = await service.alternarStatus(1, false, requisitanteMock);
 

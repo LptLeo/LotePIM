@@ -48,9 +48,15 @@ export class Dashboard {
   lotesProduzidos = computed(() => this.dashboardResource.value()?.lotes_mes ?? 0);
   lotesTendencia = computed(() => this.dashboardResource.value()?.lotes_tendencia ?? 0);
   unidadesProduzidas = computed(() => this.dashboardResource.value()?.unidades_mes ?? 0);
-  unidadesTendencia = computed(() => this.dashboardResource.value()?.unidades_tendencia ?? 0);
-  taxaDeAprovacaoMes = computed(() => this.dashboardResource.value()?.taxa_aprovacao_mes ?? 0);
-  lotesEmAberto = computed(() => this.dashboardResource.value()?.aguardando_inspecao ?? 0);
+  unidadesTendencia = computed(
+    () => this.dashboardResource.value()?.unidades_tendencia ?? 0,
+  );
+  taxaDeAprovacaoMes = computed(
+    () => this.dashboardResource.value()?.taxa_aprovacao_mes ?? 0,
+  );
+  lotesEmAberto = computed(
+    () => this.dashboardResource.value()?.aguardando_inspecao ?? 0,
+  );
   ultimosLotes = computed(() => this.dashboardResource.value()?.ultimos_lotes ?? []);
   dataGeracao = new Date();
 
@@ -105,7 +111,7 @@ export class Dashboard {
 
     const doc = new jsPDF();
 
-    // ── Cabeçalho e Estética Geral ──
+    //  Cabeçalho e Estética Geral
     doc.setFillColor(13, 13, 13); // Fundo escuro como o sistema
     doc.rect(0, 0, 210, 40, 'F');
 
@@ -126,7 +132,7 @@ export class Dashboard {
     doc.setDrawColor(72, 72, 71);
     doc.line(14, 45, 196, 45);
 
-    // ── Métricas de Desempenho ──
+    //  Métricas de Desempenho
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text('RESUMO DE PRODUÇÃO', 14, 55);
@@ -161,7 +167,7 @@ export class Dashboard {
 
     let currentY = doc.lastAutoTable.finalY + 15;
 
-    // ── Tabelas de Ranking ──
+    //  Tabelas de Ranking
     // Top Produtos e Funcionários lado a lado (ou sequenciais)
     doc.setFontSize(12);
     doc.text('RANKING DE PRODUTIVIDADE', 14, currentY);
@@ -194,7 +200,7 @@ export class Dashboard {
       currentY = doc.lastAutoTable.finalY + 15;
     }
 
-    // ── Últimos 10 Lotes ──
+    //  Últimos 10 Lotes
     if (data.ultimos_lotes && data.ultimos_lotes.length > 0) {
       if (currentY > 220) {
         doc.addPage();
@@ -225,7 +231,11 @@ export class Dashboard {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150);
-      doc.text(`Página ${i} de ${pageCount} - Gerado via Terminal de Produção LOTE PIM`, 14, 285);
+      doc.text(
+        `Página ${i} de ${pageCount} - Gerado via Terminal de Produção LOTE PIM`,
+        14,
+        285,
+      );
     }
 
     doc.save(`relatorio-executivo-lotepim-${new Date().toISOString().split('T')[0]}.pdf`);

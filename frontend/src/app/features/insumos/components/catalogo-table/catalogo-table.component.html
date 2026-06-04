@@ -52,7 +52,9 @@
             <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
               >SKU Interno</span
             >
-            <span class="font-mono text-[11px] text-[#00E5FF] truncate">{{ mp.sku_interno }}</span>
+            <span class="font-mono text-[11px] text-[#00E5FF] truncate">{{
+              mp.sku_interno
+            }}</span>
           </div>
           <div class="flex flex-col gap-1">
             <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
@@ -66,17 +68,25 @@
   </div>
 
   <!-- Desktop View: Table -->
-  <div class="hidden md:block bg-[#131313] border border-[#484847]/30 rounded-lg overflow-hidden">
+  <div
+    class="hidden md:block bg-[#131313] border border-[#484847]/30 rounded-lg overflow-hidden"
+  >
     <table class="w-full text-left">
       <thead>
         <tr class="bg-[#1A1A1A] border-b border-[#484847]/30">
-          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          <th
+            class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+          >
             Nome da MP
           </th>
-          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          <th
+            class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+          >
             SKU Interno
           </th>
-          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          <th
+            class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+          >
             Categoria
           </th>
           <th
@@ -99,9 +109,10 @@
             </td>
             <td class="py-4 px-4 text-[12px] text-[#ADAAAA]">{{ mp.categoria }}</td>
             <td class="py-4 px-4 text-right">
-              <span class="text-[11px] font-bold text-[#6B7280] bg-[#1a1a1a] px-2 py-1 rounded">{{
-                mp.unidade_medida
-              }}</span>
+              <span
+                class="text-[11px] font-bold text-[#6B7280] bg-[#1a1a1a] px-2 py-1 rounded"
+                >{{ mp.unidade_medida }}</span
+              >
             </td>
           </tr>
         }

@@ -43,7 +43,9 @@ export class AuthService {
 
   silentRefresh() {
     return this.http
-      .post<{ tokenAcesso: string }>(`${this.AUTH_URL}/refresh`, {}, { withCredentials: true })
+      .post<{
+        tokenAcesso: string;
+      }>(`${this.AUTH_URL}/refresh`, {}, { withCredentials: true })
       .pipe(
         tap((res) => this.processarSucessoAuth(res.tokenAcesso)),
         catchError((err) => {
@@ -68,9 +70,10 @@ export class AuthService {
         tap(() => {
           this.logoutLocal();
           this.router.navigate(['/login']);
-        })
-      ).subscribe();
-  };
+        }),
+      )
+      .subscribe();
+  }
 
   decodificarUsuarioDoToken(token: string): UsuarioInfo {
     // Primeiro separa o token pelo '.', depois pega a segunda parte ([1]), usa a função nativa atob que decodifica Base64
@@ -85,7 +88,7 @@ export class AuthService {
       return {
         id: jwtParteUsuario.id,
         nome: jwtParteUsuario.nome,
-        perfil: jwtParteUsuario.perfil
+        perfil: jwtParteUsuario.perfil,
       };
     } catch (err) {
       this.logoutLocal();
@@ -110,14 +113,14 @@ export class AuthService {
         next: () => {
           this._sessaoCarregada$.next();
           this._sessaoCarregada$.complete();
-        }
+        },
       }),
       catchError((err) => {
         this._sessaoCarregada$.next();
         this._sessaoCarregada$.complete();
 
         return of(null);
-      })
+      }),
     );
   }
 }

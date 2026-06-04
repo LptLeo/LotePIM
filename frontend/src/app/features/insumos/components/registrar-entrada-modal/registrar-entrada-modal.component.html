@@ -1,5 +1,7 @@
 @if (isOpen()) {
-  <div class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
+  <div
+    class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
+  >
     <div
       class="flex flex-col w-full h-full max-w-lg bg-[#0A0A0A] border-l border-[#484847]/40 shadow-2xl animate-slide-in-right"
     >
@@ -25,7 +27,11 @@
             stroke="currentColor"
             class="w-4 h-4"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -34,13 +40,17 @@
       <div class="flex-1 p-6 overflow-y-auto custom-scrollbar">
         @if (erro()) {
           <div class="mb-6 p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md">
-            <p class="text-[#fca5a5] text-[12px] font-semibold whitespace-pre-line">{{ erro() }}</p>
+            <p class="text-[#fca5a5] text-[12px] font-semibold whitespace-pre-line">
+              {{ erro() }}
+            </p>
           </div>
         }
 
         <form [formGroup]="formEstoque" class="flex flex-col gap-6">
           <div class="flex flex-col gap-2">
-            <label for="mp_select" class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
+            <label
+              for="mp_select"
+              class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
               >Matéria-Prima *</label
             >
             <div class="relative">
@@ -74,7 +84,9 @@
 
           <div class="grid grid-cols-1 gap-4 min-[425px]:grid-cols-2">
             <div class="flex flex-col gap-2">
-              <label for="lote_forn" class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
+              <label
+                for="lote_forn"
+                class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
                 >Lote do Fornecedor *</label
               >
               <input
@@ -86,7 +98,9 @@
               />
             </div>
             <div class="flex flex-col gap-2">
-              <label for="fornecedor_input" class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
+              <label
+                for="fornecedor_input"
+                class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
                 >Fornecedor *</label
               >
               <input
@@ -101,7 +115,9 @@
 
           <div class="grid grid-cols-1 gap-4 min-[425px]:grid-cols-2">
             <div class="flex flex-col gap-2">
-              <label for="qtd_inicial" class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
+              <label
+                for="qtd_inicial"
+                class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
                 >Quantidade Inicial *</label
               >
               <div class="flex">
@@ -129,7 +145,9 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label for="turno_select" class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
+              <label
+                for="turno_select"
+                class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
                 >Turno de Recebimento *</label
               >
               <div class="relative">
@@ -170,7 +188,8 @@
                 [class.opacity-50]="formEstoque.controls.naoAplicaValidade.value"
                 [class.pointer-events-none]="formEstoque.controls.naoAplicaValidade.value"
                 (click)="
-                  !formEstoque.controls.naoAplicaValidade.value && datePickerValidade.showPicker()
+                  !formEstoque.controls.naoAplicaValidade.value &&
+                    datePickerValidade.showPicker()
                 "
               >
                 <div
@@ -211,7 +230,9 @@
                   formControlName="naoAplicaValidade"
                   class="w-4 h-4 bg-[#131313] border border-[#484847]/80 text-[#00E5FF] rounded focus:ring-[#00E5FF] focus:ring-offset-0 focus:ring-offset-transparent"
                 />
-                <span class="text-xs text-[#ADAAAA] font-medium">N/A (Não se aplica)</span>
+                <span class="text-xs text-[#ADAAAA] font-medium"
+                  >N/A (Não se aplica)</span
+                >
               </label>
             </div>
           </div>

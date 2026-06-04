@@ -3,9 +3,7 @@ import { NgIf, DatePipe } from '@angular/common';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
-import {
-  UsuarioService,
-} from '../../core/services/usuario.service.js';
+import { UsuarioService } from '../../core/services/usuario.service.js';
 import { AuthService } from '../../core/services/auth.service.js';
 import { forkJoin, finalize } from 'rxjs';
 
@@ -29,7 +27,7 @@ export class Perfil {
         perfil: this.usuarioService.getPerfil(id),
         stats: this.usuarioService.getStats(id),
       });
-    }
+    },
   });
 
   perfil = computed(() => this.perfilResource.value()?.perfil ?? null);

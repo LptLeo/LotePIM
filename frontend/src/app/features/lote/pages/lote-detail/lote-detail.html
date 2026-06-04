@@ -1,18 +1,24 @@
-<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-6">
-  <!-- ── Estado: Carregando ── -->
+<div
+  class="flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-6"
+>
+  <!--  Estado: Carregando  -->
   @if (carregando()) {
     <div class="flex flex-col items-center justify-center py-32 gap-4">
       <div
         class="w-8 h-8 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"
       ></div>
-      <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Carregando lote...</p>
+      <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">
+        Carregando lote...
+      </p>
     </div>
   }
 
-  <!-- ── Estado: Erro ── -->
+  <!--  Estado: Erro  -->
   @else if (erro()) {
     <div class="flex flex-col items-center justify-center py-32 gap-4">
-      <div class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md text-center max-w-md">
+      <div
+        class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md text-center max-w-md"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -39,7 +45,7 @@
     </div>
   }
 
-  <!-- ── Conteúdo do Lote ── -->
+  <!--  Conteúdo do Lote  -->
   @else if (lote()) {
     <!-- Cabeçalho -->
     <header class="flex flex-col gap-6">
@@ -73,7 +79,9 @@
       <!-- Título e Status -->
       <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
-          <h2 class="font-bold text-[32px] leading-tight tracking-[-1px] text-white font-mono">
+          <h2
+            class="font-bold text-[32px] leading-tight tracking-[-1px] text-white font-mono"
+          >
             {{ lote()!.numero_lote }}
           </h2>
           <p class="text-[16px] text-[#00E5FF] mt-1 font-medium tracking-wide">
@@ -92,7 +100,7 @@
       </div>
     </header>
 
-    <!-- ── Cards de Informações ── -->
+    <!--  Cards de Informações  -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
       <div class="info-card col-span-2 md:col-span-1">
         <span class="info-label">Produto</span>
@@ -119,45 +127,56 @@
       </div>
       <div class="info-card">
         <span class="info-label">Abertura</span>
-        <span class="info-value text-[13px]">{{ formatarDataHora(lote()!.aberto_em) }}</span>
+        <span class="info-value text-[13px]">{{
+          formatarDataHora(lote()!.aberto_em)
+        }}</span>
       </div>
       @if (lote()!.encerrado_em) {
         <div class="info-card">
           <span class="info-label">Encerramento</span>
-          <span class="info-value text-[13px]">{{ formatarDataHora(lote()!.encerrado_em) }}</span>
+          <span class="info-value text-[13px]">{{
+            formatarDataHora(lote()!.encerrado_em)
+          }}</span>
         </div>
       }
       @if (lote()!.data_validade) {
         <div class="info-card">
           <span class="info-label">Validade</span>
-          <span class="info-value text-[13px]">{{ formatarData(lote()!.data_validade) }}</span>
+          <span class="info-value text-[13px]">{{
+            formatarData(lote()!.data_validade)
+          }}</span>
         </div>
       }
     </div>
 
-    <!-- ── Observações ── -->
+    <!--  Observações  -->
     @if (lote()!.observacoes) {
       <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
         <span class="info-label">Observações</span>
-        <p class="text-[13px] text-[#ADAAAA] mt-1 leading-relaxed">{{ lote()!.observacoes }}</p>
+        <p class="text-[13px] text-[#ADAAAA] mt-1 leading-relaxed">
+          {{ lote()!.observacoes }}
+        </p>
       </div>
     }
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- ── Insumos Consumidos (Read-Only) ── -->
-    <!-- ══════════════════════════════════════════ -->
+    <!--  -->
+    <!--  Insumos Consumidos (Read-Only)  -->
+    <!--  -->
     <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
       <div class="flex items-center gap-3 mb-4">
         <h3 class="section-title mb-0">Insumos Consumidos</h3>
         <span
           class="text-[11px] font-bold text-[#00E5FF] bg-[rgba(0,229,255,0.1)] border border-[#00E5FF] px-2.5 py-0.5 rounded"
         >
-          {{ lote()!.consumos.length || 0 }} {{ lote()!.consumos.length === 1 ? 'item' : 'itens' }}
+          {{ lote()!.consumos.length || 0 }}
+          {{ lote()!.consumos.length === 1 ? 'item' : 'itens' }}
         </span>
       </div>
 
       @if (!lote()!.consumos || lote()!.consumos.length === 0) {
-        <p class="text-[12px] text-[#6B7280] italic">Nenhum insumo consumido neste lote.</p>
+        <p class="text-[12px] text-[#6B7280] italic">
+          Nenhum insumo consumido neste lote.
+        </p>
       } @else {
         <div class="overflow-x-auto">
           <table class="w-full text-left">
@@ -172,7 +191,9 @@
             </thead>
             <tbody>
               @for (consumo of lote()!.consumos; track consumo.id) {
-                <tr class="border-b border-[#1e1e1e] hover:bg-[#1a1a1a] transition-colors">
+                <tr
+                  class="border-b border-[#1e1e1e] hover:bg-[#1a1a1a] transition-colors"
+                >
                   <td class="table-cell font-medium text-white">
                     {{ consumo.insumoEstoque.materiaPrima.nome }}
                   </td>
@@ -183,7 +204,9 @@
                       {{ consumo.insumoEstoque.numero_lote_interno }}
                     </span>
                   </td>
-                  <td class="table-cell text-[#ADAAAA]">{{ consumo.insumoEstoque.fornecedor }}</td>
+                  <td class="table-cell text-[#ADAAAA]">
+                    {{ consumo.insumoEstoque.fornecedor }}
+                  </td>
                   <td class="table-cell text-right font-bold text-white">
                     {{ consumo.quantidade_consumida | number: '1.0-3' }}
                     <span class="text-[10px] text-[#6B7280] ml-1">{{
@@ -201,9 +224,9 @@
       }
     </div>
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- ── Inspeção de Qualidade ── -->
-    <!-- ══════════════════════════════════════════ -->
+    <!--  -->
+    <!--  Inspeção de Qualidade  -->
+    <!--  -->
     <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6">
       <h3 class="section-title mb-4">Inspeção de Qualidade</h3>
 
@@ -221,7 +244,8 @@
       @else if (
         !lote()!.inspecao &&
         lote()!.status === 'aguardando_inspecao' &&
-        (authService.usuario()?.perfil === 'inspetor' || authService.usuario()?.perfil === 'gestor')
+        (authService.usuario()?.perfil === 'inspetor' ||
+          authService.usuario()?.perfil === 'gestor')
       ) {
         <form
           [formGroup]="formInspecao"
@@ -235,7 +259,9 @@
                 class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 flex justify-between"
               >
                 <span>Quantidade Reprovada *</span>
-                <span class="text-[#00E5FF]">máx: {{ lote()!.quantidade_planejada }}</span>
+                <span class="text-[#00E5FF]"
+                  >máx: {{ lote()!.quantidade_planejada }}</span
+                >
               </label>
               <input
                 type="number"
@@ -248,7 +274,8 @@
 
             <!-- Preview de Resultado (auto-calculado) -->
             <div class="w-full">
-              <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
+              <label
+                class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
                 >Resultado (auto)</label
               >
               <div
@@ -269,7 +296,8 @@
 
             <!-- Preview Taxa -->
             <div class="w-full">
-              <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
+              <label
+                class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
                 >Taxa de Aprovação</label
               >
               <div
@@ -289,7 +317,9 @@
 
           <!-- Descrição do Desvio -->
           <div class="w-full">
-            <label class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block">
+            <label
+              class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
+            >
               Descrição do Desvio
               @if (qtdReprovadaInput() > 0) {
                 <span class="text-[#00E5FF]">*</span>
@@ -304,8 +334,12 @@
           </div>
 
           @if (erroInspecao()) {
-            <div class="p-3 bg-red-950/20 border border-[#dc2626]/40 rounded flex items-center gap-2">
-              <span class="text-[11px] text-red-400 font-semibold">{{ erroInspecao() }}</span>
+            <div
+              class="p-3 bg-red-950/20 border border-[#dc2626]/40 rounded flex items-center gap-2"
+            >
+              <span class="text-[11px] text-red-400 font-semibold">{{
+                erroInspecao()
+              }}</span>
             </div>
           }
 
@@ -346,7 +380,9 @@
                 class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider"
                 [style.color]="getStatusConfig(insp.resultado_calculado).cor"
                 [style.background]="getStatusConfig(insp.resultado_calculado).corBg"
-                [style.border]="'1px solid ' + getStatusConfig(insp.resultado_calculado).corBorda"
+                [style.border]="
+                  '1px solid ' + getStatusConfig(insp.resultado_calculado).corBorda
+                "
               >
                 {{ getStatusConfig(insp.resultado_calculado).label }}
               </div>
@@ -379,7 +415,9 @@
           @if (insp.descricao_desvio) {
             <div
               class="p-4 rounded border"
-              [style.border-color]="getStatusConfig(insp.resultado_calculado).corBorda + '60'"
+              [style.border-color]="
+                getStatusConfig(insp.resultado_calculado).corBorda + '60'
+              "
               [style.background]="getStatusConfig(insp.resultado_calculado).corBg"
             >
               <div class="flex items-center gap-2 mb-2">
@@ -403,7 +441,9 @@
                   >Descrição do Desvio</span
                 >
               </div>
-              <p class="text-[13px] text-[#ADAAAA] leading-relaxed">{{ insp.descricao_desvio }}</p>
+              <p class="text-[13px] text-[#ADAAAA] leading-relaxed">
+                {{ insp.descricao_desvio }}
+              </p>
             </div>
           }
         </div>

@@ -49,9 +49,12 @@ export class ConfiguracoesGlobaisService {
           this.config.set(configDaApi);
         },
         error: (err) => {
-          console.error('Falha ao carregar configurações públicas da API. Usando defaults.', err);
+          console.error(
+            'Falha ao carregar configurações públicas da API. Usando defaults.',
+            err,
+          );
         },
-      })
+      }),
     );
   }
 }

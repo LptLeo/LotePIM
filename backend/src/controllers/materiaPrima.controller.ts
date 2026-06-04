@@ -1,41 +1,40 @@
-import type { Request, Response, NextFunction } from 'express';
-import { MateriaPrimaService } from '../services/materiaPrima.service.js';
+import type { Request, Response } from 'express';
 import { getRequisitante } from '../utils/auth.utils.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
+import type { PaginacaoQueryDto } from '../dto/paginacao.dto.js';
+import type { MateriaPrimaService } from '../services/materiaPrima.service.js';
 
-const service = new MateriaPrimaService();
+export class MateriaPrimaController {
+  constructor(private readonly materiaPrimaService: MateriaPrimaService) {}
 
-export const criar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.criar(req.body, getRequisitante(req));
+  criar = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.materiaPrimaService.criar(
+      req.body,
+      getRequisitante(req),
+    );
     res.status(201).json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const listar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.listar(req.query as any, getRequisitante(req));
+  listar = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.materiaPrimaService.listar(
+      req.query as unknown as PaginacaoQueryDto,
+      getRequisitante(req),
+    );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const buscarPorId = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.buscarPorId(Number(req.params.id), getRequisitante(req));
+  buscarPorId = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.materiaPrimaService.buscarPorId(
+      Number(req.params.id),
+      getRequisitante(req),
+    );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const listarCategorias = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.listarCategorias(getRequisitante(req));
+  listarCategorias = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.materiaPrimaService.listarCategorias(
+      getRequisitante(req),
+    );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
+}

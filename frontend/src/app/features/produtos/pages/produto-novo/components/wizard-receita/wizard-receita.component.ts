@@ -10,13 +10,13 @@ import type { MateriaPrima } from '../../../../../../shared/models/lote.models.j
   templateUrl: './wizard-receita.component.html',
 })
 export class WizardReceitaComponent {
-  @Input() produtoNome: string = '';
-  @Input() produtoSku: string = '';
-  @Input() produtoRessalva: number = 0;
+  @Input() produtoNome = '';
+  @Input() produtoSku = '';
+  @Input() produtoRessalva = 0;
 
   @Input() receitaArray!: FormArray;
   @Input() mpDisponiveis: MateriaPrima[] = [];
-  @Input() salvando: boolean = false;
+  @Input() salvando = false;
 
   @Output() back = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();

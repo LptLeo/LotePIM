@@ -14,21 +14,19 @@ describe('UserFormComponent', () => {
 
   beforeEach(async () => {
     configServiceMock = {
-      config: signal({ minLengthSenha: 8, tamanhoSenhaGerada: 12 })
+      config: signal({ minLengthSenha: 8, tamanhoSenhaGerada: 12 }),
     };
 
     await TestBed.configureTestingModule({
       imports: [UserFormComponent, ReactiveFormsModule],
-      providers: [
-        { provide: ConfiguracoesGlobaisService, useValue: configServiceMock }
-      ]
+      providers: [{ provide: ConfiguracoesGlobaisService, useValue: configServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserFormComponent);
     component = fixture.componentInstance;
 
     fixture.componentRef.setInput('roleOptions', [
-      { value: 'operador', label: 'Operador' }
+      { value: 'operador', label: 'Operador' },
     ]);
 
     fixture.detectChanges();
@@ -51,7 +49,7 @@ describe('UserFormComponent', () => {
   it('Deve validar se as senhas são iguais', () => {
     component.form.patchValue({
       senha: 'senha123',
-      confirmarSenha: 'outra-senha'
+      confirmarSenha: 'outra-senha',
     });
 
     expect(component.form.errors?.['senhasDiferentes']).toBeTruthy();
@@ -80,7 +78,7 @@ describe('UserFormComponent', () => {
       perfil: 'operador',
       senha: 'senha-segura-123',
       confirmarSenha: 'senha-segura-123',
-      ativo: true
+      ativo: true,
     });
 
     component.enviarFormulario();
@@ -90,7 +88,7 @@ describe('UserFormComponent', () => {
       email: 'carlos@teste.com',
       perfil: 'operador',
       senha: 'senha-segura-123',
-      ativo: true
+      ativo: true,
     });
   });
 

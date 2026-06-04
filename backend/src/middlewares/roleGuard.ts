@@ -2,8 +2,9 @@ import type { NextFunction, Request, Response } from 'express';
 import { PerfilUsuario } from '../entities/Usuario.js';
 import { AppError } from '../errors/AppError.js';
 
-export const roleGuard = (...perfisPermitidos: PerfilUsuario[]) => {
-  return (req: Request, _res: Response, next: NextFunction) => {
+export const roleGuard =
+  (...perfisPermitidos: PerfilUsuario[]) =>
+  (req: Request, _res: Response, next: NextFunction) => {
     const usuarioLogado = req.auth;
 
     if (!usuarioLogado) {
@@ -27,4 +28,3 @@ export const roleGuard = (...perfisPermitidos: PerfilUsuario[]) => {
 
     next();
   };
-};

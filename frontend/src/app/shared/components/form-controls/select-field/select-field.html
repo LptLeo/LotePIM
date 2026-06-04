@@ -1,5 +1,7 @@
 <div class="flex flex-col gap-2">
-  <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">{{ label }}</label>
+  <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">{{
+    label
+  }}</label>
   <div class="relative group">
     <select
       [formControl]="control"
@@ -22,7 +24,11 @@
       stroke="currentColor"
       class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none"
     >
-      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m19.5 8.25-7.5 7.5-7.5-7.5"
+      />
     </svg>
   </div>
   @if (showError()) {

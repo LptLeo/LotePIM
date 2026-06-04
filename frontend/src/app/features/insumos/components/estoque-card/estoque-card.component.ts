@@ -15,7 +15,9 @@ export class EstoqueCardComponent {
     if (!dataValidade) return false;
     const hoje = new Date();
     const validade = new Date(dataValidade);
-    const diffDays = Math.ceil((validade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(
+      (validade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24),
+    );
     return diffDays >= 0 && diffDays <= 15;
   }
 

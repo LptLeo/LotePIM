@@ -1,56 +1,48 @@
-import { LessThanOrEqual } from 'typeorm';
-import { AppDataSource } from '../config/AppDataSource.js';
+import { LessThanOrEqual, type Repository } from 'typeorm';
 import { Lote, LoteStatus } from '../entities/Lote.js';
 import { NotificacaoService } from './notificacao.service.js';
 import { TipoNotificacao } from '../entities/Notificacao.js';
 import { PerfilUsuario } from '../entities/Usuario.js';
-import { SseService } from './sse.service.js';
+import type { SseService } from './sse.service.js';
+import { logger } from '../utils/logger.js';
 
-/**
- * Job de progressão automática de lotes.
- * Avança lotes "em_producao" para "aguardando_inspecao" depois que o
- * tempo configurado em TEMPO_PRODUCAO_MINUTOS expira.
- *
- * Roda a cada 30 segundos para garantir transição rápida.
- */
 export class ProgressaoService {
   private intervalId: NodeJS.Timeout | null = null;
-  private notificacaoService: NotificacaoService;
 
-  constructor() {
-    this.notificacaoService = new NotificacaoService();
-  }
+  constructor(
+    private readonly loteRepo: Repository<Lote>,
+    private readonly notificacaoService: NotificacaoService,
+    private readonly sseService: SseService,
+  ) {}
 
-  /** Lê o tempo de produção do .env (em minutos, default 2 para demo) */
-  private get tempoProducaoMs(): number {
-    const minutos = Number(process.env.TEMPO_PRODUCAO_MINUTOS) || 2;
-    return minutos * 60 * 1000;
-  }
+  // === FUNÇÕES PÚBLICAS ===
 
-  /** Inicia o job de verificação periódica */
-  iniciar(): void {
-    console.log(
-      `[progressão] Job iniciado — tempo de produção: ${this.tempoProducaoMs / 60000} min`,
-    );
+  public iniciar(): void {
+    logger.info(`Job iniciado — tempo de produção: ${this.tempoProducaoMs / 60000} min`);
 
-    this.executar();
+    void this.executar();
     this.intervalId = setInterval(() => this.executar(), 2_000);
   }
 
-  parar(): void {
+  public parar(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
   }
 
+  // === FUNÇÕES PRIVADAS ===
+
+  private get tempoProducaoMs(): number {
+    const minutos = Number(process.env.TEMPO_PRODUCAO_MINUTOS) || 2;
+    return minutos * 60 * 1000;
+  }
+
   private async executar(): Promise<void> {
     try {
-      const loteRepo = AppDataSource.getRepository(Lote);
-
       const limite = new Date(Date.now() - this.tempoProducaoMs);
 
-      const lotesExpirados = await loteRepo.find({
+      const lotesExpirados = await this.loteRepo.find({
         where: {
           status: LoteStatus.EM_PRODUCAO,
           aberto_em: LessThanOrEqual(limite),
@@ -63,11 +55,10 @@ export class ProgressaoService {
         lote.status = LoteStatus.AGUARDANDO_INSPECAO;
         lote.encerrado_em = new Date();
 
-        await loteRepo.save(lote);
+        await this.loteRepo.save(lote);
 
-        console.log(`[progressão] Lote ${lote.numero_lote} avançado para AGUARDANDO_INSPECAO`);
+        logger.info(`Lote ${lote.numero_lote} avançado para AGUARDANDO_INSPECAO`);
 
-        // Notifica inspetores (única notificação com link clicável)
         await this.notificacaoService.criarNotificacaoParaPerfis(
           `Produção Concluída: O lote ${lote.numero_lote} está aguardando inspeção.`,
           TipoNotificacao.INSPECAO,
@@ -75,14 +66,13 @@ export class ProgressaoService {
           { link: `/app/lote/${lote.id}` },
         );
 
-        // Notifica clientes SSE em tempo real
-        SseService.instancia.emitir('lote:status_alterado', {
+        this.sseService.emitir('lote:status_alterado', {
           id: lote.id,
           status: LoteStatus.AGUARDANDO_INSPECAO,
         });
       }
     } catch (error) {
-      console.error('[progressão] Erro ao executar job:', error);
+      logger.error('Erro ao executar job:', error);
     }
   }
 }

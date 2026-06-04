@@ -1,6 +1,12 @@
 import { Component, input, output, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
 import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
@@ -47,12 +53,23 @@ export class RegistrarEntradaModalComponent {
   // Formulário Tipado e Seguro
   formEstoque = this.fb.group<EstoqueFormGroup>({
     materia_prima_id: this.fb.control(null, { validators: [Validators.required] }),
-    numero_lote_fornecedor: this.fb.control('', { validators: [Validators.required], nonNullable: true }),
-    fornecedor: this.fb.control('', { validators: [Validators.required], nonNullable: true }),
-    quantidade_inicial: this.fb.control(null, { validators: [Validators.required, Validators.min(0.01)] }),
+    numero_lote_fornecedor: this.fb.control('', {
+      validators: [Validators.required],
+      nonNullable: true,
+    }),
+    fornecedor: this.fb.control('', {
+      validators: [Validators.required],
+      nonNullable: true,
+    }),
+    quantidade_inicial: this.fb.control(null, {
+      validators: [Validators.required, Validators.min(0.01)],
+    }),
     data_validade: this.fb.control(null),
     naoAplicaValidade: this.fb.control(false, { nonNullable: true }),
-    turno: this.fb.control(this.getTurnoAtual(), { validators: [Validators.required], nonNullable: true }),
+    turno: this.fb.control(this.getTurnoAtual(), {
+      validators: [Validators.required],
+      nonNullable: true,
+    }),
   });
 
   // Signals para reatividade no template
@@ -79,12 +96,12 @@ export class RegistrarEntradaModalComponent {
   });
 
   onClose(): void {
-    this.formEstoque.reset({ 
-      turno: this.getTurnoAtual(), 
+    this.formEstoque.reset({
+      turno: this.getTurnoAtual(),
       naoAplicaValidade: false,
       materia_prima_id: null,
       quantidade_inicial: null,
-      data_validade: null
+      data_validade: null,
     });
     this.close.emit();
   }
@@ -94,7 +111,7 @@ export class RegistrarEntradaModalComponent {
 
     const rawValue = this.formEstoque.getRawValue();
 
-    // Garantimos a tipagem antes de emitir, já que o formulário pode ter nulos 
+    // Garantimos a tipagem antes de emitir, já que o formulário pode ter nulos
     // mas o validador 'required' garante que no 'onSave' eles existam.
     const payload: RegistrarEntradaForm = {
       materia_prima_id: rawValue.materia_prima_id!,

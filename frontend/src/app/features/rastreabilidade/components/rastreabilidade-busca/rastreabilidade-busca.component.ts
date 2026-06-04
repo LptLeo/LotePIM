@@ -9,11 +9,11 @@ import type { AutocompleteSugestao } from '../../rastreabilidade.ts';
   templateUrl: './rastreabilidade-busca.component.html',
 })
 export class RastreabilidadeBuscaComponent {
-  @Input() termo: string = '';
+  @Input() termo = '';
   @Input() sugestoes: AutocompleteSugestao[] = [];
-  @Input() mostrandoDropdown: boolean = false;
-  @Input() buscandoSugestoes: boolean = false;
-  @Input() buscando: boolean = false;
+  @Input() mostrandoDropdown = false;
+  @Input() buscandoSugestoes = false;
+  @Input() buscando = false;
   @Input() erro: string | null = null;
 
   @Output() inputChange = new EventEmitter<Event>();

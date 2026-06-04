@@ -18,15 +18,15 @@ export interface LoteConfig {
   tempo_producao_minutos: number;
 }
 
-
-
 @Injectable({
   providedIn: 'root',
 })
 export class LoteFeatureService {
   private http = inject(HttpClient);
 
-  private montarHttpParams(filtros?: Record<string, string | number | boolean | null | undefined>): HttpParams {
+  private montarHttpParams(
+    filtros?: Record<string, string | number | boolean | null | undefined>,
+  ): HttpParams {
     let params = new HttpParams();
     if (filtros) {
       Object.entries(filtros).forEach(([key, value]) => {
@@ -42,7 +42,9 @@ export class LoteFeatureService {
     return this.http.get<LoteDetalhe>(`${API_URL}/lotes/${id}`);
   }
 
-  getLotes(filtros?: Record<string, string | number | boolean | null | undefined>): Observable<RespostaPaginada<LoteDetalhe>> {
+  getLotes(
+    filtros?: Record<string, string | number | boolean | null | undefined>,
+  ): Observable<RespostaPaginada<LoteDetalhe>> {
     const params = this.montarHttpParams(filtros);
     return this.http.get<RespostaPaginada<LoteDetalhe>>(`${API_URL}/lotes`, { params });
   }
@@ -67,7 +69,9 @@ export class LoteFeatureService {
   /** Busca insumos em estoque filtrados por matérias-primas (IDs separados por vírgula) */
   getInsumosDisponiveis(materiaPrimaIds: number[]): Observable<InsumoEstoque[]> {
     const params = new HttpParams().set('ids', materiaPrimaIds.join(','));
-    return this.http.get<InsumoEstoque[]>(`${API_URL}/insumos-estoque/disponiveis`, { params });
+    return this.http.get<InsumoEstoque[]>(`${API_URL}/insumos-estoque/disponiveis`, {
+      params,
+    });
   }
 
   /** Cria um novo lote com consumos inline (transação atômica no backend) */
@@ -76,7 +80,10 @@ export class LoteFeatureService {
   }
 
   /** Registra a inspeção do lote */
-  registrarInspecao(loteId: number, inspecao: RegistrarInspecaoDTO): Observable<LoteDetalhe> {
+  registrarInspecao(
+    loteId: number,
+    inspecao: RegistrarInspecaoDTO,
+  ): Observable<LoteDetalhe> {
     return this.http.post<LoteDetalhe>(`${API_URL}/lotes/${loteId}/inspecao`, inspecao);
   }
 }

@@ -2,16 +2,10 @@ import { Column, Entity, Index } from 'typeorm';
 
 import { EntidadeBase } from './base.entity.js';
 
-/**
- * Catálogo central de materiais.
- * Representa o "conceito" do insumo — independente de lote físico.
- * Apenas o Gestor pode criar ou editar registros de catálogo.
- */
-
 export enum UnidadeMedida {
-  KG = 'KG',
-  L = 'L',
-  M = 'M',
+  G = 'G',
+  ML = 'ML',
+  CM = 'CM',
   UN = 'UN',
 }
 

@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, type Relation } from 'typeorm';
 
 import { EntidadeBase } from './base.entity.js';
-import type { Produto } from './Produto.js';
-import type { MateriaPrima } from './MateriaPrima.js';
+import { Produto } from './Produto.js';
+import { MateriaPrima } from './MateriaPrima.js';
 
 /**
  * Item da receita de um produto.
@@ -11,11 +11,11 @@ import type { MateriaPrima } from './MateriaPrima.js';
  */
 @Entity('receita_item')
 export class ReceitaItem extends EntidadeBase {
-  @ManyToOne('Produto', 'receita', { onDelete: 'CASCADE' })
+  @ManyToOne(() => Produto, (produto) => produto.receita, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'produto_id' })
   produto!: Relation<Produto>;
 
-  @ManyToOne('MateriaPrima')
+  @ManyToOne(() => MateriaPrima)
   @JoinColumn({ name: 'materia_prima_id' })
   materiaPrima!: Relation<MateriaPrima>;
 

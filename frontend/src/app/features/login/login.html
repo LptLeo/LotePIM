@@ -1,24 +1,32 @@
-<div class="flex min-h-screen flex-col justify-between bg-linear-to-b from-[#181818] via-[#0c0c0c] to-[#0c0c0c]">
-
+<div
+  class="flex min-h-screen flex-col justify-between bg-linear-to-b from-[#181818] via-[#0c0c0c] to-[#0c0c0c]"
+>
   <!-- Header -->
-  <header class="flex items-center justify-start px-4 py-3 bg-[#0E0E0E]/70 text-xl font-bold text-[#22D3EE] animate-fade-in">
-    <img class="mr-2 w-10 transition-all duration-300 hover:animate-pulse" src="favicon.png" alt="" />
+  <header
+    class="flex items-center justify-start px-4 py-3 bg-[#0E0E0E]/70 text-xl font-bold text-[#22D3EE] animate-fade-in"
+  >
+    <img
+      class="mr-2 w-10 transition-all duration-300 hover:animate-pulse"
+      src="favicon.png"
+      alt=""
+    />
     LOTE PIM
   </header>
 
   <!-- Main Container -->
   <main class="flex items-center justify-center px-4">
     <!-- Form -->
-    <form 
-      [formGroup]="loginForm" 
+    <form
+      [formGroup]="loginForm"
       (ngSubmit)="login()"
       class="mx-auto flex w-[340px] flex-col p-5 bg-[#131313]/70 rounded-sm shadow-sm shadow-[#1b1b1b] animate-fade-in-up"
     >
-      
       <!-- Titulo -->
       <div class="relative flex items-center justify-start mb-4">
         <h4 class="p-3 pl-0 text-3xl font-bold text-gray-50">LOG IN</h4>
-        <div class="absolute bottom-0 left-0 w-[60px] border-2 border-gray-50 rounded-full transition-all duration-500 ease-out"></div>
+        <div
+          class="absolute bottom-0 left-0 w-[60px] border-2 border-gray-50 rounded-full transition-all duration-500 ease-out"
+        ></div>
       </div>
 
       <p class="mb-10 text-sm text-gray-400 animate-fade-in-up delay-100">
@@ -27,71 +35,109 @@
 
       <!-- Erro -->
       @if (errorMessage()) {
-        <div class="mb-4 p-3 bg-[#2a0c0c] border border-red-500 rounded text-[13px] font-bold text-[#ffb3b3] text-center tracking-wide shadow-sm shadow-[#ff000040]">
+        <div
+          class="mb-4 p-3 bg-[#2a0c0c] border border-red-500 rounded text-[13px] font-bold text-[#ffb3b3] text-center tracking-wide shadow-sm shadow-[#ff000040]"
+        >
           {{ errorMessage() }}
         </div>
       }
 
       <!-- Email -->
-      <label class="my-1 ps-1 text-xs text-gray-400 animate-fade-in-up delay-200" for="usuario">EMAIL</label>
-      <input 
-        formControlName="email" 
+      <label
+        class="my-1 ps-1 text-xs text-gray-400 animate-fade-in-up delay-200"
+        for="usuario"
+        >EMAIL</label
+      >
+      <input
+        formControlName="email"
         (input)="errorMessage.set('')"
         class="mb-1 p-3 bg-black text-sm text-white placeholder:text-xs outline-none transition-all duration-300 focus:scale-[1.02] focus:ring-1 focus:ring-[#00E3FD] animate-fade-in-up delay-200"
-        type="email" 
-        id="usuario" 
+        type="email"
+        id="usuario"
         placeholder="EMAIL"
-        [class.border-red-500]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" 
+        [class.border-red-500]="
+          loginForm.get('email')?.invalid && loginForm.get('email')?.touched
+        "
       />
 
       @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
         <div class="text-xs text-red-500">
-          @if (loginForm.get('email')?.errors?.['required']) { <span>O email é obrigatório</span> }
-          @if (loginForm.get('email')?.errors?.['email']) { <span>Email inválido.</span> }
+          @if (loginForm.get('email')?.errors?.['required']) {
+            <span>O email é obrigatório</span>
+          }
+          @if (loginForm.get('email')?.errors?.['email']) {
+            <span>Email inválido.</span>
+          }
         </div>
       }
 
       <!-- Senha -->
-      <label class="my-1 ps-1 text-xs text-gray-400 animate-fade-in-up delay-200" for="senha">SENHA</label>
-      <input 
-        formControlName="senha" 
+      <label
+        class="my-1 ps-1 text-xs text-gray-400 animate-fade-in-up delay-200"
+        for="senha"
+        >SENHA</label
+      >
+      <input
+        formControlName="senha"
         (input)="errorMessage.set('')"
         class="p-3 bg-black text-sm text-white placeholder:text-xs outline-none transition-all duration-300 focus:scale-[1.02] focus:ring-1 focus:ring-[#00E3FD] animate-fade-in-up delay-200"
-        type="password" 
-        id="senha" 
+        type="password"
+        id="senha"
         placeholder="SENHA"
-        [class.border-red-500]="loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched" 
+        [class.border-red-500]="
+          loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched
+        "
       />
 
       @if (loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched) {
         <div class="text-xs text-red-500">
-          @if (loginForm.get('senha')?.errors?.['required']) { <span>A senha é obrigatória</span> }
-          @if (loginForm.get('senha')?.errors?.['minlength']) { <span>A senha deve ter no mínimo 8 caracteres</span> }
+          @if (loginForm.get('senha')?.errors?.['required']) {
+            <span>A senha é obrigatória</span>
+          }
+          @if (loginForm.get('senha')?.errors?.['minlength']) {
+            <span>A senha deve ter no mínimo 8 caracteres</span>
+          }
         </div>
       }
 
       <!-- Botão Submit -->
       <button
         class="flex items-center justify-center gap-2 mt-10 py-3 bg-linear-to-r from-[#81ECFF] to-[#00E3FD] rounded-sm text-xs font-bold text-center text-[#005762] shadow-sm shadow-[#81ECFF] transition-all disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
-        [disabled]="loginForm.invalid || isLoading()" 
+        [disabled]="loginForm.invalid || isLoading()"
         type="submit"
       >
         @if (isLoading()) {
-          <svg class="h-4 w-4 text-[#005762] animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            class="h-4 w-4 text-[#005762] animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
         }
         <span>{{ isLoading() ? 'ENTRANDO...' : 'ENTRAR' }}</span>
       </button>
-
     </form>
   </main>
 
   <!-- Footer -->
-  <footer class="flex flex-col items-center justify-center mb-4 animate-fade-in delay-300">
+  <footer
+    class="flex flex-col items-center justify-center mb-4 animate-fade-in delay-300"
+  >
     <span class="text-xs text-gray-400">Versão do sistema: 1.1.0</span>
     <span class="text-xs text-gray-400">Desenvolvido por: Leonardo, Davi, Hamiltom</span>
   </footer>
-
 </div>

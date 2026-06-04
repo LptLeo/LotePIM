@@ -11,7 +11,10 @@ export class DashboardService {
   private http = inject(HttpClient);
   private API_URL = `${environment.apiUrl}/metricas/dashboard`;
 
-  getDashboardData(periodoLotes?: string, periodoUnidades?: string): Observable<DashboardData> {
+  getDashboardData(
+    periodoLotes?: string,
+    periodoUnidades?: string,
+  ): Observable<DashboardData> {
     let params = new HttpParams();
     if (periodoLotes) params = params.set('periodoLotes', periodoLotes);
     if (periodoUnidades) params = params.set('periodoUnidades', periodoUnidades);

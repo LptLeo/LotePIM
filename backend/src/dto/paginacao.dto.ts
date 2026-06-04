@@ -1,22 +1,12 @@
 import { z } from 'zod';
 
-// Aceita string (do query params) ou number (se já transformado)
-const coageNumber = z
-  .union([z.string(), z.number()])
-  .optional()
-  .transform((v) => {
-    if (v === undefined || v === null || v === '') return undefined;
-    const n = Number(v);
-    return isNaN(n) ? undefined : n;
-  });
-
-export const PaginacaoQueryDto = z.object({
-  pagina: coageNumber.transform((v) => (v !== undefined ? Math.max(1, v) : 1)),
-  limite: coageNumber.transform((v) => (v !== undefined ? Math.min(1000, Math.max(1, v)) : 10)),
+export const paginacaoQuerySchema = z.object({
+  pagina: z.coerce.number().int().positive().default(1),
+  limite: z.coerce.number().int().positive().max(100).default(10),
   busca: z.string().optional(),
 });
 
-export type PaginacaoQueryDto = z.infer<typeof PaginacaoQueryDto>;
+export type PaginacaoQueryDto = z.infer<typeof paginacaoQuerySchema>;
 
 export interface RespostaPaginada<T> {
   itens: T[];

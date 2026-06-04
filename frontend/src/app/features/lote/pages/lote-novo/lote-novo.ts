@@ -1,9 +1,20 @@
 import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { LoteFeatureService } from '../../services/lote.service.js';
-import type { Produto, InsumoEstoque, CriarLoteDTO } from '../../../../shared/models/lote.models.js';
+import type {
+  Produto,
+  InsumoEstoque,
+  CriarLoteDTO,
+} from '../../../../shared/models/lote.models.js';
 import { finalize, of } from 'rxjs';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { LoteInsumoItemComponent } from './components/lote-insumo-item/lote-insumo-item.js';
@@ -62,9 +73,14 @@ export class LoteNovo implements OnInit {
   /** Formulário Tipado */
   form = this.fb.nonNullable.group<LoteFormGroup>({
     produto_id: this.fb.nonNullable.control(0, [Validators.required, Validators.min(1)]),
-    data_producao: this.fb.nonNullable.control(this.getHojeLocal(), [Validators.required]),
+    data_producao: this.fb.nonNullable.control(this.getHojeLocal(), [
+      Validators.required,
+    ]),
     turno: this.fb.nonNullable.control(this.getTurnoAtual(), [Validators.required]),
-    quantidade_planejada: this.fb.nonNullable.control(0, [Validators.required, Validators.min(1)]),
+    quantidade_planejada: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(1),
+    ]),
     data_validade: this.fb.nonNullable.control(''),
     sem_validade: this.fb.nonNullable.control(true),
     observacoes: this.fb.nonNullable.control(''),
@@ -72,9 +88,15 @@ export class LoteNovo implements OnInit {
   });
 
   /** Sinais reativos a partir dos controles do formulário */
-  produtoIdSignal = toSignal(this.form.controls.produto_id.valueChanges, { initialValue: 0 });
-  qtdPlanejadaSignal = toSignal(this.form.controls.quantidade_planejada.valueChanges, { initialValue: 0 });
-  semValidadeSignal = toSignal(this.form.controls.sem_validade.valueChanges, { initialValue: true });
+  produtoIdSignal = toSignal(this.form.controls.produto_id.valueChanges, {
+    initialValue: 0,
+  });
+  qtdPlanejadaSignal = toSignal(this.form.controls.quantidade_planejada.valueChanges, {
+    initialValue: 0,
+  });
+  semValidadeSignal = toSignal(this.form.controls.sem_validade.valueChanges, {
+    initialValue: true,
+  });
 
   /** Resource para carregar os produtos cadastrados */
   produtosResource = rxResource({
@@ -121,7 +143,7 @@ export class LoteNovo implements OnInit {
   carregandoInsumos = computed(() => this.insumosResource.isLoading());
 
   constructor() {
-    /** 
+    /**
      * Reação 1: Mudança de Produto
      * Reconstrói o FormArray de consumos de forma declarativa.
      */
@@ -146,8 +168,14 @@ export class LoteNovo implements OnInit {
             materia_prima_nome: this.fb.nonNullable.control(item.materiaPrima.nome),
             quantidade_necessaria: this.fb.nonNullable.control(item.quantidade),
             unidade: this.fb.nonNullable.control(item.unidade),
-            insumo_estoque_id: this.fb.nonNullable.control(0, [Validators.required, Validators.min(1)]),
-            quantidade_consumida: this.fb.nonNullable.control(consumidoInicial, [Validators.required, Validators.min(0)]),
+            insumo_estoque_id: this.fb.nonNullable.control(0, [
+              Validators.required,
+              Validators.min(1),
+            ]),
+            quantidade_consumida: this.fb.nonNullable.control(consumidoInicial, [
+              Validators.required,
+              Validators.min(0),
+            ]),
           }),
         );
       }
@@ -165,7 +193,11 @@ export class LoteNovo implements OnInit {
       this.consumosArray.controls.forEach((ctrl) => {
         const unidade = ctrl.controls.unidade.value;
         const necessita = ctrl.controls.quantidade_necessaria.value;
-        const novoValor = this.calcularQuantidadeConsumida(necessita, qtdPlanejada, unidade);
+        const novoValor = this.calcularQuantidadeConsumida(
+          necessita,
+          qtdPlanejada,
+          unidade,
+        );
         ctrl.controls.quantidade_consumida.setValue(novoValor);
       });
     });
@@ -247,10 +279,10 @@ export class LoteNovo implements OnInit {
       quantidade_planejada: formValue.quantidade_planejada,
       data_validade: formValue.sem_validade ? null : formValue.data_validade || null,
       observacoes: formValue.observacoes,
-      consumos: formValue.consumos.map(c => ({
+      consumos: formValue.consumos.map((c) => ({
         insumo_estoque_id: Number(c.insumo_estoque_id),
         quantidade_consumida: Number(c.quantidade_consumida),
-      }))
+      })),
     };
 
     this.loteService
@@ -262,7 +294,7 @@ export class LoteNovo implements OnInit {
         },
         error: (err) => {
           console.error('[LoteNovo] Erro ao criar lote:', err);
-          
+
           // Se for erro de validação do backend (400) com detalhes por campo
           if (err.status === 400 && err.error?.details) {
             console.table(err.error.details);
@@ -272,9 +304,14 @@ export class LoteNovo implements OnInit {
               backendErrors[path] = e.mensagem;
             });
             this.fieldErrors.set(backendErrors);
-            this.erro.set('Erro de validação no servidor. Verifique os campos destacados.');
+            this.erro.set(
+              'Erro de validação no servidor. Verifique os campos destacados.',
+            );
           } else {
-            this.erro.set(err.error?.message || 'Não foi possível criar o lote. Verifique se há estoque suficiente.');
+            this.erro.set(
+              err.error?.message ||
+                'Não foi possível criar o lote. Verifique se há estoque suficiente.',
+            );
           }
         },
       });

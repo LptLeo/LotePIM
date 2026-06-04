@@ -22,7 +22,10 @@ import type { ResultadoLote } from '../../rastreabilidade.ts';
     trigger('treeRoot', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-20px)' }),
-        animate('400ms 100ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+        animate(
+          '400ms 100ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' }),
+        ),
       ]),
     ]),
     trigger('treeChildren', [

@@ -1,6 +1,8 @@
 <!-- Cabeçalho da Seção de Listagem -->
 <div class="flex items-center justify-between mb-4 animate-fade-in delay-150">
-  <h3 class="text-[12px] font-bold uppercase tracking-[1.5px] text-[#00E5FF]">Cadastrados</h3>
+  <h3 class="text-[12px] font-bold uppercase tracking-[1.5px] text-[#00E5FF]">
+    Cadastrados
+  </h3>
   <button
     type="button"
     (click)="onRefresh.emit()"
@@ -26,7 +28,9 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
     <!-- Filtro de Perfil -->
     <div class="flex flex-col gap-2">
-      <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Perfil</label>
+      <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        >Perfil</label
+      >
       <div class="relative group">
         <select
           #perfilSelect
@@ -46,14 +50,20 @@
           stroke="currentColor"
           class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m19.5 8.25-7.5 7.5-7.5-7.5"
+          />
         </svg>
       </div>
     </div>
 
     <!-- Filtro de Status -->
     <div class="flex flex-col gap-2">
-      <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">Status</label>
+      <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        >Status</label
+      >
       <div class="relative group">
         <select
           #statusSelect
@@ -73,7 +83,11 @@
           stroke="currentColor"
           class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m19.5 8.25-7.5 7.5-7.5-7.5"
+          />
         </svg>
       </div>
     </div>
@@ -82,7 +96,9 @@
 
 <!-- Estados de Erro e Carregamento -->
 @if (erro()) {
-  <div class="p-3 mb-3 bg-red-950/20 border border-[#dc2626]/40 rounded-md animate-fade-in">
+  <div
+    class="p-3 mb-3 bg-red-950/20 border border-[#dc2626]/40 rounded-md animate-fade-in"
+  >
     <p class="text-[#fca5a5] text-[12px] font-semibold">{{ erro() }}</p>
   </div>
 }
@@ -108,34 +124,50 @@
         >
           <div class="flex justify-between items-start">
             <div class="flex flex-col gap-1">
-              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider">Nome</span>
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Nome</span
+              >
               <span class="text-[15px] font-bold text-white">{{ usuario.nome }}</span>
             </div>
             <div class="flex flex-col items-end gap-1">
-              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider">Status</span>
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Status</span
+              >
               <app-status-badge [ativo]="usuario.ativo"></app-status-badge>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4 pt-3 border-t border-[#484847]/10">
             <div class="flex flex-col gap-1">
-              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider">E-mail</span>
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >E-mail</span
+              >
               <span class="text-[12px] text-[#ADAAAA] truncate">{{ usuario.email }}</span>
             </div>
             <div class="flex flex-col gap-1">
-              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider">Perfil</span>
-              <span class="text-[12px] text-white capitalize truncate">{{ usuario.perfil }}</span>
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Perfil</span
+              >
+              <span class="text-[12px] text-white capitalize truncate">{{
+                usuario.perfil
+              }}</span>
             </div>
           </div>
 
-          <div class="flex justify-between items-center pt-3 border-t border-[#484847]/10">
+          <div
+            class="flex justify-between items-center pt-3 border-t border-[#484847]/10"
+          >
             <div class="flex flex-col gap-1">
-              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider">Cadastrado Por</span>
-              <span class="text-[11px] text-[#ADAAAA]">{{ usuario.criadoPor?.nome || 'Sistema' }}</span>
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Cadastrado Por</span
+              >
+              <span class="text-[11px] text-[#ADAAAA]">{{
+                usuario.criadoPor?.nome || 'Sistema'
+              }}</span>
             </div>
-            <app-user-actions 
-              [id]="usuario.id" 
-              [ativo]="usuario.ativo" 
+            <app-user-actions
+              [id]="usuario.id"
+              [ativo]="usuario.ativo"
               [perfil]="usuario.perfil"
               [showText]="false"
               (onDeactivate)="onDeactivate.emit($event)"
@@ -147,7 +179,9 @@
     </div>
 
     <!-- Desktop View: Table -->
-    <div class="hidden md:block overflow-x-auto max-h-[420px] pr-1 animate-fade-in-up delay-300">
+    <div
+      class="hidden md:block overflow-x-auto max-h-[420px] pr-1 animate-fade-in-up delay-300"
+    >
       <table class="w-full text-left text-[12px]">
         <thead class="sticky top-0 bg-[#131313]">
           <tr class="text-[#6B7280] border-b border-[#484847]/30">
@@ -168,11 +202,13 @@
               <td class="py-2 pr-2">
                 <app-status-badge [ativo]="usuario.ativo"></app-status-badge>
               </td>
-              <td class="py-2 text-[#ADAAAA]">{{ usuario.criadoPor?.nome || 'Sistema' }}</td>
+              <td class="py-2 text-[#ADAAAA]">
+                {{ usuario.criadoPor?.nome || 'Sistema' }}
+              </td>
               <td class="py-2 text-right">
-                <app-user-actions 
-                  [id]="usuario.id" 
-                  [ativo]="usuario.ativo" 
+                <app-user-actions
+                  [id]="usuario.id"
+                  [ativo]="usuario.ativo"
                   [perfil]="usuario.perfil"
                   (onDeactivate)="onDeactivate.emit($event)"
                   (onReactivate)="onReactivate.emit($event)"
@@ -187,7 +223,10 @@
     <!-- Paginação -->
     @if (paginationMeta(); as meta) {
       @if (meta.totalPaginas > 1) {
-        <app-pagination [meta]="meta" (pageChange)="onPageChange.emit($event)"></app-pagination>
+        <app-pagination
+          [meta]="meta"
+          (pageChange)="onPageChange.emit($event)"
+        ></app-pagination>
       }
     }
   }

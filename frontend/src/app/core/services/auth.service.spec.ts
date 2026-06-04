@@ -1,6 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { AuthService } from './auth.service.js';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
@@ -10,7 +13,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
   let routerSpy: { navigate: jest.Mock };
-  let sseClientSpy: { iniciar: jest.Mock, fechar: jest.Mock };
+  let sseClientSpy: { iniciar: jest.Mock; fechar: jest.Mock };
 
   beforeEach(() => {
     routerSpy = { navigate: jest.fn() };
@@ -22,8 +25,8 @@ describe('AuthService', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: routerSpy },
-        { provide: SseClientService, useValue: sseClientSpy }
-      ]
+        { provide: SseClientService, useValue: sseClientSpy },
+      ],
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);

@@ -1,61 +1,48 @@
-import type { Request, Response, NextFunction } from 'express';
-import { LoteService } from '../services/lote.service.js';
+import type { Request, Response } from 'express';
 import { getRequisitante } from '../utils/auth.utils.js';
-import { SseService } from '../services/sse.service.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
+import type { ListLotesQueryDto } from '../dto/lote.dto.js';
+import type { LoteService } from '../services/lote.service.js';
 
-const service = new LoteService();
+export class LoteController {
+  constructor(private readonly loteService: LoteService) {}
 
-export const criar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.criar(req.body, getRequisitante(req));
+  criar = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.loteService.criar(req.body, getRequisitante(req));
     res.status(201).json(resultado);
-    // Emite SSE após a transação atômica ser concluída com sucesso
-    SseService.instancia.emitir('lote:criado', { id: resultado.id });
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const listar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.listar(req.query as any, getRequisitante(req));
+  listar = asyncHandler(async (req: Request, res: Response) => {
+    const query = req.query as unknown as ListLotesQueryDto;
+    const resultado = await this.loteService.listar(query, getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const getContagem = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.getContagemPorStatus(getRequisitante(req));
+  getContagem = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.loteService.obterContagemPorStatus(getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const buscarPorId = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.buscarPorId(Number(req.params.id), getRequisitante(req));
+  buscarPorId = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.loteService.buscarPorId(
+      Number(req.params.id),
+      getRequisitante(req),
+    );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const buscarSugestoes = async (req: Request, res: Response, next: NextFunction) => {
-  try {
+  buscarSugestoes = asyncHandler(async (req: Request, res: Response) => {
     const q = req.query.q as string;
-    if (!q) return res.json([]);
+    if (!q) {
+      res.json([]);
+      return;
+    }
 
-    const resultado = await service.buscarSugestoes(q, getRequisitante(req));
+    const resultado = await this.loteService.buscarSugestoes(q, getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-/** Retorna o tempo de produção configurado (para a barra de progresso do frontend) */
-export const getConfig = async (_req: Request, res: Response, _next: NextFunction) => {
-  res.json({ tempo_producao_minutos: service.getTempoProducao() });
-};
+  getConfig = async (_req: Request, res: Response) => {
+    res.json({ tempo_producao_minutos: this.loteService.obterTempoProducao() });
+  };
+}

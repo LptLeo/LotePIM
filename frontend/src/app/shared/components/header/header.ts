@@ -15,7 +15,10 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { HeaderService } from './services/header.service.js';
 import { AuthService } from '../../../core/services/auth.service.js';
-import { NotificacaoService, Notificacao } from '../../../core/services/notificacao/notificacao.service.js';
+import {
+  NotificacaoService,
+  Notificacao,
+} from '../../../core/services/notificacao/notificacao.service.js';
 import { SugestaoItem, LoteStatus, STATUS_CONFIG } from '../../models/lote.models.js';
 
 /** Padrão exato de número de lote gerado pelo backend */
@@ -34,7 +37,7 @@ export class Header implements OnInit, OnDestroy {
   private router = inject(Router);
   private elementRef = inject(ElementRef);
 
-  // ── Estado do usuário ──────────────────────────────────────────────────
+  //  Estado do usuário
 
   /** Mapeia os perfis do backend para nomes amigáveis */
   cargoFormatado = computed(() => {
@@ -55,7 +58,7 @@ export class Header implements OnInit, OnDestroy {
     this.router.navigate(['/app/configuracoes']);
   }
 
-  // ── Estado da pesquisa ──────────────────────────────────────────────────
+  //  Estado da pesquisa
 
   termoPesquisa = '';
   sugestoes = signal<SugestaoItem[]>([]);
@@ -70,7 +73,7 @@ export class Header implements OnInit, OnDestroy {
   private pesquisaSubject = new Subject<string>();
   private subscription?: Subscription;
 
-  // ── Lifecycle ───────────────────────────────────────────────────────────
+  //  Lifecycle
 
   ngOnInit(): void {
     this.subscription = this.pesquisaSubject
@@ -91,7 +94,9 @@ export class Header implements OnInit, OnDestroy {
       .subscribe((resultados) => {
         this.carregando.set(false);
         this.sugestoes.set(resultados);
-        this.dropdownAberto.set(resultados.length > 0 || this.termoPesquisa.trim().length >= 2);
+        this.dropdownAberto.set(
+          resultados.length > 0 || this.termoPesquisa.trim().length >= 2,
+        );
       });
   }
 
@@ -99,7 +104,7 @@ export class Header implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  // ── Handlers do input ───────────────────────────────────────────────────
+  //  Handlers do input
 
   onInputChange(valor: string): void {
     this.termoPesquisa = valor;
@@ -123,7 +128,7 @@ export class Header implements OnInit, OnDestroy {
     }
   }
 
-  // ── Ações de navegação ──────────────────────────────────────────────────
+  //  Ações de navegação
 
   /**
    * Executado ao apertar Enter ou clicar no ícone de busca.
@@ -182,41 +187,41 @@ export class Header implements OnInit, OnDestroy {
       this.fecharDropdown();
     }
   }
-marcarLida(id: number): void {
-  this.notificacaoService.marcarComoLida(id);
-}
-
-clicarNotificacao(notificacao: Notificacao): void {
-  // 1. Marca como lida
-  if (!notificacao.lida) {
-    this.notificacaoService.marcarComoLida(notificacao.id);
+  marcarLida(id: number): void {
+    this.notificacaoService.marcarComoLida(id);
   }
 
-  // 2. Fecha o painel
-  this.notificacoesAbertas.set(false);
-
-  // 3. Navega baseando-se no metadata
-  const metadata = notificacao.metadata;
-  if (metadata?.link) {
-    const queryParams: { busca?: string; produtoId?: number; id?: number } = {};
-    if (metadata.filtro) {
-      queryParams.busca = metadata.filtro;
+  clicarNotificacao(notificacao: Notificacao): void {
+    // 1. Marca como lida
+    if (!notificacao.lida) {
+      this.notificacaoService.marcarComoLida(notificacao.id);
     }
 
-    // Se houver um ID de referência, mapeia para o parâmetro correto dependendo do link
-    if (metadata.idRef) {
-      if (metadata.link.includes('lote/novo')) {
-        queryParams.produtoId = metadata.idRef;
-      } else {
-        queryParams.id = metadata.idRef;
+    // 2. Fecha o painel
+    this.notificacoesAbertas.set(false);
+
+    // 3. Navega baseando-se no metadata
+    const metadata = notificacao.metadata;
+    if (metadata?.link) {
+      const queryParams: { busca?: string; produtoId?: number; id?: number } = {};
+      if (metadata.filtro) {
+        queryParams.busca = metadata.filtro;
       }
-    }
 
-    // Converte link string em array de segmentos para o router
-    const urlSegments = metadata.link.split('/').filter((s: string) => s.length > 0);
-    this.router.navigate(urlSegments, { queryParams });
+      // Se houver um ID de referência, mapeia para o parâmetro correto dependendo do link
+      if (metadata.idRef) {
+        if (metadata.link.includes('lote/novo')) {
+          queryParams.produtoId = metadata.idRef;
+        } else {
+          queryParams.id = metadata.idRef;
+        }
+      }
+
+      // Converte link string em array de segmentos para o router
+      const urlSegments = metadata.link.split('/').filter((s: string) => s.length > 0);
+      this.router.navigate(urlSegments, { queryParams });
     }
-    }/**
+  } /**
  * Formata a data da notificação seguindo a regra:
 ...
    * - Hoje: 'Hoje HH:mm'
@@ -249,7 +254,7 @@ clicarNotificacao(notificacao: Notificacao): void {
     this.router.navigate(['/login']);
   }
 
-  // ── Utilitários de template ─────────────────────────────────────────────
+  //  Utilitários de template
 
   getStatusConfig(status?: LoteStatus) {
     return (

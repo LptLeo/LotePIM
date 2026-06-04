@@ -30,6 +30,9 @@ export class PasswordFieldComponent {
 
   showError(): boolean {
     if (!this.control) return false;
-    return this.control.invalid && (this.control.dirty || this.control.touched || this.submitted);
+    return (
+      this.control.invalid &&
+      (this.control.dirty || this.control.touched || this.submitted)
+    );
   }
 }

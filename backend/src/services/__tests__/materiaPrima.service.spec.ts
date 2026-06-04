@@ -1,9 +1,8 @@
 import { jest } from '@jest/globals';
 import { PerfilUsuario } from '../../entities/Usuario.js';
+import { UnidadeMedida, type MateriaPrima } from '../../entities/MateriaPrima.js';
 import type { CriarMateriaPrimaDTO } from '../../dto/materiaPrima.dto.js';
-import type { MateriaPrima } from '../../entities/MateriaPrima.js';
-
-type JestMock = ReturnType<typeof jest.fn>;
+import type { Repository } from 'typeorm';
 
 const mockMpRepo = {
   findOneBy: jest.fn(() => Promise.resolve(null as unknown)),
@@ -12,38 +11,41 @@ const mockMpRepo = {
   createQueryBuilder: jest.fn(),
 };
 
-const mockAppDataSource = {
+const mockappDataSource = {
   getRepository: jest.fn(() => mockMpRepo),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: mockAppDataSource,
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
+  appDataSource: mockappDataSource,
 }));
 
-const { MateriaPrimaService } = await import('../materiaPrima.service.js');
+const { MateriaPrimaService: materiaPrimaService } =
+  await import('../materiaPrima.service.js');
 
 describe('MateriaPrimaService', () => {
-  let service: InstanceType<typeof MateriaPrimaService>;
+  let service: InstanceType<typeof materiaPrimaService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new MateriaPrimaService();
+    service = new materiaPrimaService(mockMpRepo as unknown as Repository<MateriaPrima>);
   });
 
   describe('criar()', () => {
     const dto: CriarMateriaPrimaDTO = {
       nome: 'Painel LED 14"',
-      unidade_medida: 'UN',
-      categoria: 'Displays'
+      unidade_medida: UnidadeMedida.UN,
+      categoria: 'Displays',
     };
     const requisitante = { id: 1, perfil: PerfilUsuario.GESTOR };
 
     it('deve gerar o SKU interno corretamente e salvar a entidade', async () => {
-      (mockMpRepo.findOneBy as JestMock).mockResolvedValue(null);
+      (mockMpRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(null),
+      );
 
       // Usamos 'unknown' em vez de 'any' para cumprir a regra de tipagem estrita
-      (mockMpRepo.save as JestMock).mockImplementation((entidade: unknown) =>
-        Promise.resolve({ ...(entidade as object), id: 1 })
+      (mockMpRepo.save as unknown as jest.Mock).mockImplementation((entidade: unknown) =>
+        Promise.resolve({ ...(entidade as object), id: 1 }),
       );
 
       const result = await service.criar(dto, requisitante);
@@ -52,22 +54,22 @@ describe('MateriaPrimaService', () => {
       expect(mockMpRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           sku_interno: 'MP-PAINELLED14',
-          nome: dto.nome
-        })
+          nome: dto.nome,
+        }),
       );
     });
 
     it('deve garantir unicidade do SKU adicionando sufixo se o base já existir', async () => {
-      (mockMpRepo.findOneBy as JestMock)
-        .mockResolvedValueOnce({ id: 5 })
-        .mockResolvedValueOnce(null);
+      (mockMpRepo.findOneBy as unknown as jest.Mock)
+        .mockImplementationOnce(() => Promise.resolve({ id: 5 }))
+        .mockImplementation(() => Promise.resolve(null));
 
       await service.criar(dto, requisitante);
 
       expect(mockMpRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           sku_interno: 'MP-PAINELLED14-1',
-        })
+        }),
       );
     });
   });
@@ -77,7 +79,9 @@ describe('MateriaPrimaService', () => {
 
     it('deve retornar a matéria-prima se encontrada', async () => {
       const mpMock = { id: 1, nome: 'Matéria Teste' } as MateriaPrima;
-      (mockMpRepo.findOneBy as JestMock).mockResolvedValue(mpMock);
+      (mockMpRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(mpMock),
+      );
 
       const result = await service.buscarPorId(1, requisitante);
 
@@ -86,10 +90,12 @@ describe('MateriaPrimaService', () => {
     });
 
     it('deve lançar erro 404 se não for encontrada', async () => {
-      (mockMpRepo.findOneBy as JestMock).mockResolvedValue(null);
+      (mockMpRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(null),
+      );
 
       await expect(service.buscarPorId(99, requisitante)).rejects.toThrow(
-        'Matéria-prima não encontrada.'
+        'Matéria-prima não encontrado(a).',
       );
     });
   });
@@ -105,7 +111,9 @@ describe('MateriaPrimaService', () => {
         andWhere: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn(() => Promise.resolve([[{ id: 1, nome: 'A' }], 1])),
       };
-      (mockMpRepo.createQueryBuilder as JestMock).mockReturnValue(mockQueryBuilder);
+      (mockMpRepo.createQueryBuilder as unknown as jest.Mock).mockReturnValue(
+        mockQueryBuilder,
+      );
 
       const query = { pagina: 1, limite: 10 };
       const result = await service.listar(query, requisitante);

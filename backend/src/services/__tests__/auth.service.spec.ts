@@ -1,8 +1,7 @@
 import { jest } from '@jest/globals';
 import { AppError } from '../../errors/AppError.js';
-import { PerfilUsuario } from '../../entities/Usuario.js';
-
-type JestMock = ReturnType<typeof jest.fn>;
+import { PerfilUsuario, type Usuario } from '../../entities/Usuario.js';
+import type { Repository } from 'typeorm';
 
 const mockQueryBuilder = {
   addSelect: jest.fn().mockReturnThis(),
@@ -16,7 +15,7 @@ const mockUserRepo = {
   update: jest.fn(() => Promise.resolve({} as unknown)),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
   AppDataSource: {
     getRepository: jest.fn(() => mockUserRepo),
   },
@@ -40,10 +39,10 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
   default: mockJwt,
 }));
 
-const { AuthService } = await import('../auth.service.js');
+const { AuthService: authService } = await import('../auth.service.js');
 
 describe('AuthService', () => {
-  let service: InstanceType<typeof AuthService>;
+  let service: InstanceType<typeof authService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,35 +51,49 @@ describe('AuthService', () => {
     process.env.JWT_EXPIRATION = '15m';
     process.env.JWT_REFRESH_EXPIRATION = '7d';
     process.env.JWT_SALT = '10';
-    service = new AuthService();
+    service = new authService(mockUserRepo as unknown as Repository<Usuario>);
   });
 
   describe('login()', () => {
     const credenciais = { email: 'test@lotepim.com', senha: 'password123' };
 
     it('deve lançar AppError se o usuário não for encontrado', async () => {
-      (mockQueryBuilder.getOne as JestMock).mockResolvedValue(null);
+      (mockQueryBuilder.getOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(null),
+      );
 
       await expect(service.login(credenciais)).rejects.toThrow(AppError);
-      await expect(service.login(credenciais)).rejects.toThrow('E-mail ou senha incorretos.');
+      await expect(service.login(credenciais)).rejects.toThrow(
+        'E-mail ou senha incorretos.',
+      );
     });
 
     it('deve lançar AppError se o usuário estiver inativo', async () => {
-      (mockQueryBuilder.getOne as JestMock).mockResolvedValue({ ativo: false });
+      (mockQueryBuilder.getOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({ ativo: false }),
+      );
 
       await expect(service.login(credenciais)).rejects.toThrow(AppError);
-      await expect(service.login(credenciais)).rejects.toThrow('Este usuário está desativado.');
+      await expect(service.login(credenciais)).rejects.toThrow(
+        'Este usuário está desativado.',
+      );
     });
 
     it('deve lançar AppError se a senha estiver incorreta', async () => {
-      (mockQueryBuilder.getOne as JestMock).mockResolvedValue({
-        id: 1,
-        ativo: true,
-        senha_hash: 'hash_real',
-      });
-      (mockBcrypt.compare as JestMock).mockResolvedValue(false);
+      (mockQueryBuilder.getOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({
+          id: 1,
+          ativo: true,
+          senha_hash: 'hash_real',
+        }),
+      );
+      (mockBcrypt.compare as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(false),
+      );
 
-      await expect(service.login(credenciais)).rejects.toThrow('E-mail ou senha incorretos.');
+      await expect(service.login(credenciais)).rejects.toThrow(
+        'E-mail ou senha incorretos.',
+      );
     });
 
     it('deve retornar tokens de acesso e atualização se credenciais forem válidas', async () => {
@@ -93,8 +106,12 @@ describe('AuthService', () => {
         senha_hash: 'hash_real',
       };
 
-      (mockQueryBuilder.getOne as JestMock).mockResolvedValue(usuarioMock);
-      (mockBcrypt.compare as JestMock).mockResolvedValue(true);
+      (mockQueryBuilder.getOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(usuarioMock),
+      );
+      (mockBcrypt.compare as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(true),
+      );
 
       const resultado = await service.login(credenciais);
 
@@ -115,13 +132,17 @@ describe('AuthService', () => {
     });
 
     it('deve renovar os tokens se o refresh token for válido e o usuário estiver ativo', async () => {
-      (mockJwt.verify as JestMock).mockReturnValue({ id: 1 });
-      (mockUserRepo.findOne as JestMock).mockResolvedValue({
-        id: 1,
-        ativo: true,
-        refresh_token: 'hash_token_banco',
-      });
-      (mockBcrypt.compare as JestMock).mockResolvedValue(true);
+      (mockJwt.verify as unknown as jest.Mock).mockReturnValue({ id: 1 });
+      (mockUserRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({
+          id: 1,
+          ativo: true,
+          refresh_token: 'hash_token_banco',
+        }),
+      );
+      (mockBcrypt.compare as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(true),
+      );
 
       const resultado = await service.refresh('token_enviado');
 
@@ -132,13 +153,17 @@ describe('AuthService', () => {
     });
 
     it('deve lançar erro se o token no banco não bater com o enviado', async () => {
-      (mockJwt.verify as JestMock).mockReturnValue({ id: 1 });
-      (mockUserRepo.findOne as JestMock).mockResolvedValue({
-        id: 1,
-        ativo: true,
-        refresh_token: 'hash_diferente',
-      });
-      (mockBcrypt.compare as JestMock).mockResolvedValue(false);
+      (mockJwt.verify as unknown as jest.Mock).mockReturnValue({ id: 1 });
+      (mockUserRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve({
+          id: 1,
+          ativo: true,
+          refresh_token: 'hash_diferente',
+        }),
+      );
+      (mockBcrypt.compare as unknown as jest.Mock).mockImplementation(() =>
+        Promise.resolve(false),
+      );
 
       await expect(service.refresh('token_enviado')).rejects.toThrow(
         'Token de atualização inválido.',

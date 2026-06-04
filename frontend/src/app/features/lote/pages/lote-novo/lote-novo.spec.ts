@@ -8,14 +8,23 @@ import { of } from 'rxjs';
 type JestFn = ReturnType<typeof jest.fn>;
 
 type MockRouter = Pick<Router, 'navigate'>;
-type MockLoteService = Pick<LoteFeatureService, 'getProdutos' | 'getInsumosDisponiveis' | 'createLote'>;
+type MockLoteService = Pick<
+  LoteFeatureService,
+  'getProdutos' | 'getInsumosDisponiveis' | 'createLote'
+>;
 
 describe('LoteNovo Component', () => {
   let component: LoteNovo;
   let fixture: ComponentFixture<LoteNovo>;
   let mockRouter: MockRouter & { navigate: JestFn };
-  let mockLoteService: MockLoteService & { getProdutos: JestFn; getInsumosDisponiveis: JestFn; createLote: JestFn };
-  let mockActivatedRoute: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
+  let mockLoteService: MockLoteService & {
+    getProdutos: JestFn;
+    getInsumosDisponiveis: JestFn;
+    createLote: JestFn;
+  };
+  let mockActivatedRoute: {
+    snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> };
+  };
 
   beforeEach(async () => {
     mockRouter = { navigate: jest.fn() };
@@ -26,8 +35,8 @@ describe('LoteNovo Component', () => {
     };
     mockActivatedRoute = {
       snapshot: {
-        queryParamMap: convertToParamMap({})
-      }
+        queryParamMap: convertToParamMap({}),
+      },
     };
 
     await TestBed.configureTestingModule({
@@ -57,7 +66,9 @@ describe('LoteNovo Component', () => {
   describe('Validação com Zod', () => {
     it('deve mostrar erro se o formulário estiver vazio ao submeter', () => {
       component.onSubmit();
-      expect(component.erro()).toBe('Existem erros no formulário. Por favor, corrija-os.');
+      expect(component.erro()).toBe(
+        'Existem erros no formulário. Por favor, corrija-os.',
+      );
       expect(component.fieldErrors()['produto_id']).toBeDefined();
     });
 

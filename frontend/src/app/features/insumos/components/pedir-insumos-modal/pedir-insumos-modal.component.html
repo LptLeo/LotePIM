@@ -10,7 +10,9 @@
         class="flex justify-between items-center px-6 py-4 bg-[#0E0E0E] border-b border-[#484847]/30"
       >
         <div class="flex items-center gap-3">
-          <div class="flex items-center justify-center w-8 h-8 bg-[#00E5FF]/10 rounded-full">
+          <div
+            class="flex items-center justify-center w-8 h-8 bg-[#00E5FF]/10 rounded-full"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -30,7 +32,10 @@
             Pedido de Matéria-Prima
           </h2>
         </div>
-        <button (click)="onClose()" class="text-[#6B7280] transition-colors hover:text-white">
+        <button
+          (click)="onClose()"
+          class="text-[#6B7280] transition-colors hover:text-white"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -39,7 +44,11 @@
             stroke="currentColor"
             class="w-5 h-5"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18 18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -47,13 +56,18 @@
       <!-- Body -->
       <div class="flex-1 p-6 overflow-y-auto custom-scrollbar">
         <p class="mb-6 text-[11px] text-[#ADAAAA] font-medium leading-relaxed">
-          Selecione as matérias-primas que deseja encomendar e defina a quantidade. O pedido será
-          processado e chegará em <span class="text-[#00E5FF]">10 segundos</span>.
+          Selecione as matérias-primas que deseja encomendar e defina a quantidade. O
+          pedido será processado e chegará em
+          <span class="text-[#00E5FF]">10 segundos</span>.
         </p>
 
         <form [formGroup]="form" class="flex flex-col gap-4">
           <div formArrayName="itens" class="space-y-3">
-            @for (item of itensArray.controls; track item.controls.materia_prima_id.value; let i = $index) {
+            @for (
+              item of itensArray.controls;
+              track item.controls.materia_prima_id.value;
+              let i = $index
+            ) {
               <div
                 [formGroupName]="i"
                 class="flex items-center gap-4 p-3 border rounded transition-all"
@@ -111,7 +125,9 @@
       </div>
 
       <!-- Footer -->
-      <div class="flex justify-end gap-3 px-6 py-4 bg-[#0E0E0E] border-t border-[#484847]/30">
+      <div
+        class="flex justify-end gap-3 px-6 py-4 bg-[#0E0E0E] border-t border-[#484847]/30"
+      >
         <button
           (click)="onClose()"
           class="px-5 py-2 border border-[#484847] text-[#ADAAAA] text-[10px] font-bold uppercase tracking-widest rounded transition-colors hover:bg-[#1a1a1a] hover:text-white"

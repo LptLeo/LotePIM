@@ -1,23 +1,23 @@
 import type { Request, Response } from 'express';
 import { NotificacaoService } from '../services/notificacao.service.js';
+import { getRequisitante } from '../utils/auth.utils.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
+import { AppError } from '../errors/AppError.js';
 
 export class NotificacaoController {
-  private notificacaoService: NotificacaoService;
+  constructor(private readonly notificacaoService: NotificacaoService) {}
 
-  constructor() {
-    this.notificacaoService = new NotificacaoService();
-  }
-
-  listar = async (req: Request, res: Response): Promise<void> => {
-    const usuarioId = req.auth!.id;
+  listar = asyncHandler(async (req: Request, res: Response) => {
+    const { id: usuarioId } = getRequisitante(req);
     const notificacoes = await this.notificacaoService.listarPorUsuario(usuarioId);
-    res.status(200).json(notificacoes);
-  };
+    res.json(notificacoes);
+  });
 
-  marcarComoLida = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const usuarioId = req.auth!.id;
-    const notificacao = await this.notificacaoService.marcarComoLida(Number(id), usuarioId);
-    res.status(200).json(notificacao);
-  };
+  marcarComoLida = asyncHandler(async (req: Request, res: Response) => {
+    const idParam = Number(req.params.id);
+    if (isNaN(idParam)) throw new AppError('ID da notificação inválido', 400);
+    const { id: usuarioId } = getRequisitante(req);
+    const notificacao = await this.notificacaoService.marcarComoLida(idParam, usuarioId);
+    res.json(notificacao);
+  });
 }

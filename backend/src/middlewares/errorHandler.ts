@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { AppError } from '../errors/AppError.js';
+import { logger } from '../utils/logger.js';
 
 export const errorHandler: ErrorRequestHandler = (
   err: unknown,
@@ -22,7 +23,7 @@ export const errorHandler: ErrorRequestHandler = (
     });
   }
 
-  console.error(err);
+  logger.error(String(err));
 
   const details = err instanceof Error ? err.message : String(err);
   return res.status(500).json({ message: 'Erro interno do servidor', details });

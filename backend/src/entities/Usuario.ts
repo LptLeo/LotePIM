@@ -1,10 +1,18 @@
-import { Entity, Column, OneToMany, ManyToOne, JoinColumn, Index, type Relation } from 'typeorm';
+import {
+  Entity,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  type Relation,
+} from 'typeorm';
 
 import { EntidadeBase } from './base.entity.js';
-import type { Lote } from './Lote.js';
-import type { InsumoEstoque } from './InsumoEstoque.js';
-import type { Inspecao } from './Inspecao.js';
-import type { Notificacao } from './Notificacao.js';
+import { Lote } from './Lote.js';
+import { InsumoEstoque } from './InsumoEstoque.js';
+import { Inspecao } from './Inspecao.js';
+import { Notificacao } from './Notificacao.js';
 
 export enum PerfilUsuario {
   OPERADOR = 'operador',
@@ -17,7 +25,7 @@ export class Usuario extends EntidadeBase {
   @Column({ type: 'text', nullable: false })
   nome!: string;
 
-  @Index({ unique: true })
+  @Index()
   @Column({ type: 'text', unique: true, nullable: false })
   email!: string;
 
@@ -38,19 +46,19 @@ export class Usuario extends EntidadeBase {
   @Column({ type: 'int', default: 20, nullable: false })
   alerta_estoque_porcentagem!: number;
 
-  @ManyToOne('Usuario')
+  @ManyToOne(() => Usuario)
   @JoinColumn({ name: 'criado_por_id' })
   criadoPor?: Relation<Usuario>;
 
-  @OneToMany('Lote', 'operador')
+  @OneToMany(() => Lote, (lote) => lote.operador)
   lotes!: Relation<Lote>[];
 
-  @OneToMany('InsumoEstoque', 'operador')
+  @OneToMany(() => InsumoEstoque, (insumo) => insumo.operador)
   entradas_estoque!: Relation<InsumoEstoque>[];
 
-  @OneToMany('Inspecao', 'inspetor')
+  @OneToMany(() => Inspecao, (inspecao) => inspecao.inspetor)
   inspecoes!: Relation<Inspecao>[];
 
-  @OneToMany('Notificacao', 'usuario')
+  @OneToMany(() => Notificacao, (notificacao) => notificacao.usuario)
   notificacoes!: Relation<Notificacao>[];
 }

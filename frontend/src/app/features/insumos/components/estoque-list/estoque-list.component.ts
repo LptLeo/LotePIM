@@ -11,5 +11,5 @@ import { EstoqueCardComponent } from '../estoque-card/estoque-card.component.js'
 })
 export class EstoqueListComponent {
   @Input() insumos: InsumoEstoque[] = [];
-  @Input() carregando: boolean = false;
+  @Input() carregando = false;
 }
