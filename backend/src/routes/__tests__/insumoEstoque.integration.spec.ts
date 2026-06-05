@@ -29,7 +29,7 @@ describe('Insumo Estoque (Integração)', () => {
     const mpRes = await request(app)
       .post('/api/materias-primas')
       .set('Authorization', `Bearer ${tokenGestor}`)
-      .send({ nome: 'Bulk MP', unidade_medida: 'KG', categoria: 'Teste' });
+      .send({ nome: 'Bulk MP', unidade_medida: 'UN', categoria: 'Teste' });
 
     expect(mpRes.status).toBe(201);
     const mpId = mpRes.body.id;
@@ -41,13 +41,13 @@ describe('Insumo Estoque (Integração)', () => {
       .send({
         itens: [
           {
-            materia_prima_id: mpId,
+            materiaPrimaId: mpId,
             quantidade_inicial: 10,
             fornecedor: 'F1',
             turno: 'manha',
           },
           {
-            materia_prima_id: mpId,
+            materiaPrimaId: mpId,
             quantidade_inicial: 20,
             fornecedor: 'F1',
             turno: 'manha',

@@ -29,9 +29,11 @@ jest.unstable_mockModule('../../config/appDataSource.js', () => ({
 
 const { InspecaoService: inspecaoService } = await import('../inspecao.service.js');
 
-describe('InspecaoService', () => {
-  let service: InstanceType<typeof inspecaoService>;
-  const requisitanteMock: Requisitante = { id: 1, perfil: PerfilUsuario.INSPETOR };
+let service: InstanceType<typeof inspecaoService>;
+const requisitanteMock: Requisitante = { id: 1, perfil: PerfilUsuario.INSPETOR };
+
+describe('registrar - validações', () => {
+  const dtoMock = { quantidade_reprovada: 5, descricao_desvio: 'Teste' };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -43,99 +45,108 @@ describe('InspecaoService', () => {
     );
   });
 
-  describe('registrar', () => {
-    const dtoMock = { quantidade_reprovada: 5, descricao_desvio: 'Teste' };
+  it('deve lançar erro se o lote não existir', async () => {
+    mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(null));
+    await expect(
+      service.registrar({ loteId: 1, dto: dtoMock, requisitante: requisitanteMock }),
+    ).rejects.toThrow('Lote não encontrado(a).');
+  });
 
-    it('deve lançar erro se o lote não existir', async () => {
-      mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(null));
-      await expect(
-        service.registrar({ loteId: 1, dto: dtoMock, requisitante: requisitanteMock }),
-      ).rejects.toThrow('Lote não encontrado(a).');
+  it('deve lançar erro se o lote não estiver aguardando inspeção', async () => {
+    mockLoteRepo.findOne.mockImplementation(() =>
+      Promise.resolve({ id: 1, status: LoteStatus.EM_PRODUCAO }),
+    );
+    await expect(
+      service.registrar({ loteId: 1, dto: dtoMock, requisitante: requisitanteMock }),
+    ).rejects.toThrow(/Só é possível inspecionar lotes com status/);
+  });
+});
+
+describe('registrar - cálculo de aprovação', () => {
+  function criarLoteBase() {
+    return {
+      id: 1,
+      status: LoteStatus.AGUARDANDO_INSPECAO,
+      quantidade_planejada: 100,
+      produto: { percentual_ressalva: 10 },
+    };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new inspecaoService(
+      mockInspecaoRepo as unknown as Repository<Inspecao>,
+      mockLoteRepo as unknown as Repository<Lote>,
+      mockUserRepo as unknown as Repository<Usuario>,
+      mockAppDataSource as unknown as DataSource,
+    );
+    mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(criarLoteBase()));
+    mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
+    mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve({ id: 1 }));
+  });
+
+  it('deve calcular APROVADO quando zero reprovados', async () => {
+    mockManager.create.mockReturnValue({ resultado_calculado: 'aprovado' });
+
+    await service.registrar({
+      loteId: 1,
+      dto: { quantidade_reprovada: 0, descricao_desvio: '' },
+      requisitante: requisitanteMock,
     });
 
-    it('deve lançar erro se o lote não estiver aguardando inspeção', async () => {
-      mockLoteRepo.findOne.mockImplementation(() =>
-        Promise.resolve({ id: 1, status: LoteStatus.EM_PRODUCAO }),
-      );
-      await expect(
-        service.registrar({ loteId: 1, dto: dtoMock, requisitante: requisitanteMock }),
-      ).rejects.toThrow(/Só é possível inspecionar lotes com status/);
+    expect(mockManager.create).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ resultado_calculado: 'aprovado' }),
+    );
+  });
+
+  it('deve calcular REPROVADO quando taxa excede ressalva', async () => {
+    await service.registrar({
+      loteId: 1,
+      dto: { quantidade_reprovada: 15, descricao_desvio: '' },
+      requisitante: requisitanteMock,
     });
 
-    it('deve calcular APROVADO quando zero reprovados', async () => {
-      const loteMock = {
-        id: 1,
-        status: LoteStatus.AGUARDANDO_INSPECAO,
-        quantidade_planejada: 100,
-        produto: { percentual_ressalva: 10 },
-      };
-      mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(loteMock));
-      mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
-      mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve({ id: 1 }));
-      mockManager.create.mockReturnValue({ resultado_calculado: 'aprovado' });
+    expect(mockManager.create).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ resultado_calculado: 'reprovado' }),
+    );
+  });
+});
 
-      await service.registrar({
-        loteId: 1,
-        dto: { quantidade_reprovada: 0, descricao_desvio: '' },
-        requisitante: requisitanteMock,
-      });
+describe('registrar - resultado com restrição', () => {
+  function criarLoteBase() {
+    return {
+      id: 1,
+      status: LoteStatus.AGUARDANDO_INSPECAO,
+      quantidade_planejada: 100,
+      produto: { percentual_ressalva: 10 },
+    };
+  }
 
-      expect(mockManager.create).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          resultado_calculado: 'aprovado',
-        }),
-      );
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new inspecaoService(
+      mockInspecaoRepo as unknown as Repository<Inspecao>,
+      mockLoteRepo as unknown as Repository<Lote>,
+      mockUserRepo as unknown as Repository<Usuario>,
+      mockAppDataSource as unknown as DataSource,
+    );
+    mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(criarLoteBase()));
+    mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
+    mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve({ id: 1 }));
+  });
+
+  it('deve calcular APROVADO_RESTRICAO quando taxa está dentro da ressalva', async () => {
+    await service.registrar({
+      loteId: 1,
+      dto: { quantidade_reprovada: 5, descricao_desvio: '' },
+      requisitante: requisitanteMock,
     });
 
-    it('deve calcular REPROVADO quando taxa excede ressalva', async () => {
-      const loteMock = {
-        id: 1,
-        status: LoteStatus.AGUARDANDO_INSPECAO,
-        quantidade_planejada: 100,
-        produto: { percentual_ressalva: 10 },
-      };
-      mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(loteMock));
-      mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
-      mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve({ id: 1 }));
-
-      await service.registrar({
-        loteId: 1,
-        dto: { quantidade_reprovada: 15, descricao_desvio: '' },
-        requisitante: requisitanteMock,
-      }); // 15% > 10%
-
-      expect(mockManager.create).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          resultado_calculado: 'reprovado',
-        }),
-      );
-    });
-
-    it('deve calcular APROVADO_RESTRICAO quando taxa está dentro da ressalva', async () => {
-      const loteMock = {
-        id: 1,
-        status: LoteStatus.AGUARDANDO_INSPECAO,
-        quantidade_planejada: 100,
-        produto: { percentual_ressalva: 10 },
-      };
-      mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(loteMock));
-      mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
-      mockUserRepo.findOneBy.mockImplementation(() => Promise.resolve({ id: 1 }));
-
-      await service.registrar({
-        loteId: 1,
-        dto: { quantidade_reprovada: 5, descricao_desvio: '' },
-        requisitante: requisitanteMock,
-      }); // 5% <= 10%
-
-      expect(mockManager.create).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          resultado_calculado: 'aprovado_restricao',
-        }),
-      );
-    });
+    expect(mockManager.create).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ resultado_calculado: 'aprovado_restricao' }),
+    );
   });
 });

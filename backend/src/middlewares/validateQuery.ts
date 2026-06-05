@@ -8,6 +8,10 @@ export const validateQuery =
       return next(result.error);
     }
 
-    req.query = result.data as unknown as typeof req.query;
+    Object.defineProperty(req, 'query', {
+      value: result.data,
+      writable: true,
+      configurable: true,
+    });
     next();
   };

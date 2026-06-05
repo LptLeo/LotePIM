@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettierPlugin from 'eslint-plugin-prettier';
 import configPrettier from 'eslint-config-prettier';
+import globals from 'globals';
 
 export default [
   {
@@ -9,6 +10,14 @@ export default [
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    files: ['src/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   {
     files: ['src/**/*.ts'],
     languageOptions: {

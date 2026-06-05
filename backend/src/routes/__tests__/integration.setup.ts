@@ -5,6 +5,7 @@ import {
 import { appDataSource } from '../../config/appDataSource.js';
 import jwt from 'jsonwebtoken';
 import { PerfilUsuario, Usuario } from '../../entities/Usuario.js';
+import { env } from '../../config/env.js';
 
 let container: StartedPostgreSqlContainer;
 
@@ -23,11 +24,6 @@ export async function startTestContainer() {
     process.env.DB_PASSWORD = 'test_pass';
     process.env.DB_NAME = 'test_db';
     process.env.NODE_ENV = 'test';
-    process.env.JWT_SECRET = 'test_secret_only';
-    process.env.JWT_REFRESH_SECRET = 'test_refresh_secret_only';
-    process.env.JWT_EXPIRATION = '15m';
-    process.env.JWT_REFRESH_EXPIRATION = '7d';
-    process.env.JWT_SALT = '10';
 
     console.info(
       `[test] Container pronto em ${process.env.DB_HOST}:${process.env.DB_PORT}`,
@@ -41,6 +37,7 @@ export async function startTestContainer() {
       username: 'test_user',
       password: 'test_pass',
       database: 'test_db',
+      migrations: [],
     });
     await appDataSource.initialize();
   }
@@ -79,8 +76,7 @@ export async function criarUsuarioTeste(perfil: PerfilUsuario = PerfilUsuario.GE
 
   const token = jwt.sign(
     { id: salvo.id, perfil: salvo.perfil, nome: salvo.nome },
-    // Usa a mesma chave default do env.ts para NODE_ENV=test
-    process.env.JWT_SECRET ?? 'test_secret_only',
+    env.JWT_SECRET,
     { expiresIn: '1h' },
   );
 
