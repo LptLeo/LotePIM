@@ -110,7 +110,7 @@
     <div
       class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 rounded-[4px] order-4 lg:order-3 col-span-2 lg:col-span-1"
       [style.border-color]="
-        taxaDeAprovacaoMes() >= taxaAlvo()
+        taxaDeAprovacaoMes() >= taxaAprovacaoAlvo()
           ? 'rgba(195, 244, 0, 0.2)'
           : 'rgba(255, 113, 108, 0.2)'
       "
@@ -138,16 +138,17 @@
           class="h-full rounded-l-[12px]"
           [style.width.%]="taxaDeAprovacaoMes()"
           [style.background-color]="
-            taxaDeAprovacaoMes() >= taxaAlvo() ? '#C3F400' : '#FF716C'
+            taxaDeAprovacaoMes() >= taxaAprovacaoAlvo() ? '#C3F400' : '#FF716C'
           "
         ></div>
       </div>
       <div>
         <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">
           {{
-            taxaDeAprovacaoMes() >= taxaAlvo()
+            taxaDeAprovacaoMes() >= taxaAprovacaoAlvo()
               ? 'Acima da meta configurada'
-              : 'Abaixo da meta configurada'
+              : 'Abaixo da
+          meta configurada'
           }}
         </span>
       </div>
@@ -172,7 +173,7 @@
       </div>
       <div>
         <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
-          {{ lotesEmAberto() }}
+          {{ aguardandoInspecao() }}
         </span>
       </div>
       <div>
@@ -236,8 +237,8 @@
                 {{ lote.aberto_em | date: 'HH:mm:ss' }}
               </td>
               <td class="px-6 py-4 text-right w-[19.49%] flex justify-end items-center">
-                <div [class]="getStatusClass(lote.status)">
-                  {{ formatStatus(lote.status) }}
+                <div [class]="obterClasseStatus(lote.status)">
+                  {{ formatarStatus(lote.status) }}
                 </div>
               </td>
             </tr>
@@ -271,8 +272,8 @@
             <span class="text-[12px] text-[#ADAAAA] mt-1">{{ lote.produto.nome }}</span>
           </div>
           <div class="flex items-center gap-3 w-1/2 justify-end">
-            <div [class]="getStatusClass(lote.status) + ' text-right shrink-0'">
-              {{ formatStatus(lote.status) }}
+            <div [class]="obterClasseStatus(lote.status) + ' text-right shrink-0'">
+              {{ formatarStatus(lote.status) }}
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
