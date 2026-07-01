@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const paginacaoQuerySchema = z.object({
   pagina: z.coerce.number().int().positive().default(1),
-  limite: z.coerce.number().int().positive().max(100).default(10),
+  limite: z.coerce.number().int().positive().max(1000).default(10),
   busca: z.string().optional(),
 });
 

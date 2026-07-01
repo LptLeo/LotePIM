@@ -13,6 +13,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns=src/services/__tests__",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns=src/services/__tests__ --coverage",
     "test:integration": "NODE_OPTIONS=--experimental-vm-modules cross-env NODE_ENV=test jest --testPathPatterns=src/routes/__tests__ --runInBand --forceExit --detectOpenHandles",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "lint": "eslint .",

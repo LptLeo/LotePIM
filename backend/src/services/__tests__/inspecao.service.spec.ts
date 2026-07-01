@@ -9,6 +9,7 @@ const mockInspecaoRepo = { findOneBy: jest.fn(), findOne: jest.fn(), save: jest.
 const mockLoteRepo = { findOne: jest.fn(), save: jest.fn() };
 const mockUserRepo = { findOneBy: jest.fn() };
 const mockManager = { create: jest.fn(), save: jest.fn() };
+const mockSseService = { emitir: jest.fn() };
 
 const mockAppDataSource = {
   getRepository: jest.fn((entity: { name?: string } | string | unknown) => {
@@ -42,6 +43,7 @@ describe('registrar - validações', () => {
       mockLoteRepo as unknown as Repository<Lote>,
       mockUserRepo as unknown as Repository<Usuario>,
       mockAppDataSource as unknown as DataSource,
+      mockSseService as unknown as import('../../services/sse.service.js').SseService,
     );
   });
 
@@ -79,6 +81,7 @@ describe('registrar - cálculo de aprovação', () => {
       mockLoteRepo as unknown as Repository<Lote>,
       mockUserRepo as unknown as Repository<Usuario>,
       mockAppDataSource as unknown as DataSource,
+      mockSseService as unknown as import('../../services/sse.service.js').SseService,
     );
     mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(criarLoteBase()));
     mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));
@@ -131,6 +134,7 @@ describe('registrar - resultado com restrição', () => {
       mockLoteRepo as unknown as Repository<Lote>,
       mockUserRepo as unknown as Repository<Usuario>,
       mockAppDataSource as unknown as DataSource,
+      mockSseService as unknown as import('../../services/sse.service.js').SseService,
     );
     mockLoteRepo.findOne.mockImplementation(() => Promise.resolve(criarLoteBase()));
     mockInspecaoRepo.findOneBy.mockImplementation(() => Promise.resolve(null));

@@ -45,6 +45,10 @@ export class LoteService {
       'Produto',
       404,
     );
+
+    if (!produto.ativo) {
+      throw new AppError('Produto desativado não pode ser usado em novo lote.', 400);
+    }
     const operador = await findOneByOrFail(
       this.dependencies.usuarioRepo,
       { id: requisitante.id },
@@ -370,7 +374,7 @@ export class LoteService {
       { where: { id: loteSalvo.id }, relations },
       { entityName: 'Lote', statusCode: 500 },
     );
-    this.dependencies.sseService.emitir('lote-criado', {
+    this.dependencies.sseService.emitir('lote:criado', {
       id: loteCompleto.id,
       numero_lote: loteCompleto.numero_lote,
       status: loteCompleto.status,

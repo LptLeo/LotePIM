@@ -261,6 +261,8 @@ async function criarProdutosEReceitas(
   const receitas: ReceitaItem[] = [];
   for (let i = 0; i < limiteComReceita; i++) {
     const produto = todos[i]!;
+    const receitasExistentes = await receitaRepo.countBy({ produto: { id: produto.id } });
+    if (receitasExistentes > 0) continue;
     const qtdIngredientes = rand(2, 5);
     const ingredientes = [...materiasPrimas]
       .sort(() => 0.5 - Math.random())

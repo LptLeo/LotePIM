@@ -367,10 +367,10 @@ export class InsumoEstoqueService {
     ordenarPor: ListInsumosQueryDto['ordenarPor'],
   ): void {
     const ordenacoes: Record<string, () => void> = {
-      menorEstoque: () => queryBuilder.orderBy('ie.quantidade_atual', 'ASC'),
-      maiorEstoque: () => queryBuilder.orderBy('ie.quantidade_atual', 'DESC'),
-      maisRecente: () => queryBuilder.orderBy('ie.recebido_em', 'DESC'),
-      menosRecente: () => queryBuilder.orderBy('ie.recebido_em', 'ASC'),
+      menor_estoque: () => queryBuilder.orderBy('ie.quantidade_atual', 'ASC'),
+      maior_estoque: () => queryBuilder.orderBy('ie.quantidade_atual', 'DESC'),
+      mais_recente: () => queryBuilder.orderBy('ie.recebido_em', 'DESC'),
+      menos_recente: () => queryBuilder.orderBy('ie.recebido_em', 'ASC'),
     };
     const ordenar = ordenacoes[ordenarPor ?? ''];
     if (ordenar) ordenar();

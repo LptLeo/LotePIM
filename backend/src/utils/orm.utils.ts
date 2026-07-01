@@ -39,10 +39,11 @@ export async function listarColunasDistintas<TValue>(
     .createQueryBuilder(alias)
     .select(`${alias}.${column}`)
     .distinct(true)
+    .where(`${alias}.${column} != ''`)
     .orderBy(`${alias}.${column}`, 'ASC')
     .getRawMany();
 
-  return resultados.map((r) => r[column] as TValue);
+  return resultados.map((r) => r[`${alias}_${column}`] as TValue);
 }
 
 export async function managerFindOneByOrFail<T extends ObjectLiteral>(

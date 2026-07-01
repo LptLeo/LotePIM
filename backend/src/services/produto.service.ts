@@ -178,7 +178,6 @@ export class ProdutoService {
       .leftJoinAndSelect('produto.receita', 'receita')
       .leftJoinAndSelect('receita.materiaPrima', 'materiaPrima')
       .leftJoinAndSelect('produto.criadoPor', 'criadoPor')
-      .leftJoinAndSelect('produto.lotes', 'lotes')
       .skip(skip)
       .take(limite);
 
@@ -428,6 +427,7 @@ export class ProdutoService {
       qb.orderBy(config.alias!, config.order);
     } else {
       qb.orderBy(`produto.${config.campo!}`, config.order);
+      qb.addOrderBy('produto.id', 'ASC');
     }
   }
 }

@@ -7,6 +7,7 @@ import { verificaPermissao, type Requisitante } from '../utils/auth.utils.js';
 import type { RegistrarInspecaoDTO } from '../dto/inspecao.dto.js';
 import { calcularResultadoInspecao } from '../utils/inspecao.utils.js';
 import { findOneByOrFail, findOneOrFail } from '../utils/orm.utils.js';
+import type { SseService } from './sse.service.js';
 
 interface RegistrarInspecaoParams {
   loteId: number;
@@ -26,6 +27,7 @@ export class InspecaoService {
     private readonly loteRepo: Repository<Lote>,
     private readonly usuarioRepo: Repository<Usuario>,
     private readonly dataSource: DataSource,
+    private readonly sseService: SseService,
   ) {}
 
   public async registrar(params: RegistrarInspecaoParams): Promise<Inspecao> {
@@ -48,7 +50,7 @@ export class InspecaoService {
 
     const resultadoParaStatus = InspecaoService.resultadoParaStatus;
 
-    return this.dataSource.transaction(async (manager) => {
+    const inspecaoSalva = await this.dataSource.transaction(async (manager) => {
       const inspecao = manager.create(Inspecao, {
         lote,
         inspetor,
@@ -57,13 +59,20 @@ export class InspecaoService {
         descricao_desvio: dto.descricao_desvio ?? null,
       });
 
-      const inspecaoSalva = await manager.save(inspecao);
+      const salva = await manager.save(inspecao);
 
       lote.status = resultadoParaStatus[resultado];
       await manager.save(lote);
 
-      return inspecaoSalva;
+      return salva;
     });
+
+    this.sseService.emitir('lote:status_alterado', {
+      id: lote.id,
+      status: lote.status,
+    });
+
+    return inspecaoSalva;
   }
 
   public async buscarPorLote(

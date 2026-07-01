@@ -106,7 +106,7 @@ describe('criar - validações de referência', () => {
 
   it('deve lançar erro se o insumo não for encontrado no estoque', async () => {
     (mockProdutoRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve({ id: 1, nome: 'Produto Teste' }),
+      Promise.resolve({ id: 1, nome: 'Produto Teste', ativo: true }),
     );
     (mockManager.findOne as unknown as jest.Mock).mockImplementation(() =>
       Promise.resolve(null),
@@ -125,7 +125,7 @@ describe('criar - validações de estado do insumo', () => {
 
   it('deve lançar erro se o insumo estiver inativo', async () => {
     (mockProdutoRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve({ id: 1, nome: 'Produto Teste' }),
+      Promise.resolve({ id: 1, nome: 'Produto Teste', ativo: true }),
     );
     (mockManager.findOne as unknown as jest.Mock).mockImplementation(() =>
       Promise.resolve({
@@ -142,7 +142,7 @@ describe('criar - validações de estado do insumo', () => {
 
   it('deve lançar erro se tentar consumo fracionado para unidade UN', async () => {
     (mockProdutoRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve({ id: 1, nome: 'Produto Teste' }),
+      Promise.resolve({ id: 1, nome: 'Produto Teste', ativo: true }),
     );
     (mockManager.findOne as unknown as jest.Mock).mockImplementation(() =>
       Promise.resolve({
@@ -167,7 +167,7 @@ describe('criar - verificação de saldo', () => {
   beforeEach(() => {
     service = criarService();
     (mockProdutoRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve({ id: 1, nome: 'Produto Teste', percentual_ressalva: 10 }),
+      Promise.resolve({ id: 1, nome: 'Produto Teste', percentual_ressalva: 10, ativo: true }),
     );
   });
 
@@ -191,7 +191,7 @@ describe('criar - criação bem-sucedida', () => {
   beforeEach(() => {
     service = criarService();
     (mockProdutoRepo.findOneBy as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve({ id: 1, nome: 'Produto Teste', percentual_ressalva: 10 }),
+      Promise.resolve({ id: 1, nome: 'Produto Teste', percentual_ressalva: 10, ativo: true }),
     );
   });
 
