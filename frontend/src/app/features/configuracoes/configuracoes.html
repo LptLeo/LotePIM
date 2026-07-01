@@ -34,12 +34,15 @@
 
       <div class="space-y-4">
         <div class="flex flex-col gap-1.5">
-          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
+          <label
+            for="periodo-lotes-mobile"
+            class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
             >Período de Lotes</label
           >
           <select
+            id="periodo-lotes-mobile"
             [ngModel]="settings().dashboard.lotesComparacao"
-            (ngModelChange)="updateDashboard('lotesComparacao', $event)"
+            (ngModelChange)="atualizarDashboard('lotesComparacao', $event)"
             class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none"
           >
             @for (opt of periodoOptions; track opt.value) {
@@ -49,12 +52,15 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
+          <label
+            for="periodo-unidades-mobile"
+            class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
             >Período de Unidades</label
           >
           <select
+            id="periodo-unidades-mobile"
             [ngModel]="settings().dashboard.unidadesComparacao"
-            (ngModelChange)="updateDashboard('unidadesComparacao', $event)"
+            (ngModelChange)="atualizarDashboard('unidadesComparacao', $event)"
             class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none"
           >
             @for (opt of periodoOptions; track opt.value) {
@@ -64,13 +70,16 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
+          <label
+            for="meta-aprovacao-mobile"
+            class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
             >Meta Aprovação (%)</label
           >
           <input
+            id="meta-aprovacao-mobile"
             type="number"
             [ngModel]="settings().dashboard.taxaAprovacaoAlvo"
-            (input)="onNumericInput('taxaAprovacaoAlvo', $event.target, 'dashboard')"
+            (input)="aoDigitarNumero('taxaAprovacaoAlvo', $event, 'dashboard')"
             class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none"
           />
         </div>
@@ -100,12 +109,15 @@
 
       <div class="space-y-4">
         <div class="flex flex-col gap-1.5">
-          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
+          <label
+            for="periodo-acumulado-mobile"
+            class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
             >Período Acumulado</label
           >
           <select
+            id="periodo-acumulado-mobile"
             [ngModel]="settings().lote.producaoTotalPeriodo"
-            (ngModelChange)="updateLote('producaoTotalPeriodo', $event)"
+            (ngModelChange)="atualizarConfiguracaoLote('producaoTotalPeriodo', $event)"
             class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#81ECFF] outline-none"
           >
             @for (opt of producaoOptions; track opt.value) {
@@ -115,14 +127,17 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
+          <label
+            for="base-calculo-mobile"
+            class="text-[9px] text-[#ADAAAA] uppercase font-bold tracking-wider"
             >Base Cálculo Divisor</label
           >
           <input
+            id="base-calculo-mobile"
             type="number"
             step="0.1"
             [ngModel]="settings().lote.atividadeTempoRealBase"
-            (input)="onNumericInput('atividadeTempoRealBase', $event.target, 'lote')"
+            (input)="aoDigitarNumero('atividadeTempoRealBase', $event, 'lote')"
             class="bg-[#000] border border-[#484847] text-white text-[11px] px-3 py-2.5 rounded focus:border-[#DFFF00] outline-none"
           />
         </div>
@@ -172,12 +187,15 @@
             </h4>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
+            <label
+              for="comparacao-lotes"
+              class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
               >Comparação de Período</label
             >
             <select
+              id="comparacao-lotes"
               [ngModel]="settings().dashboard.lotesComparacao"
-              (ngModelChange)="updateDashboard('lotesComparacao', $event)"
+              (ngModelChange)="atualizarDashboard('lotesComparacao', $event)"
               class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors"
             >
               @for (opt of periodoOptions; track opt.value) {
@@ -204,12 +222,15 @@
             </h4>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
+            <label
+              for="comparacao-unidades"
+              class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
               >Comparação de Período</label
             >
             <select
+              id="comparacao-unidades"
               [ngModel]="settings().dashboard.unidadesComparacao"
-              (ngModelChange)="updateDashboard('unidadesComparacao', $event)"
+              (ngModelChange)="atualizarDashboard('unidadesComparacao', $event)"
               class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors"
             >
               @for (opt of periodoOptions; track opt.value) {
@@ -236,13 +257,16 @@
             </h4>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
+            <label
+              for="meta-aprovacao"
+              class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
               >Meta de Porcentagem (%)</label
             >
             <input
+              id="meta-aprovacao"
               type="number"
               [ngModel]="settings().dashboard.taxaAprovacaoAlvo"
-              (input)="onNumericInput('taxaAprovacaoAlvo', $event.target, 'dashboard')"
+              (input)="aoDigitarNumero('taxaAprovacaoAlvo', $event, 'dashboard')"
               class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors"
             />
           </div>
@@ -290,12 +314,15 @@
             </h4>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
+            <label
+              for="periodo-selecao"
+              class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
               >Período de Seleção</label
             >
             <select
+              id="periodo-selecao"
               [ngModel]="settings().lote.producaoTotalPeriodo"
-              (ngModelChange)="updateLote('producaoTotalPeriodo', $event)"
+              (ngModelChange)="atualizarConfiguracaoLote('producaoTotalPeriodo', $event)"
               class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#81ECFF] outline-none transition-colors"
             >
               @for (opt of producaoOptions; track opt.value) {
@@ -326,14 +353,17 @@
             </h4>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
+            <label
+              for="base-calculo"
+              class="text-[10px] text-[#ADAAAA] uppercase tracking-[1px]"
               >Base de Cálculo (Divisor)</label
             >
             <input
+              id="base-calculo"
               type="number"
               step="0.1"
               [ngModel]="settings().lote.atividadeTempoRealBase"
-              (input)="onNumericInput('atividadeTempoRealBase', $event.target, 'lote')"
+              (input)="aoDigitarNumero('atividadeTempoRealBase', $event, 'lote')"
               class="bg-[#000000] border border-[#484847] text-white text-[12px] px-3 py-2 rounded focus:border-[#DFFF00] outline-none transition-colors"
             />
             <p class="text-[10px] text-[#6B7280]">
