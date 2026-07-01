@@ -35,7 +35,7 @@
         <input
           type="text"
           [value]="state.termoPesquisa()"
-          (input)="onSearch($event)"
+          (input)="aoPesquisar($event)"
           placeholder="Buscar..."
           class="w-full bg-transparent text-[11px] text-white placeholder:text-[#6B7280] focus:outline-none"
         />
@@ -44,10 +44,10 @@
   </div>
 
   <!-- Tabs (Ocultas para Operador) -->
-  @if (!isOperador()) {
+  @if (!ehOperador()) {
     <div class="flex gap-8 border-b border-[#484847]/30">
       <button
-        (click)="setAba('estoque')"
+        (click)="definirAba('estoque')"
         class="relative px-2 pb-2 text-[11px] font-bold uppercase tracking-[1px] transition-colors"
         [class.text-[#00E5FF]]="state.abaAtiva() === 'estoque'"
         [class.text-[#6B7280]]="state.abaAtiva() !== 'estoque'"
@@ -60,7 +60,7 @@
         }
       </button>
       <button
-        (click)="setAba('catalogo')"
+        (click)="definirAba('catalogo')"
         class="relative px-2 pb-2 text-[11px] font-bold uppercase tracking-[1px] transition-colors"
         [class.text-[#00E5FF]]="state.abaAtiva() === 'catalogo'"
         [class.text-[#6B7280]]="state.abaAtiva() !== 'catalogo'"
@@ -74,8 +74,7 @@
       </button>
     </div>
   }
-
-  @if (state.abaAtiva() === 'estoque' || isOperador()) {
+  @if (state.abaAtiva() === 'estoque' || ehOperador()) {
     <div class="flex flex-col gap-6">
       <div
         class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
@@ -84,7 +83,7 @@
           Resumo do Estoque
         </h2>
         <div class="flex flex-wrap gap-3 w-full md:w-auto">
-          @if (!isOperador()) {
+          @if (!ehOperador()) {
             <button
               (click)="modalPedidoAberto.set(true)"
               class="flex-1 md:flex-none px-6 py-2.5 border border-[#00E5FF] text-[#00E5FF] text-[10px] font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/10"
@@ -107,14 +106,17 @@
       >
         <!-- Filtro: Fornecedor -->
         <div class="flex flex-col gap-1.5">
-          <label class="ml-1 text-[9px] font-bold text-[#6B7280] uppercase tracking-wider"
+          <label
+            for="filtro-fornecedor"
+            class="ml-1 text-[9px] font-bold text-[#6B7280] uppercase tracking-wider"
             >Fornecedor</label
           >
           <div class="relative group">
             <input
+              id="filtro-fornecedor"
               type="text"
               [value]="state.filtroFornecedor()"
-              (input)="setFornecedor($event)"
+              (input)="definirFornecedor($event)"
               placeholder="Nome do fornecedor..."
               class="w-full px-3 py-2 bg-black border border-[#484847]/60 rounded text-[11px] text-white transition-colors focus:outline-none focus:border-[#00E5FF]"
             />
@@ -123,18 +125,21 @@
 
         <!-- Filtro: Ordenação -->
         <div class="flex flex-col gap-1.5">
-          <label class="ml-1 text-[9px] font-bold text-[#6B7280] uppercase tracking-wider"
+          <label
+            for="ordenar-por"
+            class="ml-1 text-[9px] font-bold text-[#6B7280] uppercase tracking-wider"
             >Ordenar por</label
           >
           <div class="relative">
             <select
+              id="ordenar-por"
               [value]="state.ordenarPor()"
-              (change)="setOrdenacao($event)"
+              (change)="definirOrdenacao($event)"
               class="w-full pl-3 pr-8 py-2 bg-black border border-[#484847]/60 rounded text-[11px] text-white appearance-none cursor-pointer transition-colors focus:outline-none focus:border-[#00E5FF]"
             >
               <option value="mais_recente">Mais recente (entrada)</option>
               <option value="menos_recente">Menos recente (entrada)</option>
-              @if (!isOperador()) {
+              @if (!ehOperador()) {
                 <option value="menor_estoque">Menor estoque disponível</option>
                 <option value="maior_estoque">Maior estoque disponível</option>
               }
@@ -158,13 +163,13 @@
 
         <!-- Filtro: Apenas Esgotados -->
         <div class="flex items-end pb-1 md:justify-center">
-          @if (!isOperador()) {
+          @if (!ehOperador()) {
             <label class="flex items-center gap-3 cursor-pointer group">
               <div class="relative flex items-center">
                 <input
                   type="checkbox"
                   [checked]="state.filtroEsgotado()"
-                  (change)="toggleEsgotado()"
+                  (change)="alternarEsgotado()"
                   class="sr-only peer"
                 />
                 <div
@@ -195,12 +200,12 @@
 
     <app-lotes-receber
       [lotes]="state.lotesReceber()"
-      [isGestor]="!isOperador()"
+      [ehGestor]="!ehOperador()"
       (receber)="receberLoteFisico($event)"
     >
     </app-lotes-receber>
 
-    @if (!isOperador()) {
+    @if (!ehOperador()) {
       <app-metric-cards
         [totalRegistros]="state.totalRegistros()"
         [totalComSaldo]="state.totalComSaldo()"
@@ -213,17 +218,16 @@
     <app-estoque-list [insumos]="state.insumos()" [carregando]="state.carregando()">
     </app-estoque-list>
 
-    @if (state.paginationMetaEstoque(); as meta) {
+    @if (state.metaPaginacaoEstoque(); as meta) {
       @if (meta.totalPaginas > 1) {
         <app-pagination
           [meta]="meta"
-          (pageChange)="onPageChange($event)"
+          (pageChange)="aoMudarPagina($event)"
         ></app-pagination>
       }
     }
   }
-
-  @if (state.abaAtiva() === 'catalogo' && !isOperador()) {
+  @if (state.abaAtiva() === 'catalogo' && !ehOperador()) {
     <div
       class="flex flex-col min-[425px]:flex-row justify-between items-start min-[425px]:items-center gap-4 mb-4"
     >
@@ -251,11 +255,11 @@
     <app-catalogo-table [catalogo]="state.catalogo()" [carregando]="state.carregando()">
     </app-catalogo-table>
 
-    @if (state.paginationMetaCatalogo(); as meta) {
+    @if (state.metaPaginacaoCatalogo(); as meta) {
       @if (meta.totalPaginas > 1) {
         <app-pagination
           [meta]="meta"
-          (pageChange)="onPageChange($event)"
+          (pageChange)="aoMudarPagina($event)"
         ></app-pagination>
       }
     }
@@ -264,30 +268,30 @@
 
 <!-- Modais -->
 <app-nova-mp-modal
-  [isOpen]="modalAberto()"
+  [estaAberto]="modalAberto()"
   [salvando]="salvandoMp()"
   [erro]="erroMp()"
   [categorias]="state.categoriasMp()"
-  (close)="modalAberto.set(false)"
-  (save)="salvarNovaMp($event)"
+  (fechar)="modalAberto.set(false)"
+  (salvar)="salvarNovaMp($event)"
 >
 </app-nova-mp-modal>
 
 <app-registrar-entrada-modal
-  [isOpen]="modalEstoqueAberto()"
+  [estaAberto]="modalEstoqueAberto()"
   [salvando]="salvandoEstoque()"
   [erro]="erroEstoque()"
   [catalogo]="state.catalogoCompleto()"
-  (close)="modalEstoqueAberto.set(false)"
-  (save)="salvarEstoque($event)"
+  (fechar)="modalEstoqueAberto.set(false)"
+  (salvar)="salvarEstoque($event)"
 >
 </app-registrar-entrada-modal>
 
 <app-pedir-insumos-modal
-  [isOpen]="modalPedidoAberto()"
+  [estaAberto]="modalPedidoAberto()"
   [catalogo]="state.catalogoCompleto()"
   [estoqueMap]="state.insumosDisponiveis()"
-  (close)="modalPedidoAberto.set(false)"
-  (confirm)="processarPedido($event)"
+  (fechar)="modalPedidoAberto.set(false)"
+  (confirmar)="processarPedido($event)"
 >
 </app-pedir-insumos-modal>

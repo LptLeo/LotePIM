@@ -1,8 +1,8 @@
-@if (isGestor) {
+@if (ehGestor()) {
   <!-- Visão de Gestor: Barra Colapsável -->
   <div class="mb-6">
     <button
-      (click)="toggle()"
+      (click)="alternar()"
       class="w-full flex items-center justify-between bg-[#131313]/80 border border-[#484847]/30 hover:border-[#00E5FF]/40 p-4 rounded-lg transition-all group"
     >
       <div class="flex items-center gap-3">
@@ -29,8 +29,8 @@
             >Monitoramento de Carga</span
           >
           <h2 class="text-xs font-bold text-white uppercase tracking-[0.5px]">
-            @if (lotes.length > 0) {
-              Existem <span class="text-[#00E5FF]">{{ lotes.length }}</span> lotes
+            @if (lotes().length > 0) {
+              Existem <span class="text-[#00E5FF]">{{ lotes().length }}</span> lotes
               pendentes de recebimento
             } @else {
               Logística em dia: Nenhum lote para receber
@@ -40,9 +40,9 @@
       </div>
 
       <div class="flex items-center gap-3">
-        @if (lotes.length > 0 && !isExpanded()) {
+        @if (lotes().length > 0 && !estaExpandido()) {
           <div class="flex -space-x-2">
-            @for (lote of lotes.slice(0, 3); track lote.id) {
+            @for (lote of lotes().slice(0, 3); track lote.id) {
               <div
                 class="w-6 h-6 rounded-full border border-[#0A0A0A] bg-[#2A2A2A] flex items-center justify-center text-[8px] font-bold text-[#ADAAAA] uppercase"
                 [title]="lote.materiaPrima.nome"
@@ -59,7 +59,7 @@
           stroke-width="2.5"
           stroke="currentColor"
           class="size-4 text-[#6B7280] transition-transform duration-300"
-          [class.rotate-180]="isExpanded()"
+          [class.rotate-180]="estaExpandido()"
         >
           <path
             stroke-linecap="round"
@@ -70,16 +70,13 @@
       </div>
     </button>
 
-    @if (isExpanded()) {
+    @if (estaExpandido()) {
       <div class="mt-4 animate-fade-in">
-        @if (lotes.length > 0) {
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            [@listAnimation]="lotes.length"
-          >
-            @for (lote of lotes; track lote.id) {
+        @if (lotes().length > 0) {
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (lote of lotes(); track lote.id; let i = $index) {
               <ng-container
-                *ngTemplateOutlet="cardLote; context: { $implicit: lote }"
+                *ngTemplateOutlet="cardLote; context: { $implicit: lote, indice: i }"
               ></ng-container>
             }
           </div>
@@ -91,7 +88,7 @@
   </div>
 } @else {
   <!-- Visão de Operador: Lista Aberta ou Empty State -->
-  @if (lotes.length > 0) {
+  @if (lotes().length > 0) {
     <div class="mb-8">
       <div class="flex items-center gap-3 mb-4">
         <h2 class="text-white text-sm uppercase tracking-wider font-bold">
@@ -99,17 +96,14 @@
         </h2>
         <span
           class="bg-[#00E5FF]/20 text-[#00E5FF] px-2 py-0.5 rounded text-[10px] font-bold"
-          >{{ lotes.length }}</span
+          >{{ lotes().length }}</span
         >
       </div>
 
-      <div
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-        [@listAnimation]="lotes.length"
-      >
-        @for (lote of lotes; track lote.id) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (lote of lotes(); track lote.id; let i = $index) {
           <ng-container
-            *ngTemplateOutlet="cardLote; context: { $implicit: lote }"
+            *ngTemplateOutlet="cardLote; context: { $implicit: lote, indice: i }"
           ></ng-container>
         }
       </div>
@@ -150,11 +144,12 @@
 </ng-template>
 
 <!-- Template Reutilizável para o Card -->
-<ng-template #cardLote let-lote>
+<ng-template #cardLote let-lote let-indice="indice">
   <div
-    class="relative bg-[#131313] border border-[#484847]/30 rounded-lg p-4 overflow-hidden group transition-all duration-500"
-    [class.new-item-glow]="isUnseen(lote.id)"
+    class="card-enter relative bg-[#131313] border border-[#484847]/30 rounded-lg p-4 overflow-hidden group transition-all duration-500"
+    [class.new-item-glow]="naoFoiVisto(lote.id)"
     [attr.data-lote-id]="lote.id"
+    [style.animation-delay.ms]="indice * 100"
   >
     <!-- Efeito de carregamento contínuo no fundo se estiver a_caminho -->
     @if (lote.status === 'a_caminho') {

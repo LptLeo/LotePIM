@@ -34,14 +34,17 @@
   <div
     class="bg-[#131313] border border-[#484847]/30 rounded-lg shadow-2xl overflow-hidden p-6 md:p-8"
   >
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+    <form [formGroup]="form" (ngSubmit)="aoEnviar()" class="flex flex-col gap-6">
       <!-- Seção 1: Identificação (Catálogo) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="flex flex-col gap-1.5 font-mono md:col-span-2">
-          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
+          <label
+            for="mp-catalogo"
+            class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
             >Tipo de Matéria-Prima (Catálogo) *</label
           >
           <select
+            id="mp-catalogo"
             formControlName="materia_prima_id"
             class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer appearance-none"
           >
@@ -66,10 +69,13 @@
       <!-- Seção 2: Origem e Rastreabilidade -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
+          <label
+            for="fornecedor"
+            class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
             >Fornecedor *</label
           >
           <input
+            id="fornecedor"
             type="text"
             formControlName="fornecedor"
             placeholder="Nome da Empresa"
@@ -78,10 +84,13 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
+          <label
+            for="lote-fabricante"
+            class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
             >Lote de Origem (Fabricante) *</label
           >
           <input
+            id="lote-fabricante"
             type="text"
             formControlName="lote_fabricante"
             placeholder="Código na Etiqueta"
@@ -93,11 +102,14 @@
       <!-- Seção 3: Quantidade e Unidade -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
+          <label
+            for="qtd-inicial"
+            class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
             >Quantidade Inicial Recebida *</label
           >
           <div class="flex items-center gap-2 relative">
             <input
+              id="qtd-inicial"
               type="number"
               formControlName="quantidade_inicial"
               step="0.01"
@@ -112,10 +124,13 @@
       <!-- Seção 4: Datas -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
+          <label
+            for="data-fabricacao"
+            class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
             >Data de Fabricação *</label
           >
           <input
+            id="data-fabricacao"
             type="date"
             formControlName="data_fabricacao"
             class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors [color-scheme:dark]"
@@ -123,10 +138,13 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
+          <label
+            for="data-validade"
+            class="text-[10px] uppercase font-bold tracking-widest text-[#ADAAAA]"
             >Data de Validade *</label
           >
           <input
+            id="data-validade"
             type="date"
             formControlName="data_validade"
             class="bg-[#0A0A0A] border border-[#484847]/50 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors [color-scheme:dark]"

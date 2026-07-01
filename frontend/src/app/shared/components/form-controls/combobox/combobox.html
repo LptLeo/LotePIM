@@ -1,0 +1,55 @@
+<div class="relative">
+  <input
+    [id]="inputId()"
+    type="text"
+    [value]="valorInterno"
+    [placeholder]="placeholder()"
+    (input)="aoDigitar($event)"
+    (focus)="abrir()"
+    (blur)="aoBlur()"
+    (keydown)="aoTecla($event)"
+    autocomplete="off"
+    class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 pr-10 text-sm text-white placeholder-[#6B7280] focus:outline-none focus:border-[#00E5FF] transition-colors cursor-text"
+  />
+
+  <!-- Chevron -->
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke-width="2"
+    stroke="currentColor"
+    class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+  </svg>
+
+  <!-- Dropdown -->
+  @if (aberto() && opcoesFiltradas().length > 0) {
+    <div
+      class="absolute z-50 mt-1 w-full bg-[#131313] border border-[#484847]/80 rounded shadow-xl max-h-48 overflow-y-auto"
+    >
+      @for (opcao of opcoesFiltradas(); track opcao; let i = $index) {
+        <div
+          (mousedown)="selecionar(opcao); $event.preventDefault()"
+          class="px-4 py-2.5 text-sm cursor-pointer transition-colors"
+          [class.bg-[#1A1A1A]]="indiceSelecionado() === i"
+          [class.text-white]="indiceSelecionado() === i"
+          [class.text-[#ADAAAA]]="indiceSelecionado() !== i"
+          [class.bg-[#0E0E0E]]="indiceSelecionado() !== i"
+        >
+          {{ opcao }}
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Mensagem "Nenhuma opção" -->
+  @if (dropdownVazio()) {
+    <div
+      class="absolute z-50 mt-1 w-full bg-[#131313] border border-[#484847]/80 rounded shadow-xl px-4 py-2.5 text-sm text-[#6B7280]"
+    >
+      Nenhuma opção encontrada
+    </div>
+  }
+</div>

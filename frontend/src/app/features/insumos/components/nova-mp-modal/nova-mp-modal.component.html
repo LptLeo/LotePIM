@@ -1,4 +1,4 @@
-@if (isOpen()) {
+@if (estaAberto()) {
   <div
     class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
   >
@@ -16,7 +16,7 @@
           >
         </div>
         <button
-          (click)="onClose()"
+          (click)="aoFechar()"
           class="w-8 h-8 flex items-center justify-center rounded-full bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] hover:text-white hover:bg-red-900/20 hover:border-red-500/50 transition-colors"
         >
           <svg
@@ -48,10 +48,13 @@
 
         <form [formGroup]="formMp" class="flex flex-col gap-6">
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+            <label
+              for="mp-nome"
+              class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
               >Nome da Matéria-Prima *</label
             >
             <input
+              id="mp-nome"
               type="text"
               formControlName="nome"
               placeholder="Ex: Painel LED 14 polegadas"
@@ -60,36 +63,35 @@
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+            <label
+              for="mp-categoria"
+              class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
               >Categoria *</label
             >
-            <input
-              type="text"
+            <app-combobox
+              inputId="mp-categoria"
               formControlName="categoria"
-              list="categoriasMpDatalist"
+              [opcoes]="categorias()"
               placeholder="Ex: Componentes Eletrônicos"
-              class="w-full bg-[#131313] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors"
             />
-            <datalist id="categoriasMpDatalist">
-              @for (cat of categorias(); track cat) {
-                <option [value]="cat"></option>
-              }
-            </datalist>
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+            <label
+              for="mp-unidade"
+              class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
               >Unidade de Medida *</label
             >
             <div class="relative">
               <select
+                id="mp-unidade"
                 formControlName="unidade_medida"
                 class="w-full bg-[#131313] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] appearance-none cursor-pointer transition-colors"
               >
                 <option value="UN">Unidade (UN)</option>
-                <option value="KG">Quilograma (KG)</option>
-                <option value="L">Litro (L)</option>
-                <option value="M">Metro (M)</option>
+                <option value="G">Grama (G)</option>
+                <option value="ML">Mililitro (ML)</option>
+                <option value="CM">Centímetro (CM)</option>
               </select>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +116,7 @@
       <div class="p-6 border-t border-[#484847]/40 bg-[#131313] flex justify-end gap-3">
         <button
           type="button"
-          (click)="onClose()"
+          (click)="aoFechar()"
           [disabled]="salvando()"
           class="px-5 py-2.5 border border-[#484847] text-[#ADAAAA] text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#1A1A1A] disabled:opacity-50"
         >
@@ -122,7 +124,7 @@
         </button>
         <button
           type="button"
-          (click)="onSave()"
+          (click)="aoSalvar()"
           [disabled]="formMp.invalid || salvando()"
           class="px-5 py-2.5 bg-[#00E5FF] text-black text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#00cce6] disabled:opacity-50 flex items-center gap-2 shadow-[0_0_10px_rgba(0,229,255,0.2)]"
         >

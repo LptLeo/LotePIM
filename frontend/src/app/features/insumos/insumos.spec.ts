@@ -11,15 +11,19 @@ describe('Insumos Component', () => {
   let component: Insumos;
   let fixture: ComponentFixture<Insumos>;
   let mockInsumosService: jest.Mocked<Partial<InsumosService>>;
-  let mockAuthService: any;
+  let mockAuthService: Partial<AuthService>;
 
   beforeEach(async () => {
     mockInsumosService = {
-      getAll: jest.fn().mockReturnValue(of({ itens: [], meta: {} })),
-      getMateriasPrimasPaginado: jest.fn().mockReturnValue(of({ itens: [], meta: {} })),
-      getMateriasPrimas: jest.fn().mockReturnValue(of([])),
-      getCategoriasMateriasPrimas: jest.fn().mockReturnValue(of([])),
-      getContagem: jest.fn().mockReturnValue(of({ total: 0, comSaldo: 0, esgotados: 0 })),
+      listar: jest.fn().mockReturnValue(of({ itens: [], meta: {} })),
+      listarMateriasPrimasPaginado: jest
+        .fn()
+        .mockReturnValue(of({ itens: [], meta: {} })),
+      obterMateriasPrimas: jest.fn().mockReturnValue(of([])),
+      obterCategorias: jest.fn().mockReturnValue(of([])),
+      obterContagem: jest
+        .fn()
+        .mockReturnValue(of({ total: 0, comSaldo: 0, esgotados: 0 })),
     };
 
     mockAuthService = {
@@ -45,25 +49,23 @@ describe('Insumos Component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve trocar a aba ativa ao chamar setAba e atualizar o estado', () => {
-    component.setAba('catalogo');
+  it('deve trocar a aba ativa ao chamar definirAba e atualizar o estado', () => {
+    component.definirAba('catalogo');
     expect(component.state.abaAtiva()).toBe('catalogo');
     expect(component.state.termoPesquisa()).toBe('');
   });
 
   it('deve delegar a limpeza de filtros para o InsumosStateService', () => {
-    // Configura estado inicial alterado no service
     component.state.filtroEsgotado.set(true);
     component.state.filtroFornecedor.set('Fornecedor XPTO');
     component.state.ordenarPor.set('menor_estoque');
-    component.state.currentPageEstoque.set(3);
+    component.state.paginaAtualEstoque.set(3);
 
-    // No componente, chamamos o método que agora delega ao state
     component.state.limparFiltrosEstoque();
 
     expect(component.state.filtroEsgotado()).toBe(false);
     expect(component.state.filtroFornecedor()).toBe('');
     expect(component.state.ordenarPor()).toBe('mais_recente');
-    expect(component.state.currentPageEstoque()).toBe(1);
+    expect(component.state.paginaAtualEstoque()).toBe(1);
   });
 });

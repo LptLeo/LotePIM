@@ -2,12 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import type { InsumoEstoque, MateriaPrima } from '../../../shared/models/lote.models.js';
 
 const API_URL = environment.apiUrl;
 
+import type { InsumoEstoque, MateriaPrima } from '../../../shared/models/lote.models.js';
 import type { RespostaPaginada } from '../../../shared/models/pagination.models.js';
 
+// === TIPOS DE DOMÍNIO ===
 export type StatusInsumo =
   | 'disponivel'
   | 'esgotado'
@@ -15,6 +16,15 @@ export type StatusInsumo =
   | 'pendente'
   | 'em_uso';
 
+export type Turno = 'manha' | 'tarde' | 'noite';
+
+export interface ContagemEstoque {
+  total: number;
+  comSaldo: number;
+  esgotados: number;
+}
+
+// === FILTROS ===
 export type OrdenacaoEstoque =
   | 'menor_estoque'
   | 'maior_estoque'
@@ -39,21 +49,22 @@ export interface FiltrosCatalogo {
   busca?: string;
 }
 
-export interface CriarInsumoEstoquePayload {
-  materia_prima_id: number;
+// === DTOS (TRANSFERÊNCIA DE DADOS) ===
+export interface CriarInsumoEstoqueDTO {
+  materiaPrimaId: number;
   numero_lote_fornecedor?: string;
   fornecedor: string;
   quantidade_inicial: number;
-  turno: 'manha' | 'tarde' | 'noite';
+  turno: Turno;
   data_validade: string | null;
 }
 
-export interface RegistrarEntradaForm {
+export interface RegistrarEntradaDTO {
   materia_prima_id: number;
   numero_lote_fornecedor: string;
   fornecedor: string;
   quantidade_inicial: number;
-  turno: 'manha' | 'tarde' | 'noite';
+  turno: Turno;
   naoAplicaValidade?: boolean;
   data_validade?: string | null;
 }
@@ -64,45 +75,36 @@ export interface RegistrarEntradaForm {
 export class InsumosService {
   private http = inject(HttpClient);
 
-  /** Lista lotes de insumo com paginação e filtros */
-  getAll(filtros?: FiltrosEstoque): Observable<RespostaPaginada<InsumoEstoque>> {
+  public listar(filtros?: FiltrosEstoque): Observable<RespostaPaginada<InsumoEstoque>> {
     const params = this.montarHttpParams(filtros);
     return this.http.get<RespostaPaginada<InsumoEstoque>>(`${API_URL}/insumos-estoque`, {
       params,
     });
   }
 
-  /** Busca um lote de insumo por ID */
-  getById(id: number): Observable<InsumoEstoque> {
+  public buscarPorId(id: number): Observable<InsumoEstoque> {
     return this.http.get<InsumoEstoque>(`${API_URL}/insumos-estoque/${id}`);
   }
 
-  /** Retorna estatísticas rápidas do estoque */
-  getContagem(): Observable<{ total: number; comSaldo: number; esgotados: number }> {
-    return this.http.get<{ total: number; comSaldo: number; esgotados: number }>(
-      `${API_URL}/insumos-estoque/stats/contagem`,
-    );
+  public obterContagem(): Observable<ContagemEstoque> {
+    return this.http.get<ContagemEstoque>(`${API_URL}/insumos-estoque/stats/contagem`);
   }
 
-  /** Registra entrada de novo lote de insumo no estoque */
-  create(payload: CriarInsumoEstoquePayload): Observable<InsumoEstoque> {
+  public registrarLote(payload: CriarInsumoEstoqueDTO): Observable<InsumoEstoque> {
     return this.http.post<InsumoEstoque>(`${API_URL}/insumos-estoque`, payload);
   }
 
-  /** Registra entrada de múltiplos lotes de insumo de uma vez */
-  createBulk(itens: CriarInsumoEstoquePayload[]): Observable<InsumoEstoque[]> {
+  public criarLotes(itens: CriarInsumoEstoqueDTO[]): Observable<InsumoEstoque[]> {
     return this.http.post<InsumoEstoque[]>(`${API_URL}/insumos-estoque/bulk`, { itens });
   }
 
-  /** Altera o status de um lote (ex: de 'a_caminho' para 'disponivel') */
-  atualizarStatus(id: number, status: StatusInsumo): Observable<InsumoEstoque> {
+  public atualizarStatus(id: number, status: StatusInsumo): Observable<InsumoEstoque> {
     return this.http.patch<InsumoEstoque>(`${API_URL}/insumos-estoque/${id}/status`, {
       status,
     });
   }
 
-  /** Lista matérias-primas do catálogo com paginação e filtros */
-  getMateriasPrimasPaginado(
+  public listarMateriasPrimasPaginado(
     filtros?: FiltrosCatalogo,
   ): Observable<RespostaPaginada<MateriaPrima>> {
     const params = this.montarHttpParams(filtros);
@@ -111,28 +113,21 @@ export class InsumosService {
     });
   }
 
-  /** Lista matérias-primas do catálogo (sem paginação, mas com limite alto) */
-  getMateriasPrimas(): Observable<MateriaPrima[]> {
+  public obterMateriasPrimas(): Observable<MateriaPrima[]> {
     const params = new HttpParams().set('limite', '1000');
     return this.http
       .get<RespostaPaginada<MateriaPrima>>(`${API_URL}/materias-primas`, { params })
       .pipe(map((res) => res.itens));
   }
 
-  /** Cria uma nova matéria-prima no catálogo */
-  criarMateriaPrima(payload: Partial<MateriaPrima>): Observable<MateriaPrima> {
+  public criarMateriaPrima(payload: Partial<MateriaPrima>): Observable<MateriaPrima> {
     return this.http.post<MateriaPrima>(`${API_URL}/materias-primas`, payload);
   }
 
-  /** Lista categorias de matérias-primas cadastradas */
-  getCategoriasMateriasPrimas(): Observable<string[]> {
+  public obterCategorias(): Observable<string[]> {
     return this.http.get<string[]>(`${API_URL}/materias-primas/categorias`);
   }
 
-  /**
-   * Método privado auxiliar para converter objetos de filtro em HttpParams,
-   * removendo automaticamente valores nulos ou vazios (Pattern DRY).
-   */
   private montarHttpParams(filtros?: FiltrosEstoque | FiltrosCatalogo): HttpParams {
     let params = new HttpParams();
     if (filtros) {

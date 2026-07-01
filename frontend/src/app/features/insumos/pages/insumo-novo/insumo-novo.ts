@@ -1,29 +1,29 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { InsumosService } from '../../services/insumos.service.js';
-import { LoteFeatureService } from '../../../lote/services/lote.service.js';
-import { MateriaPrima } from '../../../../shared/models/lote.models.js';
-import { finalize } from 'rxjs';
+import { InsumosService, type Turno } from '../../services/insumos.service.js';
+import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
+import { lastValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-insumo-novo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './insumo-novo.html',
 })
-export class InsumoNovo implements OnInit {
+export class InsumoNovo {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
   private fb = inject(FormBuilder);
   private insumosService = inject(InsumosService);
-  private loteFeatureService = inject(LoteFeatureService);
   private router = inject(Router);
 
+  // === ESTADO ===
   salvando = signal(false);
   erro = signal<string | null>(null);
-
   materiasPrimasExistentes = signal<MateriaPrima[]>([]);
 
+  // === FORMULÁRIO ===
   form = this.fb.nonNullable.group({
     materia_prima_id: [0, [Validators.required, Validators.min(1)]],
     fornecedor: ['', [Validators.required]],
@@ -31,30 +31,25 @@ export class InsumoNovo implements OnInit {
     quantidade_inicial: [0, [Validators.required, Validators.min(0.01)]],
     data_fabricacao: ['', [Validators.required]],
     data_validade: ['', [Validators.required]],
-    turno: [this.getTurnoAtual() as 'manha' | 'tarde' | 'noite', [Validators.required]],
+    turno: [this.obterTurnoAtual() as Turno, [Validators.required]],
   });
 
-  ngOnInit() {
-    // Inicializar com data de hoje se vazio (horário local)
-    const d = new Date();
-    const ano = d.getFullYear();
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const dia = String(d.getDate()).padStart(2, '0');
+  constructor() {
+    const dataAtual = new Date();
+    const ano = dataAtual.getFullYear();
+    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataAtual.getDate()).padStart(2, '0');
     this.form.patchValue({ data_fabricacao: `${ano}-${mes}-${dia}` });
 
-    // Carregar catálogo
-    this.insumosService.getMateriasPrimas().subscribe({
-      next: (mp: MateriaPrima[]) => this.materiasPrimasExistentes.set(mp),
-      error: (e: Error) =>
-        this.erro.set(e.message || 'Falha ao carregar catálogo de matérias-primas.'),
-    });
+    this.carregarCatalogo();
   }
 
-  voltarParaLista() {
+  // === MÉTODOS PÚBLICOS ===
+  public voltarParaLista(): void {
     this.router.navigate(['/app/insumos']);
   }
 
-  onSubmit() {
+  public async aoEnviar(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -63,30 +58,46 @@ export class InsumoNovo implements OnInit {
     this.salvando.set(true);
     this.erro.set(null);
 
-    const raw = this.form.value;
-    const payload = {
-      materia_prima_id: Number(raw.materia_prima_id),
-      fornecedor: raw.fornecedor ?? '',
-      numero_lote_fornecedor: raw.lote_fabricante ?? '',
-      quantidade_inicial: Number(raw.quantidade_inicial),
-      turno: raw.turno as 'manha' | 'tarde' | 'noite',
-      data_validade: raw.data_validade ?? null,
-    };
-
-    this.insumosService
-      .create(payload)
-      .pipe(finalize(() => this.salvando.set(false)))
-      .subscribe({
-        next: () => this.router.navigate(['/app/insumos']),
-        error: (err) => {
-          console.error(err);
-          this.erro.set(err.error?.message || 'Erro ao salvar insumo.');
-        },
-      });
+    try {
+      const valoresFormulario = this.form.value;
+      const dadosCriacao = {
+        materiaPrimaId: Number(valoresFormulario.materia_prima_id),
+        fornecedor: valoresFormulario.fornecedor ?? '',
+        numero_lote_fornecedor: valoresFormulario.lote_fabricante ?? '',
+        quantidade_inicial: Number(valoresFormulario.quantidade_inicial),
+        turno: valoresFormulario.turno as Turno,
+        data_validade: valoresFormulario.data_validade ?? null,
+      };
+      await lastValueFrom(this.insumosService.registrarLote(dadosCriacao));
+      this.router.navigate(['/app/insumos']);
+    } catch (erro) {
+      this.erro.set(
+        erro instanceof HttpErrorResponse
+          ? erro.error?.message || 'Erro ao salvar insumo.'
+          : 'Erro ao salvar insumo.',
+      );
+    } finally {
+      this.salvando.set(false);
+    }
   }
 
-  /** Infere o turno pelo horário do sistema: manha (06-14h), tarde (14-22h), noite (22-06h) */
-  private getTurnoAtual(): 'manha' | 'tarde' | 'noite' {
+  // === MÉTODOS PRIVADOS ===
+  private async carregarCatalogo(): Promise<void> {
+    try {
+      const materiasPrimas = await lastValueFrom(
+        this.insumosService.obterMateriasPrimas(),
+      );
+      this.materiasPrimasExistentes.set(materiasPrimas);
+    } catch (erro) {
+      this.erro.set(
+        erro instanceof Error
+          ? erro.message
+          : 'Falha ao carregar catálogo de matérias-primas.',
+      );
+    }
+  }
+
+  private obterTurnoAtual(): Turno {
     const hora = new Date().getHours();
     if (hora >= 6 && hora < 14) return 'manha';
     if (hora >= 14 && hora < 22) return 'tarde';

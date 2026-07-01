@@ -1,60 +1,21 @@
 import {
   Component,
-  EventEmitter,
-  Input,
-  Output,
+  input,
+  output,
   signal,
-  OnChanges,
-  SimpleChanges,
-  AfterViewInit,
+  effect,
   ElementRef,
   inject,
   OnDestroy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { NgTemplateOutlet } from '@angular/common';
 import type { InsumoEstoque } from '../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-lotes-receber',
   standalone: true,
-  imports: [CommonModule],
+  imports: [NgTemplateOutlet],
   templateUrl: './lotes-receber.component.html',
-  animations: [
-    trigger('listAnimation', [
-      transition('* <=> *', [
-        query(
-          ':enter',
-          [
-            style({ opacity: 0, transform: 'translateY(-20px) scale(0.95)' }),
-            stagger('100ms', [
-              animate(
-                '300ms ease-out',
-                style({ opacity: 1, transform: 'translateY(0) scale(1)' }),
-              ),
-            ]),
-          ],
-          { optional: true },
-        ),
-        query(
-          ':leave',
-          [
-            animate(
-              '200ms ease-in',
-              style({
-                opacity: 0,
-                transform: 'scale(0.9)',
-                height: 0,
-                margin: 0,
-                padding: 0,
-              }),
-            ),
-          ],
-          { optional: true },
-        ),
-      ]),
-    ]),
-  ],
   styles: [
     `
       .new-item-glow {
@@ -74,110 +35,134 @@ import type { InsumoEstoque } from '../../../../shared/models/lote.models.js';
           box-shadow: 0 0 5px rgba(0, 229, 255, 0.2);
         }
       }
+
+      .card-enter {
+        animation: card-entrar 300ms ease-out both;
+      }
+
+      @keyframes card-entrar {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .card-sair {
+        animation: card-sair 200ms ease-in both;
+      }
+
+      @keyframes card-sair {
+        to {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+      }
     `,
   ],
 })
-export class LotesReceberComponent implements OnChanges, AfterViewInit, OnDestroy {
-  @Input() lotes: InsumoEstoque[] = [];
-  @Input() isGestor = false;
-  @Output() receber = new EventEmitter<number>();
+export class LotesReceberComponent implements OnDestroy {
+  // === INPUTS ===
+  lotes = input<InsumoEstoque[]>([]);
+  ehGestor = input<boolean>(false);
 
-  isExpanded = signal(false);
+  // === OUTPUTS ===
+  receber = output<number>();
 
-  // Armazena IDs de lotes que ainda não foram "vistos" pelo usuário
-  unseenIds = signal<Set<number>>(new Set());
-  private knownIds = new Set<number>();
+  // === ESTADO LOCAL ===
+  estaExpandido = signal(false);
+  private idsNaoVistos = signal<Set<number>>(new Set());
+  private idsConhecidos = new Set<number>();
   private observer?: IntersectionObserver;
   private el = inject(ElementRef);
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['lotes'] && this.lotes) {
-      const currentIds = this.lotes.map((l) => l.id);
-
-      // Detecta novos IDs que acabaram de chegar via SSE ou carregamento
+  constructor() {
+    effect(() => {
+      const lotesAtuais = this.lotes();
+      if (!lotesAtuais) return;
+      const idsAtuais = lotesAtuais.map((l) => l.id);
       let mudou = false;
-      currentIds.forEach((id) => {
-        if (!this.knownIds.has(id)) {
-          this.unseenIds.update((set) => {
+      idsAtuais.forEach((id) => {
+        if (!this.idsConhecidos.has(id)) {
+          this.idsNaoVistos.update((set) => {
             set.add(id);
             return set;
           });
-          this.knownIds.add(id);
+          this.idsConhecidos.add(id);
           mudou = true;
         }
       });
-
       if (mudou) {
-        this.observeCards();
+        requestAnimationFrame(() => this.observarCartoes());
       }
+    });
+
+    effect(() => {
+      if (this.lotes().length > 0 || this.estaExpandido()) {
+        requestAnimationFrame(() => this.configurarObservadores());
+      }
+    });
+  }
+
+  public alternar(): void {
+    this.estaExpandido.update((v) => !v);
+    if (this.estaExpandido()) {
+      requestAnimationFrame(() => this.observarCartoes());
     }
   }
 
-  ngAfterViewInit(): void {
-    this.setupVisibilityListeners();
+  public naoFoiVisto(id: number): boolean {
+    return this.idsNaoVistos().has(id);
   }
 
-  private setupVisibilityListeners(): void {
-    // 1. Intersection Observer: Detecta quando o card aparece fisicamente na tela
+  public ngOnDestroy(): void {
+    this.observer?.disconnect();
+    document.removeEventListener('visibilitychange', this.aoMudarVisibilidade);
+  }
+
+  // === MÉTODOS PRIVADOS ===
+  private configurarObservadores(): void {
     this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const id = Number(entry.target.getAttribute('data-lote-id'));
-            if (this.unseenIds().has(id)) {
-              // Se o usuário está com a aba ativa, marca como visto em 2s
+            if (this.idsNaoVistos().has(id)) {
               if (document.visibilityState === 'visible') {
-                setTimeout(() => this.markAsSeen(id), 2000);
+                setTimeout(() => this.marcarComoVisto(id), 2000);
               }
             }
           }
         });
       },
-      { threshold: 0.5 }, // Pelo menos 50% do card visível
+      { threshold: 0.5 },
     );
 
-    // 2. Page Visibility API: Se o usuário voltar do Alt+Tab, re-checa o que está visível
-    document.addEventListener('visibilitychange', this.handleVisibilityChange);
-
-    this.observeCards();
+    document.addEventListener('visibilitychange', this.aoMudarVisibilidade);
+    this.observarCartoes();
   }
 
-  private handleVisibilityChange = () => {
+  private aoMudarVisibilidade = () => {
     if (document.visibilityState === 'visible') {
-      this.observeCards();
+      this.observarCartoes();
     }
   };
 
-  private observeCards(): void {
+  private observarCartoes(): void {
     if (!this.observer) return;
-
-    // Pequeno delay para garantir que o DOM renderizou após o OnChanges
     setTimeout(() => {
-      const cards = this.el.nativeElement.querySelectorAll('[data-lote-id]');
-      cards.forEach((card: HTMLElement) => this.observer?.observe(card));
+      const cartoes = this.el.nativeElement.querySelectorAll('[data-lote-id]');
+      cartoes.forEach((cartao: HTMLElement) => this.observer?.observe(cartao));
     }, 500);
   }
 
-  private markAsSeen(id: number): void {
-    this.unseenIds.update((set) => {
+  private marcarComoVisto(id: number): void {
+    this.idsNaoVistos.update((set) => {
       set.delete(id);
-      return new Set(set); // Nova instância para disparar reatividade do Signal
+      return new Set(set);
     });
-  }
-
-  isUnseen(id: number): boolean {
-    return this.unseenIds().has(id);
-  }
-
-  toggle(): void {
-    this.isExpanded.update((v) => !v);
-    if (this.isExpanded()) {
-      this.observeCards();
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.observer?.disconnect();
-    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   }
 }

@@ -1,4 +1,4 @@
-@if (isOpen()) {
+@if (estaAberto()) {
   <div
     class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
   >
@@ -16,7 +16,7 @@
           >
         </div>
         <button
-          (click)="onClose()"
+          (click)="aoFechar()"
           class="flex items-center justify-center w-8 h-8 bg-[#1A1A1A] border border-[#484847]/40 text-[#ADAAAA] rounded-full transition-colors hover:text-white hover:bg-red-900/20 hover:border-red-500/50"
         >
           <svg
@@ -46,7 +46,7 @@
           </div>
         }
 
-        <form [formGroup]="formEstoque" class="flex flex-col gap-6">
+        <form [formGroup]="formularioEstoque" class="flex flex-col gap-6">
           <div class="flex flex-col gap-2">
             <label
               for="mp_select"
@@ -57,7 +57,7 @@
               <select
                 id="mp_select"
                 formControlName="materia_prima_id"
-                (change)="resetQuantidade()"
+                (change)="limparQuantidade()"
                 class="w-full py-2.5 pl-4 pr-10 bg-[#131313] border border-[#484847]/80 text-sm text-white rounded appearance-none cursor-pointer transition-colors focus:outline-none focus:border-[#00E5FF]"
               >
                 <option [ngValue]="null" disabled>Selecione...</option>
@@ -179,16 +179,20 @@
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
+            <label
+              for="data-validade"
+              class="text-[10px] text-[#6B7280] font-bold uppercase tracking-[1.5px]"
               >Data de Validade</label
             >
             <div class="flex flex-col gap-3">
               <div
                 class="relative h-[42px] cursor-pointer"
-                [class.opacity-50]="formEstoque.controls.naoAplicaValidade.value"
-                [class.pointer-events-none]="formEstoque.controls.naoAplicaValidade.value"
+                [class.opacity-50]="formularioEstoque.controls.naoAplicaValidade.value"
+                [class.pointer-events-none]="
+                  formularioEstoque.controls.naoAplicaValidade.value
+                "
                 (click)="
-                  !formEstoque.controls.naoAplicaValidade.value &&
+                  !formularioEstoque.controls.naoAplicaValidade.value &&
                     datePickerValidade.showPicker()
                 "
               >
@@ -197,8 +201,10 @@
                 >
                   <span
                     class="text-sm font-medium"
-                    [class.text-white]="formEstoque.controls.data_validade.value"
-                    [class.text-[#ADAAAA]]="!formEstoque.controls.data_validade.value"
+                    [class.text-white]="formularioEstoque.controls.data_validade.value"
+                    [class.text-[#ADAAAA]]="
+                      !formularioEstoque.controls.data_validade.value
+                    "
                   >
                     {{ dataValidadeExibicao() }}
                   </span>
@@ -243,7 +249,7 @@
       <div class="flex justify-end gap-3 p-6 bg-[#131313] border-t border-[#484847]/40">
         <button
           type="button"
-          (click)="onClose()"
+          (click)="aoFechar()"
           [disabled]="salvando()"
           class="px-5 py-2.5 border border-[#484847] text-[#ADAAAA] text-[11px] font-bold uppercase tracking-wider rounded transition-colors hover:bg-[#1A1A1A] disabled:opacity-50"
         >
@@ -251,8 +257,8 @@
         </button>
         <button
           type="button"
-          (click)="onSave()"
-          [disabled]="formEstoque.invalid || salvando()"
+          (click)="aoSalvar()"
+          [disabled]="formularioEstoque.invalid || salvando()"
           class="flex items-center gap-2 px-5 py-2.5 bg-[#00E5FF] text-black text-[11px] font-bold uppercase tracking-wider rounded shadow-[0_0_10px_rgba(0,229,255,0.2)] transition-colors hover:bg-[#00cce6] disabled:opacity-50"
         >
           @if (salvando()) {
