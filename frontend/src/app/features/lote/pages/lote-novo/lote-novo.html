@@ -53,10 +53,13 @@
       <!-- Linha 1: Numero Gerado / Produto -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="num-lote"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Número do Lote</label
           >
           <input
+            id="num-lote"
             type="text"
             class="w-full bg-[#0E0E0E] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#ADAAAA] cursor-not-allowed focus:outline-none"
             value="Gerado automaticamente ao salvar"
@@ -65,11 +68,14 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="produto-select"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Produto *</label
           >
           <div class="relative group">
             <select
+              id="produto-select"
               formControlName="produto_id"
               class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
               [class.border-red-500]="fieldErrors()['produto_id']"
@@ -105,7 +111,9 @@
       <!-- Linha 2: Data / Turno -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="data-producao"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Data de Produção *</label
           >
           <div
@@ -152,7 +160,9 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="turno-select"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Turno *</label
           >
           <div class="relative group">
@@ -191,7 +201,9 @@
       <!-- Linha 3: Quantidade / Validade -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="qtd-planejada"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Quantidade Planejada *</label
           >
           <div class="relative">
@@ -215,7 +227,9 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="data-validade"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Data de Validade</label
           >
           <div class="flex items-center gap-3">
@@ -241,7 +255,9 @@
 
       <!-- Linha 4: Observações -->
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="observacoes"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >Observações</label
         >
         <textarea

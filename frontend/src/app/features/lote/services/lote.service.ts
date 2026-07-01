@@ -24,6 +24,7 @@ export interface LoteConfig {
 export class LoteFeatureService {
   private http = inject(HttpClient);
 
+  // === MÉTODOS PRIVADOS ===
   private montarHttpParams(
     filtros?: Record<string, string | number | boolean | null | undefined>,
   ): HttpParams {
@@ -38,49 +39,47 @@ export class LoteFeatureService {
     return params;
   }
 
-  getLoteById(id: number): Observable<LoteDetalhe> {
+  // === CONSULTAS ===
+  public obterLotePorId(id: number): Observable<LoteDetalhe> {
     return this.http.get<LoteDetalhe>(`${API_URL}/lotes/${id}`);
   }
 
-  getLotes(
+  public listarLotes(
     filtros?: Record<string, string | number | boolean | null | undefined>,
   ): Observable<RespostaPaginada<LoteDetalhe>> {
     const params = this.montarHttpParams(filtros);
     return this.http.get<RespostaPaginada<LoteDetalhe>>(`${API_URL}/lotes`, { params });
   }
 
-  getContagem(): Observable<Record<string, number>> {
+  public obterContagem(): Observable<Record<string, number>> {
     return this.http.get<Record<string, number>>(`${API_URL}/lotes/stats/contagem`);
   }
 
-  getProdutos(): Observable<Produto[]> {
+  public listarProdutos(): Observable<Produto[]> {
     return this.http
       .get<RespostaPaginada<Produto>>(`${API_URL}/produtos`, {
         params: { limite: 1000, status: 'com_insumos' },
       })
-      .pipe(map((res) => res.itens));
+      .pipe(map((res) => res.itens.filter((p) => p.ativo)));
   }
 
-  /** Busca o tempo de produção configurado no backend para cálculo da barra de progresso */
-  getConfig(): Observable<LoteConfig> {
+  public obterConfig(): Observable<LoteConfig> {
     return this.http.get<LoteConfig>(`${API_URL}/lotes/config`);
   }
 
-  /** Busca insumos em estoque filtrados por matérias-primas (IDs separados por vírgula) */
-  getInsumosDisponiveis(materiaPrimaIds: number[]): Observable<InsumoEstoque[]> {
+  public obterInsumosDisponiveis(materiaPrimaIds: number[]): Observable<InsumoEstoque[]> {
     const params = new HttpParams().set('ids', materiaPrimaIds.join(','));
     return this.http.get<InsumoEstoque[]>(`${API_URL}/insumos-estoque/disponiveis`, {
       params,
     });
   }
 
-  /** Cria um novo lote com consumos inline (transação atômica no backend) */
-  createLote(loteDTO: CriarLoteDTO): Observable<LoteDetalhe> {
+  // === COMANDOS ===
+  public criarLote(loteDTO: CriarLoteDTO): Observable<LoteDetalhe> {
     return this.http.post<LoteDetalhe>(`${API_URL}/lotes`, loteDTO);
   }
 
-  /** Registra a inspeção do lote */
-  registrarInspecao(
+  public registrarInspecao(
     loteId: number,
     inspecao: RegistrarInspecaoDTO,
   ): Observable<LoteDetalhe> {

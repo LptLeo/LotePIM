@@ -1,5 +1,4 @@
-import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, computed, effect, untracked } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -11,18 +10,18 @@ import {
 import { Router, ActivatedRoute } from '@angular/router';
 import { LoteFeatureService } from '../../services/lote.service.js';
 import type {
-  Produto,
   InsumoEstoque,
   CriarLoteDTO,
 } from '../../../../shared/models/lote.models.js';
-import { finalize, of } from 'rxjs';
+import { of, lastValueFrom } from 'rxjs';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { LoteInsumoItemComponent } from './components/lote-insumo-item/lote-insumo-item.js';
 import { criarLoteSchema } from '../../../../core/schemas/lote.schema.js';
 import { ZodError } from 'zod';
 
-/** Interface para o FormGroup de cada item de consumo */
-export interface ConsumoFormGroup {
+// === TIPOS ===
+interface ConsumoFormGroup {
   materia_prima_id: FormControl<number>;
   materia_prima_nome: FormControl<string>;
   quantidade_necessaria: FormControl<number>;
@@ -31,7 +30,6 @@ export interface ConsumoFormGroup {
   quantidade_consumida: FormControl<number>;
 }
 
-/** Interface para o FormGroup principal do Lote */
 interface LoteFormGroup {
   produto_id: FormControl<number>;
   data_producao: FormControl<string>;
@@ -46,37 +44,23 @@ interface LoteFormGroup {
 @Component({
   selector: 'app-lote-novo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LoteInsumoItemComponent],
+  imports: [ReactiveFormsModule, LoteInsumoItemComponent],
   templateUrl: './lote-novo.html',
 })
-export class LoteNovo implements OnInit {
+export class LoteNovo {
+  // === DEPENDÊNCIAS ===
   private fb = inject(FormBuilder);
   private loteService = inject(LoteFeatureService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  private getHojeLocal(): string {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoje.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
-  }
-
-  private getTurnoAtual(): 'manha' | 'tarde' | 'noite' {
-    const hora = new Date().getHours();
-    if (hora >= 6 && hora < 12) return 'manha';
-    if (hora >= 12 && hora < 18) return 'tarde';
-    return 'noite';
-  }
-
-  /** Formulário Tipado */
+  // === FORMULÁRIO ===
   form = this.fb.nonNullable.group<LoteFormGroup>({
     produto_id: this.fb.nonNullable.control(0, [Validators.required, Validators.min(1)]),
-    data_producao: this.fb.nonNullable.control(this.getHojeLocal(), [
+    data_producao: this.fb.nonNullable.control(this.obterHojeLocal(), [
       Validators.required,
     ]),
-    turno: this.fb.nonNullable.control(this.getTurnoAtual(), [Validators.required]),
+    turno: this.fb.nonNullable.control(this.obterTurnoAtual(), [Validators.required]),
     quantidade_planejada: this.fb.nonNullable.control(0, [
       Validators.required,
       Validators.min(1),
@@ -87,7 +71,7 @@ export class LoteNovo implements OnInit {
     consumos: this.fb.array<FormGroup<ConsumoFormGroup>>([]),
   });
 
-  /** Sinais reativos a partir dos controles do formulário */
+  // === SINAIS DE FORMULÁRIO ===
   produtoIdSignal = toSignal(this.form.controls.produto_id.valueChanges, {
     initialValue: 0,
   });
@@ -98,35 +82,38 @@ export class LoteNovo implements OnInit {
     initialValue: true,
   });
 
-  /** Resource para carregar os produtos cadastrados */
-  produtosResource = rxResource({
-    stream: () => this.loteService.getProdutos(),
+  // === ESTADO ===
+  salvando = signal(false);
+  erro = signal<string | null>(null);
+  fieldErrors = signal<Record<string, string>>({});
+
+  // === RECURSOS ===
+  private produtosResource = rxResource({
+    stream: () => this.loteService.listarProdutos(),
   });
 
-  produtos = computed(() => this.produtosResource.value() || []);
+  public produtos = computed(() => this.produtosResource.value() || []);
 
-  /** Produto selecionado reagindo ao sinal do dropdown */
-  produtoSelecionado = computed(() => {
+  public produtoSelecionado = computed(() => {
     const id = Number(this.produtoIdSignal());
     return this.produtos().find((p) => p.id === id) ?? null;
   });
 
-  /** Resource para carregar insumos disponíveis apenas para as matérias-primas da receita */
-  insumosResource = rxResource({
-    params: () => {
-      const produto = this.produtoSelecionado();
-      return produto?.receita?.map((r) => r.materiaPrima.id) || [];
-    },
-    stream: ({ params: mpIds }) => {
+  private insumosResource = rxResource({
+    params: () => this.produtoIdSignal(),
+    stream: ({ params: produtoId, abortSignal: _abortSignal }) => {
+      if (!produtoId) return of([]);
+      const produto = this.produtos().find((p) => p.id === Number(produtoId));
+      const mpIds = produto?.receita?.map((r) => r.materiaPrima.id) || [];
       if (!mpIds.length) return of([]);
-      return this.loteService.getInsumosDisponiveis(mpIds);
+      return this.loteService.obterInsumosDisponiveis(mpIds);
     },
   });
 
-  insumosList = computed(() => this.insumosResource.value() || []);
+  private insumosList = computed(() => this.insumosResource.value() || []);
 
-  /** Insumos em estoque disponíveis, agrupados por matéria-prima ID */
   insumosDisponiveis = computed(() => {
+    if (this.insumosResource.isLoading()) return new Map<number, InsumoEstoque[]>();
     const mapa = new Map<number, InsumoEstoque[]>();
     for (const insumo of this.insumosList()) {
       const mpId = insumo.materiaPrima.id;
@@ -137,23 +124,38 @@ export class LoteNovo implements OnInit {
     return mapa;
   });
 
-  salvando = signal(false);
-  erro = signal<string | null>(null);
-  fieldErrors = signal<Record<string, string>>({});
   carregandoInsumos = computed(() => this.insumosResource.isLoading());
 
+  // === GETTERS ===
+  get consumosArray() {
+    return this.form.controls.consumos;
+  }
+
+  get dataFormatada(): string {
+    const data = this.form.controls.data_producao.value;
+    if (!data) return 'DD/MM/AAAA';
+    const [ano, mes, dia] = data.split('-');
+    return `${dia}/${mes}/${ano}`;
+  }
+
   constructor() {
-    /**
-     * Reação 1: Mudança de Produto
-     * Reconstrói o FormArray de consumos de forma declarativa.
-     */
+    // === INICIALIZAÇÃO ===
+    const produtoIdParam = this.route.snapshot.queryParamMap.get('produtoId');
+    if (produtoIdParam) {
+      const pid = Number(produtoIdParam);
+      if (!isNaN(pid) && pid > 0) {
+        this.form.controls.produto_id.setValue(pid);
+      }
+    }
+
+    // === REAÇÃO: Mudança de Produto — reconstrói consumos ===
     effect(() => {
       const produto = this.produtoSelecionado();
       this.consumosArray.clear();
 
       if (!produto || !produto.receita?.length) return;
 
-      const qtdPlanejada = Number(this.qtdPlanejadaSignal()) || 1;
+      const qtdPlanejada = untracked(() => Number(this.qtdPlanejadaSignal())) || 1;
 
       for (const item of produto.receita) {
         const consumidoInicial = this.calcularQuantidadeConsumida(
@@ -181,11 +183,7 @@ export class LoteNovo implements OnInit {
       }
     });
 
-    /**
-     * Reação 2: Mudança na Quantidade Planejada
-     * Recalcula quantidades sugeridas de consumo sem subscrição manual.
-     * Guarda de array vazio evita corrida com o Effect 1 durante troca de produto.
-     */
+    // === REAÇÃO: Mudança na Quantidade Planejada — recalcula consumos ===
     effect(() => {
       const qtdPlanejada = Number(this.qtdPlanejadaSignal()) || 1;
       if (!this.consumosArray.length) return;
@@ -202,10 +200,7 @@ export class LoteNovo implements OnInit {
       });
     });
 
-    /**
-     * Reação 3: Controle de Validade
-     * Gerencia habilitação do campo de forma declarativa.
-     */
+    // === REAÇÃO: Controle de Validade ===
     effect(() => {
       const semValidade = this.semValidadeSignal();
       if (semValidade) {
@@ -217,28 +212,7 @@ export class LoteNovo implements OnInit {
     });
   }
 
-  get consumosArray() {
-    return this.form.controls.consumos;
-  }
-
-  get dataFormatada(): string {
-    const data = this.form.controls.data_producao.value;
-    if (!data) return 'DD/MM/AAAA';
-    const [ano, mes, dia] = data.split('-');
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  ngOnInit(): void {
-    /** Pré-preenche o produto se vier via Query Param */
-    const produtoIdParam = this.route.snapshot.queryParamMap.get('produtoId');
-    if (produtoIdParam) {
-      const pid = Number(produtoIdParam);
-      if (!isNaN(pid) && pid > 0) {
-        this.form.controls.produto_id.setValue(pid);
-      }
-    }
-  }
-
+  // === MÉTODOS PÚBLICOS ===
   getInsumosParaMP(materiaPrimaId: number): InsumoEstoque[] {
     return this.insumosDisponiveis().get(materiaPrimaId) ?? [];
   }
@@ -247,15 +221,48 @@ export class LoteNovo implements OnInit {
     this.router.navigate(['/app/lote']);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.erro.set(null);
     this.fieldErrors.set({});
 
     const formValue = this.form.getRawValue();
 
+    if (!this.validarComZod(formValue)) return;
+
+    this.salvando.set(true);
+
+    const dadosCriacao = this.buildPayload(formValue);
+
     try {
-      // Validação com Zod usando o valor bruto do formulário tipado
+      const loteGerado = await lastValueFrom(this.loteService.criarLote(dadosCriacao));
+      this.router.navigate(['/app/lote', loteGerado.id]);
+    } catch (err) {
+      this.handleSubmitError(err);
+    } finally {
+      this.salvando.set(false);
+    }
+  }
+
+  // === MÉTODOS PRIVADOS ===
+  private obterHojeLocal(): string {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  }
+
+  private obterTurnoAtual(): 'manha' | 'tarde' | 'noite' {
+    const hora = new Date().getHours();
+    if (hora >= 6 && hora < 12) return 'manha';
+    if (hora >= 12 && hora < 18) return 'tarde';
+    return 'noite';
+  }
+
+  private validarComZod(formValue: Record<string, unknown>): boolean {
+    try {
       criarLoteSchema.parse(formValue);
+      return true;
     } catch (err) {
       if (err instanceof ZodError) {
         const errors: Record<string, string> = {};
@@ -267,12 +274,14 @@ export class LoteNovo implements OnInit {
         this.fieldErrors.set(errors);
         this.erro.set('Existem erros no formulário. Por favor, corrija-os.');
       }
-      return;
+      return false;
     }
+  }
 
-    this.salvando.set(true);
-
-    const payload: CriarLoteDTO = {
+  private buildPayload(
+    formValue: ReturnType<typeof this.form.getRawValue>,
+  ): CriarLoteDTO {
+    return {
       produto_id: formValue.produto_id,
       data_producao: formValue.data_producao,
       turno: formValue.turno,
@@ -284,37 +293,25 @@ export class LoteNovo implements OnInit {
         quantidade_consumida: Number(c.quantidade_consumida),
       })),
     };
+  }
 
-    this.loteService
-      .createLote(payload)
-      .pipe(finalize(() => this.salvando.set(false)))
-      .subscribe({
-        next: (loteGerado) => {
-          this.router.navigate(['/app/lote', loteGerado.id]);
-        },
-        error: (err) => {
-          console.error('[LoteNovo] Erro ao criar lote:', err);
-
-          // Se for erro de validação do backend (400) com detalhes por campo
-          if (err.status === 400 && err.error?.details) {
-            console.table(err.error.details);
-            const backendErrors: Record<string, string> = {};
-            err.error.details.forEach((e: any) => {
-              const path = e.campo || 'geral';
-              backendErrors[path] = e.mensagem;
-            });
-            this.fieldErrors.set(backendErrors);
-            this.erro.set(
-              'Erro de validação no servidor. Verifique os campos destacados.',
-            );
-          } else {
-            this.erro.set(
-              err.error?.message ||
-                'Não foi possível criar o lote. Verifique se há estoque suficiente.',
-            );
-          }
-        },
+  private handleSubmitError(err: unknown): void {
+    if (err instanceof HttpErrorResponse && err.status === 400 && err.error?.details) {
+      const backendErrors: Record<string, string> = {};
+      err.error.details.forEach((e: { campo?: string; mensagem: string }) => {
+        const path = e.campo || 'geral';
+        backendErrors[path] = e.mensagem;
       });
+      this.fieldErrors.set(backendErrors);
+      this.erro.set('Erro de validação no servidor. Verifique os campos destacados.');
+    } else {
+      this.erro.set(
+        err instanceof HttpErrorResponse
+          ? err.error?.message ||
+              'Não foi possível criar o lote. Verifique se há estoque suficiente.'
+          : 'Não foi possível criar o lote. Verifique se há estoque suficiente.',
+      );
+    }
   }
 
   private calcularQuantidadeConsumida(

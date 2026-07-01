@@ -163,11 +163,11 @@
       }
     </div>
 
-    @if (paginationMeta(); as meta) {
+    @if (metaPaginacao(); as meta) {
       @if (meta.totalPaginas > 1) {
         <app-pagination
           [meta]="meta"
-          (pageChange)="onPageChange($event)"
+          (pageChange)="aoMudarPagina($event)"
         ></app-pagination>
       }
     }

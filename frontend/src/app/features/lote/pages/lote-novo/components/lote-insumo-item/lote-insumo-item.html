@@ -19,11 +19,14 @@
   <!-- Dropdown de lote de insumo + Quantidade -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
     <div class="sm:col-span-2 flex flex-col gap-1">
-      <label class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]"
+      <label
+        for="lote-estoque"
+        class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]"
         >Lote de Estoque *</label
       >
       <div class="relative group">
         <select
+          id="lote-estoque"
           formControlName="insumo_estoque_id"
           class="w-full bg-[#131313] border border-[#484847]/60 rounded pl-3 pr-10 py-2 text-[12px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
           [class.border-red-500]="
@@ -61,11 +64,14 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]"
+      <label
+        for="qtd-consumir"
+        class="text-[9px] font-bold tracking-[1px] uppercase text-[#6B7280]"
         >Qtd. a Consumir *</label
       >
       <div class="relative">
         <input
+          id="qtd-consumir"
           type="number"
           formControlName="quantidade_consumida"
           [min]="formGroup().get('unidade')?.value === 'UN' ? '1' : '0.01'"

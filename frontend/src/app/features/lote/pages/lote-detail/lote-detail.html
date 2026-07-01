@@ -91,11 +91,11 @@
 
         <div
           class="px-4 py-2 rounded-md text-[12px] font-bold uppercase tracking-[2px] shadow-sm border"
-          [style.color]="getStatusConfig(lote()!.status).cor"
-          [style.background]="getStatusConfig(lote()!.status).corBg"
-          [style.border-color]="getStatusConfig(lote()!.status).corBorda"
+          [style.color]="obterStatusConfig(lote()!.status).cor"
+          [style.background]="obterStatusConfig(lote()!.status).corBg"
+          [style.border-color]="obterStatusConfig(lote()!.status).corBorda"
         >
-          {{ getStatusConfig(lote()!.status).label }}
+          {{ obterStatusConfig(lote()!.status).label }}
         </div>
       </div>
     </header>
@@ -112,7 +112,7 @@
       </div>
       <div class="info-card">
         <span class="info-label">Turno</span>
-        <span class="info-value">{{ getTurnoLabel(lote()!.turno) }}</span>
+        <span class="info-value">{{ rotuloTurno(lote()!.turno) }}</span>
       </div>
       <div class="info-card">
         <span class="info-label">Data de Produção</span>
@@ -256,6 +256,7 @@
             <!-- Quantidade Reprovada -->
             <div class="w-full relative">
               <label
+                for="qtd-reprovada"
                 class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 flex justify-between"
               >
                 <span>Quantidade Reprovada *</span>
@@ -264,6 +265,7 @@
                 >
               </label>
               <input
+                id="qtd-reprovada"
                 type="number"
                 formControlName="quantidade_reprovada"
                 min="0"
@@ -275,6 +277,7 @@
             <!-- Preview de Resultado (auto-calculado) -->
             <div class="w-full">
               <label
+                for="resultado-auto"
                 class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
                 >Resultado (auto)</label
               >
@@ -297,6 +300,7 @@
             <!-- Preview Taxa -->
             <div class="w-full">
               <label
+                for="taxa-aprovacao"
                 class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
                 >Taxa de Aprovação</label
               >
@@ -318,6 +322,7 @@
           <!-- Descrição do Desvio -->
           <div class="w-full">
             <label
+              for="descricao-desvio"
               class="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider mb-1 block"
             >
               Descrição do Desvio
@@ -326,6 +331,7 @@
               }
             </label>
             <textarea
+              id="descricao-desvio"
               formControlName="descricao_desvio"
               rows="2"
               class="w-full bg-[#202020] border border-[#484847] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00E5FF] resize-none"
@@ -378,13 +384,13 @@
             <div class="flex items-center gap-3 mb-4">
               <div
                 class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider"
-                [style.color]="getStatusConfig(insp.resultado_calculado).cor"
-                [style.background]="getStatusConfig(insp.resultado_calculado).corBg"
+                [style.color]="obterStatusConfig(insp.resultado_calculado).cor"
+                [style.background]="obterStatusConfig(insp.resultado_calculado).corBg"
                 [style.border]="
-                  '1px solid ' + getStatusConfig(insp.resultado_calculado).corBorda
+                  '1px solid ' + obterStatusConfig(insp.resultado_calculado).corBorda
                 "
               >
-                {{ getStatusConfig(insp.resultado_calculado).label }}
+                {{ obterStatusConfig(insp.resultado_calculado).label }}
               </div>
             </div>
             <div class="flex flex-col gap-3">
@@ -416,9 +422,9 @@
             <div
               class="p-4 rounded border"
               [style.border-color]="
-                getStatusConfig(insp.resultado_calculado).corBorda + '60'
+                obterStatusConfig(insp.resultado_calculado).corBorda + '60'
               "
-              [style.background]="getStatusConfig(insp.resultado_calculado).corBg"
+              [style.background]="obterStatusConfig(insp.resultado_calculado).corBg"
             >
               <div class="flex items-center gap-2 mb-2">
                 <svg
@@ -427,7 +433,7 @@
                   viewBox="0 0 24 24"
                   stroke-width="2"
                   class="w-4 h-4 shrink-0"
-                  [style.stroke]="getStatusConfig(insp.resultado_calculado).cor"
+                  [style.stroke]="obterStatusConfig(insp.resultado_calculado).cor"
                 >
                   <path
                     stroke-linecap="round"
@@ -437,7 +443,7 @@
                 </svg>
                 <span
                   class="text-[10px] font-bold uppercase tracking-wider"
-                  [style.color]="getStatusConfig(insp.resultado_calculado).cor"
+                  [style.color]="obterStatusConfig(insp.resultado_calculado).cor"
                   >Descrição do Desvio</span
                 >
               </div>

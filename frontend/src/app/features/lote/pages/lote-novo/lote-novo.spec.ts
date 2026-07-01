@@ -10,7 +10,7 @@ type JestFn = ReturnType<typeof jest.fn>;
 type MockRouter = Pick<Router, 'navigate'>;
 type MockLoteService = Pick<
   LoteFeatureService,
-  'getProdutos' | 'getInsumosDisponiveis' | 'createLote'
+  'listarProdutos' | 'obterInsumosDisponiveis' | 'criarLote'
 >;
 
 describe('LoteNovo Component', () => {
@@ -18,9 +18,9 @@ describe('LoteNovo Component', () => {
   let fixture: ComponentFixture<LoteNovo>;
   let mockRouter: MockRouter & { navigate: JestFn };
   let mockLoteService: MockLoteService & {
-    getProdutos: JestFn;
-    getInsumosDisponiveis: JestFn;
-    createLote: JestFn;
+    listarProdutos: JestFn;
+    obterInsumosDisponiveis: JestFn;
+    criarLote: JestFn;
   };
   let mockActivatedRoute: {
     snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> };
@@ -29,9 +29,9 @@ describe('LoteNovo Component', () => {
   beforeEach(async () => {
     mockRouter = { navigate: jest.fn() };
     mockLoteService = {
-      getProdutos: jest.fn().mockReturnValue(of([])),
-      getInsumosDisponiveis: jest.fn().mockReturnValue(of([])),
-      createLote: jest.fn(),
+      listarProdutos: jest.fn().mockReturnValue(of([])),
+      obterInsumosDisponiveis: jest.fn().mockReturnValue(of([])),
+      criarLote: jest.fn(),
     };
     mockActivatedRoute = {
       snapshot: {
@@ -57,10 +57,10 @@ describe('LoteNovo Component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve pré-selecionar o produto se produtoId vier nos query params', async () => {
+  it('deve pré-selecionar o produto se produtoId vier nos query params', () => {
     mockActivatedRoute.snapshot.queryParamMap = convertToParamMap({ produtoId: '42' });
-    component.ngOnInit();
-    expect(component.form.controls.produto_id.value).toBe(42);
+    const cmp = TestBed.createComponent(LoteNovo).componentInstance;
+    expect(cmp.form.controls.produto_id.value).toBe(42);
   });
 
   describe('Validação com Zod', () => {
@@ -88,9 +88,11 @@ describe('LoteNovo Component', () => {
   });
 
   describe('Criação de Lote', () => {
-    it('deve chamar o serviço se os dados forem válidos', () => {
+    it('deve chamar o serviço se os dados forem válidos', async () => {
       // Mock de produtos carregados
-      (component.produtosResource as any).set([{ id: 1, nome: 'Teste', receita: [] }]);
+      (component.produtosResource as unknown as { set: (v: unknown[]) => void }).set([
+        { id: 1, nome: 'Teste', receita: [] },
+      ]);
 
       component.form.patchValue({
         produto_id: 1,
@@ -113,11 +115,11 @@ describe('LoteNovo Component', () => {
         }),
       );
 
-      mockLoteService.createLote.mockReturnValue(of({ id: 99 }));
+      mockLoteService.criarLote.mockReturnValue(of({ id: 99 }));
 
-      component.onSubmit();
+      await component.onSubmit();
 
-      expect(mockLoteService.createLote).toHaveBeenCalled();
+      expect(mockLoteService.criarLote).toHaveBeenCalled();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/app/lote', 99]);
     });
   });
