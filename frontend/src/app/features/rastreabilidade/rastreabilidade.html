@@ -2,18 +2,18 @@
   <!--  MODO BUSCA  -->
   @if (!modoResultado()) {
     <app-rastreabilidade-busca
-      [termo]="termoBusca()"
+      [termo]="termoPesquisa()"
       [sugestoes]="sugestoes()"
       [mostrandoDropdown]="mostrarDropdown()"
       [buscandoSugestoes]="buscandoSugestoes()"
       [buscando]="buscando()"
       [erro]="erro()"
-      (inputChange)="onInput($event)"
-      (focus)="onFocus()"
-      (blur)="fecharDropdown()"
-      (search)="buscar()"
-      (clear)="novaBusca()"
-      (selectSuggestion)="selecionarSugestao($event)"
+      (mudancaEntrada)="aoDigitar($event)"
+      (focado)="aoFocar()"
+      (desfocado)="fecharDropdown()"
+      (buscaSubmetida)="buscar()"
+      (limpar)="novaBusca()"
+      (sugestaoSelecionada)="selecionarSugestao($event)"
       class="animate-fade-in-up"
     >
     </app-rastreabilidade-busca>
@@ -53,7 +53,7 @@
             >Resultado para</span
           >
           <span class="text-white font-mono text-[11px] font-bold">{{
-            termoBusca()
+            termoPesquisa()
           }}</span>
         </div>
       </div>
@@ -68,15 +68,15 @@
       @if (resultadoInsumos(); as rInsumos) {
         <app-rastreabilidade-arvore-recall
           [resultadoInsumos]="rInsumos"
-          [termoBusca]="termoBusca()"
+          [termoBusca]="termoPesquisa()"
         >
         </app-rastreabilidade-arvore-recall>
 
-        @if (paginationMeta(); as meta) {
+        @if (metaPaginacao(); as meta) {
           @if (meta.totalPaginas > 1) {
             <app-pagination
               [meta]="meta"
-              (pageChange)="onPageChange($event)"
+              (pageChange)="aoMudarPagina($event)"
             ></app-pagination>
           }
         }

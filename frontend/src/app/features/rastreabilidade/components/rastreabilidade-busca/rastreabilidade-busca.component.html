@@ -35,7 +35,7 @@
       <div
         class="flex items-center gap-3 min-[425px]:gap-4 flex-1 px-2 py-1 min-[425px]:p-0"
       >
-        @if (buscandoSugestoes) {
+        @if (buscandoSugestoes()) {
           <div
             class="w-5 h-5 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin flex-shrink-0"
           ></div>
@@ -57,18 +57,18 @@
         }
         <input
           type="text"
-          [value]="termo"
-          (input)="onInput($event)"
-          (focus)="onFocus()"
-          (blur)="onBlur()"
-          (keyup.enter)="onSearch()"
+          [value]="termo()"
+          (input)="aoDigitar($event)"
+          (focus)="aoFocar()"
+          (blur)="aoDesfocar()"
+          (keyup.enter)="aoBuscar()"
           placeholder="Lote ou Insumo..."
           class="flex-1 bg-transparent text-white text-base focus:outline-none placeholder:text-[#484847] min-w-0"
           autocomplete="off"
         />
-        @if (termo) {
+        @if (termo()) {
           <button
-            (click)="onClear()"
+            (click)="aoLimpar()"
             class="text-[#484847] hover:text-white transition-colors flex-shrink-0"
           >
             <svg
@@ -90,20 +90,20 @@
       </div>
 
       <button
-        (click)="onSearch()"
+        (click)="aoBuscar()"
         class="bg-[#00E5FF] hover:bg-[#00cce6] text-black text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 min-[425px]:py-2 rounded-xl min-[425px]:rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] flex-shrink-0 w-full min-[425px]:w-auto"
       >
         Buscar
       </button>
 
       <!-- Dropdown de Sugestões -->
-      @if (mostrandoDropdown && sugestoes.length > 0) {
+      @if (mostrandoDropdown() && sugestoes().length > 0) {
         <div
           class="absolute left-0 right-0 top-[calc(100%+8px)] bg-[#131313] border border-[#484847]/40 rounded-xl py-2 shadow-2xl z-50 animate-scale-in origin-top"
         >
-          @for (sug of sugestoes; track sug.id) {
+          @for (sug of sugestoes(); track sug.id) {
             <button
-              (click)="onSelect(sug)"
+              (click)="aoSelecionar(sug)"
               class="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors group"
             >
               <div class="flex items-center gap-3">
@@ -128,16 +128,16 @@
   </div>
 
   <!-- Erro -->
-  @if (erro) {
+  @if (erro()) {
     <div
       class="p-4 bg-red-950/20 border border-red-500/30 rounded-xl text-center max-w-md w-full animate-fade-in delay-200"
     >
-      <p class="text-red-400 text-sm font-medium">{{ erro }}</p>
+      <p class="text-red-400 text-sm font-medium">{{ erro() }}</p>
     </div>
   }
 
   <!-- Loading -->
-  @if (buscando) {
+  @if (buscando()) {
     <div class="flex flex-col items-center gap-3 animate-fade-in delay-200">
       <div
         class="w-8 h-8 border-2 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"

@@ -25,8 +25,8 @@ describe('Rastreabilidade', () => {
   });
 
   it('deve atualizar o termo de busca ao digitar', () => {
-    const event = { target: { value: 'LOT-123' } } as any;
-    component.onInput(event);
-    expect(component.termoBusca()).toBe('LOT-123');
+    const event = { target: { value: 'LOT-123' } } as unknown as Event;
+    component.aoDigitar(event);
+    expect(component.termoPesquisa()).toBe('LOT-123');
   });
 });
