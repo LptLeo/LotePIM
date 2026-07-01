@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal, computed } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 import { catchError, of, ReplaySubject, tap } from 'rxjs';
@@ -16,32 +16,31 @@ export interface UsuarioInfo {
   providedIn: 'root',
 })
 export class AuthService {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
+
   private http = inject(HttpClient);
   private router = inject(Router);
   private sseClientService = inject(SseClientService);
   private notificacaoService = inject(NotificacaoService);
   private readonly AUTH_URL = `${environment.apiUrl}/auth`;
 
+  // === ESTADO DA SESSÃO ===
+
   private _tokenAcesso = signal<string>('');
   tokenAcesso = this._tokenAcesso.asReadonly();
   usuario = signal<UsuarioInfo | null>(null);
+
+  public podeAbrirLote = computed(() => {
+    const perfil = this.usuario()?.perfil;
+    return perfil === 'operador' || perfil === 'gestor';
+  });
+
   private _sessaoCarregada$ = new ReplaySubject<void>(1);
   readonly sessaoCarregada$ = this._sessaoCarregada$.asObservable();
 
-  setSessao(token: string, usuario: UsuarioInfo | null) {
-    this._tokenAcesso.set(token);
-    this.usuario.set(usuario);
-  }
+  // === AUTENTICAÇÃO ===
 
-  private processarSucessoAuth(tokenAcesso: string) {
-    const usuario = this.decodificarUsuarioDoToken(tokenAcesso);
-    this.setSessao(tokenAcesso, usuario);
-    // Inicia conexões globais após autenticação bem-sucedida
-    this.sseClientService.iniciar();
-    this.notificacaoService.iniciarPolling();
-  }
-
-  silentRefresh() {
+  public silentRefresh() {
     return this.http
       .post<{
         tokenAcesso: string;
@@ -55,7 +54,7 @@ export class AuthService {
       );
   }
 
-  login(credentials: { email: string; senha: string }) {
+  public login(credentials: { email: string; senha: string }) {
     return this.http
       .post<{ tokenAcesso: string }>(`${this.AUTH_URL}/login`, credentials, {
         withCredentials: true,
@@ -63,7 +62,7 @@ export class AuthService {
       .pipe(tap((res) => this.processarSucessoAuth(res.tokenAcesso)));
   }
 
-  logout() {
+  public logout() {
     this.http
       .post<void>(`${this.AUTH_URL}/logout`, {}, { withCredentials: true })
       .pipe(
@@ -75,9 +74,43 @@ export class AuthService {
       .subscribe();
   }
 
-  decodificarUsuarioDoToken(token: string): UsuarioInfo {
-    // Primeiro separa o token pelo '.', depois pega a segunda parte ([1]), usa a função nativa atob que decodifica Base64
-    // e por fim transformo em JSON com JSON.parse.
+  public inicializarSessao() {
+    return this.silentRefresh().pipe(
+      tap({
+        next: () => {
+          this._sessaoCarregada$.next();
+          this._sessaoCarregada$.complete();
+        },
+      }),
+      catchError(() => {
+        this._sessaoCarregada$.next();
+        this._sessaoCarregada$.complete();
+
+        return of(null);
+      }),
+    );
+  }
+
+  public estaLogado(): boolean {
+    return !!this._tokenAcesso() && this.usuario() !== null;
+  }
+
+  // === MÉTODOS PRIVADOS ===
+
+  private setSessao(token: string, usuario: UsuarioInfo | null) {
+    this._tokenAcesso.set(token);
+    this.usuario.set(usuario);
+  }
+
+  private processarSucessoAuth(tokenAcesso: string) {
+    const usuario = this.decodificarUsuarioDoToken(tokenAcesso);
+    this.setSessao(tokenAcesso, usuario);
+
+    this.sseClientService.iniciar();
+    this.notificacaoService.iniciarPolling();
+  }
+
+  private decodificarUsuarioDoToken(token: string): UsuarioInfo {
     try {
       const jwtParteUsuario = JSON.parse(atob(token.split('.')[1]));
 
@@ -96,31 +129,9 @@ export class AuthService {
     }
   }
 
-  logoutLocal() {
-    // Desliga todos os serviços globais que dependem de sessão ativa
+  private logoutLocal() {
     this.sseClientService.fechar();
     this.notificacaoService.pararPolling();
     this.setSessao('', null);
-  }
-
-  isLoggedIn(): boolean {
-    return !!this._tokenAcesso() && this.usuario() !== null;
-  }
-
-  inicializarSessao() {
-    return this.silentRefresh().pipe(
-      tap({
-        next: () => {
-          this._sessaoCarregada$.next();
-          this._sessaoCarregada$.complete();
-        },
-      }),
-      catchError((err) => {
-        this._sessaoCarregada$.next();
-        this._sessaoCarregada$.complete();
-
-        return of(null);
-      }),
-    );
   }
 }
