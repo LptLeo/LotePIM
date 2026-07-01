@@ -34,11 +34,11 @@
       </p>
 
       <!-- Erro -->
-      @if (errorMessage()) {
+      @if (mensagemErro()) {
         <div
           class="mb-4 p-3 bg-[#2a0c0c] border border-red-500 rounded text-[13px] font-bold text-[#ffb3b3] text-center tracking-wide shadow-sm shadow-[#ff000040]"
         >
-          {{ errorMessage() }}
+          {{ mensagemErro() }}
         </div>
       }
 
@@ -50,7 +50,7 @@
       >
       <input
         formControlName="email"
-        (input)="errorMessage.set('')"
+        (input)="mensagemErro.set('')"
         class="mb-1 p-3 bg-black text-sm text-white placeholder:text-xs outline-none transition-all duration-300 focus:scale-[1.02] focus:ring-1 focus:ring-[#00E3FD] animate-fade-in-up delay-200"
         type="email"
         id="usuario"
@@ -79,7 +79,7 @@
       >
       <input
         formControlName="senha"
-        (input)="errorMessage.set('')"
+        (input)="mensagemErro.set('')"
         class="p-3 bg-black text-sm text-white placeholder:text-xs outline-none transition-all duration-300 focus:scale-[1.02] focus:ring-1 focus:ring-[#00E3FD] animate-fade-in-up delay-200"
         type="password"
         id="senha"
@@ -103,10 +103,10 @@
       <!-- Botão Submit -->
       <button
         class="flex items-center justify-center gap-2 mt-10 py-3 bg-linear-to-r from-[#81ECFF] to-[#00E3FD] rounded-sm text-xs font-bold text-center text-[#005762] shadow-sm shadow-[#81ECFF] transition-all disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
-        [disabled]="loginForm.invalid || isLoading()"
+        [disabled]="loginForm.invalid || estaCarregando()"
         type="submit"
       >
-        @if (isLoading()) {
+        @if (estaCarregando()) {
           <svg
             class="h-4 w-4 text-[#005762] animate-spin"
             xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +128,7 @@
             ></path>
           </svg>
         }
-        <span>{{ isLoading() ? 'ENTRANDO...' : 'ENTRAR' }}</span>
+        <span>{{ estaCarregando() ? 'ENTRANDO...' : 'ENTRAR' }}</span>
       </button>
     </form>
   </main>

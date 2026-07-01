@@ -2,6 +2,7 @@ import { Login } from './login';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AuthService } from '../../core/services/auth.service';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
 describe('LoginComponent', () => {
@@ -36,55 +37,58 @@ describe('LoginComponent', () => {
     expect(component.loginForm.valid).toBe(true);
   });
 
-  it('Deve chamar o authService.login quando o formulário for válido', () => {
-    const credentials = {
+  it('Deve chamar o authService.login quando o formulário for válido', async () => {
+    const credenciais = {
       email: 'teste@email.com',
       senha: 'senha123',
     };
 
-    component.loginForm.patchValue(credentials);
+    component.loginForm.patchValue(credenciais);
 
     authServiceMock.login.mockReturnValue(of({ tokenAcesso: 'example' }));
 
-    component.login();
+    await component.login();
 
-    expect(authServiceMock.login).toHaveBeenCalledWith(credentials);
-    expect(component.isLoading()).toBe(false);
+    expect(authServiceMock.login).toHaveBeenCalledWith(credenciais);
+    expect(component.estaCarregando()).toBe(false);
     expect(component.loginForm.getRawValue().email).toBe('');
     expect(routerMock.navigate).toHaveBeenCalledWith(['/app/dashboard']);
   });
 
-  it('Deve exibir mensagem no erro quando o login falhar', () => {
-    const erroMock = { status: 401, error: { message: 'E-mail ou senha incorretos.' } };
+  it('Deve exibir mensagem no erro quando o login falhar', async () => {
+    const erroMock = new HttpErrorResponse({
+      status: 401,
+      error: { message: 'E-mail ou senha incorretos.' },
+    });
     authServiceMock.login.mockReturnValue(throwError(() => erroMock));
 
     component.loginForm.patchValue({ email: 'teste@email.com', senha: 'senha123' });
-    component.login();
+    await component.login();
 
-    expect(component.isLoading()).toBe(false);
-    expect(component.errorMessage()).toBe('E-mail ou senha incorretos.');
+    expect(component.estaCarregando()).toBe(false);
+    expect(component.mensagemErro()).toBe('E-mail ou senha incorretos.');
   });
 
-  it('Deve exibir mensagem no erro quando o login falhar em conectar-se', () => {
-    const erroMock = {
+  it('Deve exibir mensagem no erro quando o login falhar em conectar-se', async () => {
+    const erroMock = new HttpErrorResponse({
       status: 0,
       error: {
         message: 'Erro de conexão. Verifique sua internet ou se o servidor está online.',
       },
-    };
-    authServiceMock.login.mockReturnValue(throwError(() => erroMock)); // Simulando erro vindo do servidor
+    });
+    authServiceMock.login.mockReturnValue(throwError(() => erroMock));
 
     component.loginForm.patchValue({ email: 'teste@email.com', senha: 'senha123' });
-    component.login();
+    await component.login();
 
-    expect(component.isLoading()).toBe(false);
-    expect(component.errorMessage()).toBe(
+    expect(component.estaCarregando()).toBe(false);
+    expect(component.mensagemErro()).toBe(
       'Erro de conexão. Verifique sua internet ou se o servidor está online.',
     );
   });
 
   it('Deve limpar a mensagem de erro quando o usuário digitar nos inputs', () => {
-    component.errorMessage.set('Erro');
+    component.mensagemErro.set('Erro');
 
     // Simulando a digitação real no campo para disparar o evento (input) do HTML
     const input = fixture.nativeElement.querySelector('#usuario') as HTMLInputElement;
@@ -93,7 +97,7 @@ describe('LoginComponent', () => {
 
     fixture.detectChanges();
 
-    expect(component.errorMessage()).toBe('');
+    expect(component.mensagemErro()).toBe('');
   });
 
   it('Deve desabilitar o botão quando o formulário for inválido ou estiver carregando', () => {
@@ -103,12 +107,12 @@ describe('LoginComponent', () => {
     expect(botao.disabled).toBe(true);
 
     component.loginForm.patchValue({ email: 'teste@email.com', senha: 'senha123' });
-    component.isLoading.set(true);
+    component.estaCarregando.set(true);
     fixture.detectChanges();
 
     expect(botao.disabled).toBe(true);
 
-    component.isLoading.set(false);
+    component.estaCarregando.set(false);
     fixture.detectChanges();
 
     expect(botao.disabled).toBe(false);
@@ -160,23 +164,23 @@ describe('LoginComponent', () => {
     expect(emailInput.classList).not.toContain('border-red-500');
   });
 
-  it('Deve exibir mensagem de erro genérica quando o backend não envia uma mensagem específica', () => {
-    const erroSemMensagem = { status: 500, error: {} };
+  it('Deve exibir mensagem de erro genérica quando o backend não envia uma mensagem específica', async () => {
+    const erroSemMensagem = new HttpErrorResponse({ status: 500, error: {} });
     authServiceMock.login.mockReturnValue(throwError(() => erroSemMensagem));
 
     component.loginForm.patchValue({ email: 'teste@email.com', senha: 'senha123' });
-    component.login();
+    await component.login();
 
-    expect(component.errorMessage()).toBe('Ocorreu um erro inesperado ao fazer login.');
+    expect(component.mensagemErro()).toBe('Ocorreu um erro inesperado ao fazer login.');
   });
 
-  it('Deve dar um return vazio se o formulário for inválido', () => {
+  it('Deve dar um return vazio se o formulário for inválido', async () => {
     component.loginForm.patchValue({ email: '', senha: '' });
     authServiceMock.login.mockClear();
 
-    component.login();
+    await component.login();
 
     expect(authServiceMock.login).not.toHaveBeenCalled();
-    expect(component.isLoading()).toBe(false);
+    expect(component.estaCarregando()).toBe(false);
   });
 });
