@@ -1,44 +1,48 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormArray, ReactiveFormsModule } from '@angular/forms';
+import { Component, input, output, computed } from '@angular/core';
+import { FormArray, ReactiveFormsModule, FormGroup } from '@angular/forms';
 import type { MateriaPrima } from '../../../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-wizard-receita',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './wizard-receita.component.html',
 })
 export class WizardReceitaComponent {
-  @Input() produtoNome = '';
-  @Input() produtoSku = '';
-  @Input() produtoRessalva = 0;
+  // === INPUTS ===
+  public produtoNome = input('');
+  public produtoSku = input('');
+  public produtoRessalva = input(0);
+  public receitaArray = input.required<FormArray>();
+  public mpDisponiveis = input<MateriaPrima[]>([]);
+  public salvando = input(false);
 
-  @Input() receitaArray!: FormArray;
-  @Input() mpDisponiveis: MateriaPrima[] = [];
-  @Input() salvando = false;
+  // === OUTPUTS ===
+  public voltar = output<void>();
+  public salvar = output<void>();
+  public adicionarMp = output<number>();
+  public removerMp = output<number>();
 
-  @Output() back = new EventEmitter<void>();
-  @Output() save = new EventEmitter<void>();
-  @Output() addMp = new EventEmitter<number>();
-  @Output() removeMp = new EventEmitter<number>();
+  // === DERIVAÇÕES ===
+  public controlesReceita = computed(() => this.receitaArray().controls as FormGroup[]);
 
-  onBack() {
-    this.back.emit();
+  // === MÉTODOS ===
+  public aoVoltar(): void {
+    this.voltar.emit();
   }
 
-  onSave() {
-    this.save.emit();
+  public aoSalvar(): void {
+    this.salvar.emit();
   }
 
-  onAddMp(idStr: string) {
+  public aoAdicionarMp(idStr: string): void {
     const id = Number(idStr);
     if (id) {
-      this.addMp.emit(id);
+      this.adicionarMp.emit(id);
     }
   }
 
-  onRemoveMp(index: number) {
-    this.removeMp.emit(index);
+  public aoRemoverMp(index: number): void {
+    this.removerMp.emit(index);
   }
 }

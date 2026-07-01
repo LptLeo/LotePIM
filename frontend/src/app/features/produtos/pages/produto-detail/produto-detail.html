@@ -141,7 +141,7 @@
             {{ produto()!.ativo ? 'ATIVO' : 'INATIVO' }}
           </div>
 
-          @if (isGestor()) {
+          @if (ehGestor()) {
             <button
               (click)="solicitarAlternanciaStatus()"
               [disabled]="alterandoStatus()"
@@ -203,9 +203,9 @@
       (iniciarEdicao)="iniciarEdicaoReceita()"
       (cancelarEdicao)="cancelarEdicaoReceita()"
       (salvar)="salvarReceita()"
-      (addMp)="adicionarMateriaPrima($event)"
-      (removeMp)="removerItemReceita($event)"
-      (updateQtd)="atualizarQuantidade($event.index, $event.qtd)"
+      (adicionarMp)="adicionarMateriaPrima($event)"
+      (removerMp)="removerItemReceita($event)"
+      (atualizarQtd)="atualizarQuantidade($event.index, $event.qtd)"
     >
     </app-produto-receita>
   }

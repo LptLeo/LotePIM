@@ -90,9 +90,9 @@
       [formBase]="formBase"
       [skuPreview]="skuPreview()"
       [categoriasExistentes]="categoriasExistentes()"
-      (cancel)="voltarParaLista()"
-      (saveSemReceita)="onSubmit()"
-      (next)="avancarEtapa()"
+      (cancelar)="voltarParaLista()"
+      (salvarSemReceita)="onSubmit()"
+      (proximo)="avancarEtapa()"
     >
     </app-wizard-base>
   }
@@ -106,10 +106,10 @@
       [receitaArray]="receitaArray"
       [mpDisponiveis]="mpDisponiveis()"
       [salvando]="salvando()"
-      (back)="voltarEtapa()"
-      (save)="onSubmit()"
-      (addMp)="adicionarItemReceita($event)"
-      (removeMp)="removerItemReceita($event)"
+      (voltar)="voltarEtapa()"
+      (salvar)="onSubmit()"
+      (adicionarMp)="adicionarItemReceita($event)"
+      (removerMp)="removerItemReceita($event)"
     >
     </app-wizard-receita>
   }

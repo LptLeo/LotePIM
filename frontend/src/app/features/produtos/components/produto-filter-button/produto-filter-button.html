@@ -1,16 +1,16 @@
 <button
-  (click)="action.emit(value)"
-  [class.border-[#00E5FF]]="active && !isWarning"
-  [class.text-[#00E5FF]]="active && !isWarning"
-  [class.border-[#fca5a5]]="active && isWarning"
-  [class.text-[#fca5a5]]="active && isWarning"
-  [class.border-transparent]="!active"
-  [class.text-[#6B7280]]="!active"
-  [class.opacity-80]="isWarning"
-  [class.hover:opacity-100]="isWarning"
-  [class.hover:text-white]="!isWarning"
+  (click)="acao.emit(valor())"
+  [class.border-[#00E5FF]]="ativo() && !ehAlerta()"
+  [class.text-[#00E5FF]]="ativo() && !ehAlerta()"
+  [class.border-[#fca5a5]]="ativo() && ehAlerta()"
+  [class.text-[#fca5a5]]="ativo() && ehAlerta()"
+  [class.border-transparent]="!ativo()"
+  [class.text-[#6B7280]]="!ativo()"
+  [class.opacity-80]="ehAlerta()"
+  [class.hover:opacity-100]="ehAlerta()"
+  [class.hover:text-white]="!ehAlerta()"
   class="pb-3 text-[10px] font-bold uppercase tracking-[1.5px] border-b-2 cursor-pointer transition-all flex items-center gap-1"
 >
   <ng-content></ng-content>
-  {{ label }} ({{ count }})
+  {{ rotulo() }} ({{ contagem() }})
 </button>

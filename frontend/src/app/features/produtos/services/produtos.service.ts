@@ -11,8 +11,8 @@ export interface ContagemProdutos {
   total: number;
   ativos: number;
   inativos: number;
-  semInsumos: number;
-  maisProduzidos: number;
+  sem_insumos: number;
+  mais_produzidos: number;
 }
 
 interface ReceitaItem {
