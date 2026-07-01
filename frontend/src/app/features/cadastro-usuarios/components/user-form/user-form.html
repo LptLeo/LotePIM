@@ -6,7 +6,7 @@
       <app-text-input-field
         label="Nome Completo *"
         [control]="form.controls.nome"
-        [submitted]="submitted()"
+        [submitted]="enviado()"
         [errorMessage]="obterErro('nome')"
         placeholder="Ex.: Ana Maria Silva"
       />
@@ -15,7 +15,7 @@
         label="E-mail Corporativo *"
         type="email"
         [control]="form.controls.email"
-        [submitted]="submitted()"
+        [submitted]="enviado()"
         [errorMessage]="obterErro('email')"
         placeholder="nome@empresa.com"
       />
@@ -25,8 +25,8 @@
       <app-select-field
         label="Perfil (Role) *"
         [control]="form.controls.perfil"
-        [options]="roleOptions()"
-        [submitted]="submitted()"
+        [options]="opcoesPerfil()"
+        [submitted]="enviado()"
       />
 
       <div class="flex items-end">
@@ -38,7 +38,7 @@
       <app-password-field
         label="Senha *"
         [control]="form.controls.senha"
-        [submitted]="submitted()"
+        [submitted]="enviado()"
         [errorMessage]="obterErro('senha')"
         [showGenerator]="true"
         [onGenerate]="gerarSenhaVinculada"
@@ -47,7 +47,7 @@
       <app-password-field
         label="Confirmar Senha *"
         [control]="form.controls.confirmarSenha"
-        [submitted]="submitted()"
+        [submitted]="enviado()"
         [errorMessage]="obterErroConfirmarSenha()"
       />
     </div>
@@ -57,7 +57,7 @@
     >
       <button
         type="button"
-        (click)="onCancel.emit()"
+        (click)="cancelar.emit()"
         class="w-full min-[425px]:w-auto px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded"
       >
         Cancelar

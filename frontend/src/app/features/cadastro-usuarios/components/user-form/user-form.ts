@@ -1,5 +1,4 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, input, output, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -32,7 +31,6 @@ export interface UserFormControls {
   selector: 'app-user-form',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TextInputFieldComponent,
     SelectFieldComponent,
@@ -42,22 +40,22 @@ export interface UserFormControls {
   templateUrl: './user-form.html',
 })
 export class UserFormComponent {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
   private fb = inject(FormBuilder);
   private configuracoesGlobais = inject(ConfiguracoesGlobaisService);
 
-  // --- Inputs recebidos do componente pai ---
+  // === INPUTS ===
   salvando = input<boolean>(false);
-  roleOptions = input.required<SelectOption[]>();
+  opcoesPerfil = input.required<SelectOption[]>();
 
-  // --- Outputs emitidos para o componente pai ---
-  onSubmit = output<CreateUsuarioPayload>();
-  onCancel = output<void>();
+  // === OUTPUTS ===
+  enviar = output<CreateUsuarioPayload>();
+  cancelar = output<void>();
 
-  // --- Estado local do formulário ---
+  // === ESTADO DO FORMULÁRIO ===
   config = this.configuracoesGlobais.config;
-  submitted = signal(false);
+  enviado = signal(false);
 
-  // Criação do formulário diretamente aqui (mais simples e isolado)
   form: FormGroup<UserFormControls> = this.fb.nonNullable.group(
     {
       nome: ['', [Validators.required]],
@@ -71,14 +69,14 @@ export class UserFormComponent {
       ativo: [true],
     },
     { validators: [this.validarSenhasIguais] },
-  ) as FormGroup<UserFormControls>; // Validação de formulario inteiro.
+  ) as FormGroup<UserFormControls>;
 
-  // Ação de clique no botão Cadastrar
-  enviarFormulario(): void {
-    this.submitted.set(true);
+  // === MÉTODOS PÚBLICOS ===
+  public enviarFormulario(): void {
+    this.enviado.set(true);
 
     if (this.form.invalid) {
-      return; // Se tem erro, não faz nada
+      return;
     }
 
     const valores = this.form.getRawValue();
@@ -90,14 +88,40 @@ export class UserFormComponent {
       ativo: valores.ativo,
     };
 
-    // Entrega o payload prontinho para a tela principal salvar na API
-    this.onSubmit.emit(payload);
+    this.enviar.emit(payload);
   }
 
-  // Lógica de gerar senha segura (feita diretamente aqui)
   gerarSenhaVinculada = this.gerarSenhaAleatoria.bind(this);
 
-  gerarSenhaAleatoria(): void {
+  // === VALIDAÇÃO E ERROS ===
+  public obterErro(campo: keyof UserFormControls): string {
+    const controle = this.form.controls[campo];
+    if (!controle || !controle.errors) return '';
+
+    if (controle.errors['required']) return 'Este campo é obrigatório.';
+    if (controle.errors['email']) return 'Digite um e-mail válido.';
+    if (controle.errors['minlength']) {
+      return `Mínimo de ${controle.errors['minlength'].requiredLength} caracteres.`;
+    }
+
+    return 'Campo inválido.';
+  }
+
+  public obterErroConfirmarSenha(): string {
+    const controle = this.form.controls.confirmarSenha;
+    if (controle.errors?.['required']) return 'Confirme a senha.';
+    if (this.form.errors?.['senhasDiferentes']) return 'As senhas não são iguais.';
+    return '';
+  }
+
+  private validarSenhasIguais(group: AbstractControl): ValidationErrors | null {
+    const senha = group.get('senha')?.value;
+    const confirmarSenha = group.get('confirmarSenha')?.value;
+    return senha === confirmarSenha ? null : { senhasDiferentes: true };
+  }
+
+  // === MÉTODOS PRIVADOS ===
+  private gerarSenhaAleatoria(): void {
     const caracteres =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
     let senhaGerada = '';
@@ -112,34 +136,5 @@ export class UserFormComponent {
     this.form.controls.confirmarSenha.setValue(senhaGerada);
     this.form.controls.senha.markAsDirty();
     this.form.controls.confirmarSenha.markAsDirty();
-  }
-
-  // --- Utilitários simples para exibir mensagens de erro ---
-
-  obterErro(campo: keyof UserFormControls): string {
-    const controle = this.form.controls[campo];
-    if (!controle || !controle.errors) return '';
-
-    if (controle.errors['required']) return 'Este campo é obrigatório.';
-    if (controle.errors['email']) return 'Digite um e-mail válido.';
-    if (controle.errors['minlength']) {
-      return `Mínimo de ${controle.errors['minlength'].requiredLength} caracteres.`;
-    }
-
-    return 'Campo inválido.';
-  }
-
-  obterErroConfirmarSenha(): string {
-    const controle = this.form.controls.confirmarSenha;
-    if (controle.errors?.['required']) return 'Confirme a senha.';
-    if (this.form.errors?.['senhasDiferentes']) return 'As senhas não são iguais.';
-    return '';
-  }
-
-  // Validador customizado simples
-  private validarSenhasIguais(group: AbstractControl): ValidationErrors | null {
-    const senha = group.get('senha')?.value;
-    const confirmarSenha = group.get('confirmarSenha')?.value;
-    return senha === confirmarSenha ? null : { senhasDiferentes: true };
   }
 }

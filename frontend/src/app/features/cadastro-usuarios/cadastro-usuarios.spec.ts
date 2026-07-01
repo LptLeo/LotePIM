@@ -3,8 +3,8 @@ import { CadastroUsuarios } from './cadastro-usuarios';
 import { UsuarioService } from '../../core/services/usuario.service.js';
 import { ToastService } from '../../core/services/toast.service.js';
 import { of, throwError } from 'rxjs';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
 
 describe('CadastroUsuarios', () => {
   let component: CadastroUsuarios;
@@ -76,7 +76,7 @@ describe('CadastroUsuarios', () => {
     expect(component.erroApi()).toBeNull();
   });
 
-  it('Deve chamar o serviço de criação ao salvar um novo usuário', () => {
+  it('Deve chamar o serviço de criação ao salvar um novo usuário', async () => {
     const payload = {
       nome: 'Teste',
       email: 'teste@teste.com',
@@ -86,7 +86,7 @@ describe('CadastroUsuarios', () => {
     };
     usuarioServiceMock.create.mockReturnValue(of({}));
 
-    component.salvarUsuario(payload);
+    await component.salvarUsuario(payload);
 
     expect(usuarioServiceMock.create).toHaveBeenCalledWith(payload);
     expect(toastServiceMock.success).toHaveBeenCalledWith(
@@ -95,7 +95,7 @@ describe('CadastroUsuarios', () => {
     expect(component.telaAtiva()).toBe('listagem');
   });
 
-  it('Deve exibir mensagem de erro se a criação falhar', () => {
+  it('Deve exibir mensagem de erro se a criação falhar', async () => {
     const payload = {
       nome: 'Teste',
       email: 'teste@teste.com',
@@ -103,10 +103,13 @@ describe('CadastroUsuarios', () => {
       senha: '123',
       ativo: true,
     };
-    const erroMock = { error: { message: 'E-mail já cadastrado' } };
+    const erroMock = new HttpErrorResponse({
+      status: 400,
+      error: { message: 'E-mail já cadastrado' },
+    });
     usuarioServiceMock.create.mockReturnValue(throwError(() => erroMock));
 
-    component.salvarUsuario(payload);
+    await component.salvarUsuario(payload);
 
     expect(component.erroApi()).toBe('E-mail já cadastrado');
     expect(toastServiceMock.error).toHaveBeenCalledWith(
@@ -115,27 +118,35 @@ describe('CadastroUsuarios', () => {
     expect(component.salvando()).toBe(false);
   });
 
-  it('Deve desativar usuário após confirmação do toast', () => {
+  it('Deve desativar usuário após confirmação do toast', async () => {
     const id = 10;
-    toastServiceMock.confirm.mockImplementation((msg, callback) => callback());
+    toastServiceMock.confirm.mockImplementation(
+      async (msg, callback) => await callback(),
+    );
     usuarioServiceMock.delete.mockReturnValue(of({}));
 
     component.deativarUsuario(id);
 
     expect(usuarioServiceMock.delete).toHaveBeenCalledWith(id);
+
+    await new Promise(process.nextTick);
     expect(toastServiceMock.success).toHaveBeenCalledWith(
       'Colaborador desativado com sucesso.',
     );
   });
 
-  it('Deve reativar usuário após confirmação do toast', () => {
+  it('Deve reativar usuário após confirmação do toast', async () => {
     const id = 20;
-    toastServiceMock.confirm.mockImplementation((msg, callback) => callback());
+    toastServiceMock.confirm.mockImplementation(
+      async (msg, callback) => await callback(),
+    );
     usuarioServiceMock.reativar.mockReturnValue(of({}));
 
     component.reativarUsuario(id);
 
     expect(usuarioServiceMock.reativar).toHaveBeenCalledWith(id);
+
+    await new Promise(process.nextTick);
     expect(toastServiceMock.success).toHaveBeenCalledWith(
       'Colaborador reativado com sucesso.',
     );

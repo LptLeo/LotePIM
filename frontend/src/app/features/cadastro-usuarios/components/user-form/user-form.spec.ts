@@ -25,7 +25,7 @@ describe('UserFormComponent', () => {
     fixture = TestBed.createComponent(UserFormComponent);
     component = fixture.componentInstance;
 
-    fixture.componentRef.setInput('roleOptions', [
+    fixture.componentRef.setInput('opcoesPerfil', [
       { value: 'operador', label: 'Operador' },
     ]);
 
@@ -59,7 +59,7 @@ describe('UserFormComponent', () => {
   });
 
   it('Deve gerar uma senha aleatória com o tamanho configurado', () => {
-    component.gerarSenhaAleatoria();
+    component.gerarSenhaVinculada();
 
     const senha = component.form.controls.senha.value;
     const confirma = component.form.controls.confirmarSenha.value;
@@ -70,7 +70,7 @@ describe('UserFormComponent', () => {
   });
 
   it('Deve emitir os dados limpos ao enviar um formulário válido', () => {
-    const spy = jest.spyOn(component.onSubmit, 'emit');
+    const spy = jest.spyOn(component.enviar, 'emit');
 
     component.form.patchValue({
       nome: '  Carlos Alberto  ',
@@ -93,7 +93,7 @@ describe('UserFormComponent', () => {
   });
 
   it('Não deve emitir dados se o formulário for inválido', () => {
-    const spy = jest.spyOn(component.onSubmit, 'emit');
+    const spy = jest.spyOn(component.enviar, 'emit');
     component.enviarFormulario();
     expect(spy).not.toHaveBeenCalled();
   });
