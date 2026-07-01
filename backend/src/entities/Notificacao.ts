@@ -1,12 +1,18 @@
 import { Entity, Column, ManyToOne, JoinColumn, type Relation } from 'typeorm';
 import { EntidadeBase } from './base.entity.js';
-import type { Usuario } from './Usuario.js';
+import { Usuario } from './Usuario.js';
 
 export enum TipoNotificacao {
   SISTEMA = 'sistema',
   ESTOQUE = 'estoque',
   INSPECAO = 'inspecao',
   PRODUTO = 'produto',
+}
+
+interface NotificacaoMetadata {
+  link?: string;
+  idRef?: number;
+  filtro?: string;
 }
 
 @Entity('notificacao')
@@ -26,13 +32,9 @@ export class Notificacao extends EntidadeBase {
   lida!: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata!: {
-    link?: string;
-    idRef?: number;
-    filtro?: string;
-  } | null;
+  metadata!: NotificacaoMetadata | null;
 
-  @ManyToOne('Usuario', 'notificacoes')
+  @ManyToOne(() => Usuario, (usuario) => usuario.notificacoes)
   @JoinColumn({ name: 'usuario_id' })
   usuario!: Relation<Usuario>;
 }

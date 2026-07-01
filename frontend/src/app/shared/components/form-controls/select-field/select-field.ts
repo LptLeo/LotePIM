@@ -1,6 +1,7 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, input } from '@angular/core';
+import { ReactiveFormsModule, type FormControl } from '@angular/forms';
+
+let uidCounter = 0;
 
 export interface SelectOption {
   value: string;
@@ -10,20 +11,22 @@ export interface SelectOption {
 @Component({
   selector: 'app-select-field',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './select-field.html',
 })
 export class SelectFieldComponent {
-  @Input({ required: true }) label!: string;
-  @Input({ required: true }) control!: FormControl<string>;
-  @Input({ required: true }) options: SelectOption[] = [];
+  label = input.required<string>();
+  control = input.required<FormControl<string>>();
+  options = input.required<SelectOption[]>();
 
-  @Input() placeholder = 'Selecione...';
-  @Input() submitted = false;
-  @Input() errorMessage = 'Selecione uma opção válida';
+  placeholder = input('Selecione...');
+  submitted = input(false);
+  errorMessage = input('Selecione uma opção válida');
+  inputId = input(`select-field-${uidCounter++}`);
 
-  showError(): boolean {
-    if (!this.control) return false;
-    return this.control.invalid && (this.control.dirty || this.control.touched || this.submitted);
+  public showError(): boolean {
+    const ctrl = this.control();
+    if (!ctrl) return false;
+    return ctrl.invalid && (ctrl.dirty || ctrl.touched || this.submitted());
   }
 }

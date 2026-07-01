@@ -1,18 +1,18 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-produto-filter-button',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './produto-filter-button.html',
 })
 export class ProdutoFilterButtonComponent {
-  @Input({ required: true }) value!: string;
-  @Input({ required: true }) label!: string;
-  @Input({ required: true }) count!: number | string;
-  @Input({ required: true }) active!: boolean;
-  @Input() isWarning: boolean = false;
+  // === INPUTS ===
+  public valor = input.required<string>();
+  public rotulo = input.required<string>();
+  public contagem = input.required<number | string>();
+  public ativo = input.required<boolean>();
+  public ehAlerta = input(false);
 
-  @Output() action = new EventEmitter<string>();
+  // === OUTPUTS ===
+  public acao = output<string>();
 }

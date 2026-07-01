@@ -1,5 +1,5 @@
 <button
-  [routerLink]="link"
+  [routerLink]="link()"
   routerLinkActive="is-active"
   class="relative group flex justify-center items-center w-full px-2 md:px-4 py-3 rounded-lg cursor-pointer text-[#ADAAAA] hover:bg-[#ADAAAA]/5 md:rounded-none lg:justify-start transition-all overflow-hidden"
 >
@@ -12,8 +12,8 @@
 
   <span
     class="hidden text-[14px] leading-[20px] tracking-[1.4px] lg:flex flex-col transition-all group-[.is-active]:font-bold group-[.is-active]:text-[#00E5FF] uppercase after:content-[attr(data-text)] after:font-bold after:h-0 after:invisible after:overflow-hidden after:pointer-events-none"
-    [attr.data-text]="label"
+    [attr.data-text]="label()"
   >
-    {{ label }}
+    {{ label() }}
   </span>
 </button>

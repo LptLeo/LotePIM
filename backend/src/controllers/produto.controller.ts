@@ -1,85 +1,65 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import { ProdutoService } from '../services/produto.service.js';
 import { getRequisitante } from '../utils/auth.utils.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
+import { AppError } from '../errors/AppError.js';
+import type { ListProdutosQueryDto } from '../dto/produto.dto.js';
 
-const service = new ProdutoService();
+export class ProdutoController {
+  constructor(private readonly produtoService: ProdutoService) {}
 
-export const criar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.criar(req.body, getRequisitante(req));
+  criar = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.produtoService.criar(req.body, getRequisitante(req));
     res.status(201).json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const listar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.listar(req.query as any, getRequisitante(req));
+  listar = asyncHandler(async (req: Request, res: Response) => {
+    const query = req.query as unknown as ListProdutosQueryDto;
+    const resultado = await this.produtoService.listar(query, getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const buscarPorId = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.buscarPorId(Number(req.params.id), getRequisitante(req));
+  buscarPorId = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do produto inválido', 400);
+    const resultado = await this.produtoService.buscarPorId(id, getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const getContagem = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.getContagem(getRequisitante(req));
+  obterContagem = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.produtoService.obterContagem(getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const listarCategorias = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.listarCategorias(getRequisitante(req));
+  listarCategorias = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.produtoService.listarCategorias(getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const listarLinhas = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.listarLinhas(getRequisitante(req));
+  listarLinhas = asyncHandler(async (req: Request, res: Response) => {
+    const resultado = await this.produtoService.listarLinhas(getRequisitante(req));
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const atualizarReceita = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.atualizarReceita(
-      Number(req.params.id),
+  atualizarReceita = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do produto inválido', 400);
+    const resultado = await this.produtoService.atualizarReceita(
+      id,
       req.body,
       getRequisitante(req),
     );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const alternarStatus = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const resultado = await service.alternarStatus(
-      Number(req.params.id),
+  alternarStatus = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do produto inválido', 400);
+    const resultado = await this.produtoService.alternarStatus(
+      id,
       req.body.ativo,
       getRequisitante(req),
     );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
+}

@@ -1,20 +1,23 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
+import type { Produto } from '../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-produto-card',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './produto-card.html',
   host: {
     class: 'block h-full min-w-0',
   },
 })
 export class ProdutoCardComponent {
-  @Input({ required: true }) prod!: any;
-  @Output() cardClick = new EventEmitter<number>();
+  // === INPUTS ===
+  public produto = input.required<Produto>();
 
-  formatarData(data: string) {
+  // === OUTPUTS ===
+  public cliqueCartao = output<number>();
+
+  // === MÉTODOS ===
+  public formatarData(data: string): string {
     if (!data) return '—';
     return new Date(data).toLocaleDateString('pt-BR');
   }

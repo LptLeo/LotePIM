@@ -13,11 +13,7 @@ const MIN_TERMO_LENGTH = 2;
 export class HeaderService {
   private http = inject(HttpClient);
 
-  /**
-   * Busca sugestões de lotes e produtos para o autocomplete do header.
-   * Retorna array vazio em caso de erro ou termo muito curto.
-   */
-  buscarSugestoes(q: string): Observable<SugestaoItem[]> {
+  public buscarSugestoes(q: string): Observable<SugestaoItem[]> {
     if (!q || q.trim().length < MIN_TERMO_LENGTH) {
       return of([]);
     }

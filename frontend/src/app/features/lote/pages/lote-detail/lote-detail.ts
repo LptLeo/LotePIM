@@ -1,36 +1,48 @@
 import { Component, computed, inject, signal, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs/operators';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { DecimalPipe } from '@angular/common';
+import {
+  FormBuilder,
+  FormControl,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { lastValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { LoteFeatureService } from '../../services/lote.service.js';
 import { AuthService } from '../../../../core/services/auth.service.js';
 import {
-  LoteDetalhe,
   LoteStatus,
   STATUS_CONFIG,
   StatusConfig,
+  RegistrarInspecaoDTO,
 } from '../../../../shared/models/lote.models.js';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 import { SseClientService } from '../../../../core/services/sse-client.service.js';
 
-const TURNO_LABEL: Record<string, string> = {
+const ROTULO_TURNO: Record<string, string> = {
   manha: 'Manhã',
   tarde: 'Tarde',
   noite: 'Noite',
 };
 
+// === TIPOS ===
+interface InspecaoFormGroup {
+  quantidade_reprovada: FormControl<number>;
+  descricao_desvio: FormControl<string>;
+}
+
 @Component({
   selector: 'app-lote-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DecimalPipe],
   templateUrl: './lote-detail.html',
   styleUrl: './lote-detail.css',
 })
 export class LoteDetail {
+  // === DEPENDÊNCIAS ===
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private loteService = inject(LoteFeatureService);
@@ -38,92 +50,58 @@ export class LoteDetail {
   authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
-  /** Signal que reflete o ID atual da rota */
-  params = toSignal(this.route.paramMap);
-  loteId = computed(() => Number(this.params()?.get('id')));
+  // === ESTADO (ROTA) ===
+  private params = toSignal(this.route.paramMap);
+  private loteId = computed(() => Number(this.params()?.get('id')));
 
-  /**
-   * Resource Reativo: Busca o lote sempre que o ID mudar.
-   */
-  loteResource = rxResource({
+  // === RECURSOS ===
+  private loteResource = rxResource({
     params: () => ({ id: this.loteId() }),
-    stream: ({ params }) => this.loteService.getLoteById(params.id),
+    stream: ({ params }) => this.loteService.obterLotePorId(params.id),
   });
 
-  // Derivações reativas
-  lote = computed(() => this.loteResource.value() || null);
-  carregando = computed(() => this.loteResource.isLoading());
-  erro = computed(() =>
+  // === DERIVAÇÕES ===
+  public lote = computed(() => this.loteResource.value() || null);
+  public carregando = computed(() => this.loteResource.isLoading());
+  public erro = computed(() =>
     this.loteResource.error() ? 'Não foi possível carregar os dados do lote.' : null,
   );
 
-  processando = signal(false);
+  // === FORMULÁRIO DE INSPEÇÃO ===
+  public processando = signal(false);
+  public erroInspecao = signal<string | null>(null);
 
-  /** Formulário de inspeção */
-  formInspecao = this.fb.nonNullable.group({
-    quantidade_reprovada: [0, [Validators.required, Validators.min(0)]],
-    descricao_desvio: [''],
+  formInspecao = this.fb.nonNullable.group<InspecaoFormGroup>({
+    quantidade_reprovada: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(0),
+    ]),
+    descricao_desvio: this.fb.nonNullable.control(''),
   });
 
-  qtdReprovadaInput = signal(0);
+  public qtdReprovadaInput = toSignal(
+    this.formInspecao.controls.quantidade_reprovada.valueChanges,
+    { initialValue: 0 },
+  );
 
-  constructor() {
-    /**
-     * Sincroniza a validação do formulário com a quantidade planejada do lote
-     * assim que o lote é carregado ou alterado.
-     */
-    effect(() => {
-      const loteAtual = this.lote();
-      if (loteAtual) {
-        const qtyCtrl = this.formInspecao.get('quantidade_reprovada');
-        qtyCtrl?.setValidators([
-          Validators.required,
-          Validators.min(0),
-          Validators.max(loteAtual.quantidade_planejada),
-        ]);
-        qtyCtrl?.updateValueAndValidity();
-      }
-    });
+  // === DERIVAÇÕES DE INSPEÇÃO ===
+  public dataAtual = new Date().toISOString();
 
-    /** Sincroniza o sinal de preview com as mudanças no formulário */
-    this.formInspecao.get('quantidade_reprovada')?.valueChanges.subscribe((val) => {
-      this.qtdReprovadaInput.set(Number(val) || 0);
-    });
-
-    /**
-     * Recarrega o lote em tempo real quando o status mudar (ex: inspeção concluída
-     * por outro usuário, ou o job de progressão avançando o lote).
-     * O filtro garante que apenas eventos deste lote específico disparem o reload.
-     */
-    this.sseService.eventos$
-      .pipe(
-        takeUntilDestroyed(),
-        filter(
-          (e) => e.tipo === 'lote:status_alterado' && e.dados.id === this.loteId(),
-        ),
-      )
-      .subscribe(() => this.loteResource.reload());
-  }
-
-  /**
-   * Preview da taxa de aprovação para feedback visual ao inspetor.
-   */
-  taxaAprovacaoPreview = computed(() => {
+  public taxaAprovacaoPreview = computed(() => {
     const planejada = this.lote()?.quantidade_planejada || 0;
-    const reprovada = this.qtdReprovadaInput();
+    const reprovada = Number(this.qtdReprovadaInput()) || 0;
     if (planejada === 0) return 0;
 
     const taxa = ((planejada - reprovada) / planejada) * 100;
     return Math.max(0, Math.min(100, Math.round(taxa)));
   });
 
-  /** Preview do resultado para mostrar o badge correto ao inspetor */
-  resultadoPreview = computed((): string => {
+  public resultadoPreview = computed((): string => {
     const loteAtual = this.lote();
     if (!loteAtual) return '';
 
     const planejada = loteAtual.quantidade_planejada;
-    const reprovada = this.qtdReprovadaInput();
+    const reprovada = Number(this.qtdReprovadaInput()) || 0;
     const pctRessalva = Number(loteAtual.produto.percentual_ressalva);
 
     if (reprovada === 0) return 'APROVADO';
@@ -133,33 +111,59 @@ export class LoteDetail {
     return 'REPROVADO';
   });
 
-  dataAtual = new Date().toISOString();
+  constructor() {
+    // === REAÇÃO: Validação dinâmica do campo quantidade_reprovada ===
+    effect(() => {
+      const loteAtual = this.lote();
+      if (loteAtual) {
+        const qtyCtrl = this.formInspecao.controls.quantidade_reprovada;
+        qtyCtrl.setValidators([
+          Validators.required,
+          Validators.min(0),
+          Validators.max(loteAtual.quantidade_planejada),
+        ]);
+        qtyCtrl.updateValueAndValidity({ emitEvent: false });
+      }
+    });
 
-  salvarInspecao(): void {
+    // === REAÇÃO: Recarga em tempo real via SSE ===
+    this.sseService.eventos$
+      .pipe(
+        takeUntilDestroyed(),
+        filter((e) => e.tipo === 'lote:status_alterado' && e.dados.id === this.loteId()),
+      )
+      .subscribe(() => this.loteResource.reload());
+  }
+
+  // === MÉTODOS ===
+  async salvarInspecao(): Promise<void> {
     const l = this.lote();
     if (!l || this.formInspecao.invalid) return;
 
     this.processando.set(true);
 
-    const payload = {
-      quantidade_reprovada: this.formInspecao.value.quantidade_reprovada,
-      descricao_desvio: this.formInspecao.value.descricao_desvio,
-    };
-
-    this.loteService
-      .registrarInspecao(l.id, payload)
-      .pipe(finalize(() => this.processando.set(false)))
-      .subscribe({
-        next: () => this.loteResource.reload(),
-        error: (err) => alert('Erro: ' + (err.error?.message || 'Erro desconhecido.')),
-      });
+    try {
+      const payload: RegistrarInspecaoDTO = this.formInspecao.getRawValue();
+      await lastValueFrom(this.loteService.registrarInspecao(l.id, payload));
+      this.erroInspecao.set(null);
+      this.formInspecao.reset();
+      this.loteResource.reload();
+    } catch (err) {
+      this.erroInspecao.set(
+        err instanceof HttpErrorResponse
+          ? err.error?.message || 'Não foi possível registrar a inspeção.'
+          : 'Não foi possível registrar a inspeção.',
+      );
+    } finally {
+      this.processando.set(false);
+    }
   }
 
   voltarParaLista(): void {
     this.router.navigate(['/app/lote']);
   }
 
-  getStatusConfig(status?: LoteStatus): StatusConfig {
+  obterStatusConfig(status?: LoteStatus): StatusConfig {
     return (
       STATUS_CONFIG[status!] ?? {
         label: status ?? '',
@@ -170,8 +174,8 @@ export class LoteDetail {
     );
   }
 
-  getTurnoLabel(turno?: string): string {
-    return TURNO_LABEL[turno ?? ''] ?? turno ?? '—';
+  rotuloTurno(turno?: string): string {
+    return ROTULO_TURNO[turno ?? ''] ?? turno ?? '—';
   }
 
   formatarData(data?: string | null): string {

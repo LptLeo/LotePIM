@@ -1,4 +1,11 @@
-import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { ToastService } from '../../../core/services/toast.service.js';
@@ -9,7 +16,7 @@ import { ToastService } from '../../../core/services/toast.service.js';
   templateUrl: './toast.html',
 })
 export class ToastComponent implements OnInit, OnDestroy {
-  toastService = inject(ToastService);
+  public toastService = inject(ToastService);
   private elementRef = inject(ElementRef);
   private router = inject(Router);
   private routerSub?: Subscription;

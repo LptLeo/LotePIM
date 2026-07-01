@@ -1,79 +1,69 @@
 import type { Request, Response } from 'express';
 import { UsuarioService } from '../services/usuario.service.js';
-import type { PerfilUsuario } from '../entities/Usuario.js';
+import { getRequisitante } from '../utils/auth.utils.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
+import { AppError } from '../errors/AppError.js';
+import type { ListUsuariosQueryDto } from '../dto/usuario.dto.js';
 
 export class UsuarioController {
-  private usuarioService: UsuarioService;
+  constructor(private readonly usuarioService: UsuarioService) {}
 
-  constructor() {
-    this.usuarioService = new UsuarioService();
-  }
-
-  private getRequisitante(req: Request) {
-    const auth = (req as any).auth;
-    return {
-      id: Number(auth.id),
-      perfil: auth.perfil as PerfilUsuario,
-    };
-  }
-
-  findAll = async (req: Request, res: Response): Promise<void> => {
-    const data = await this.usuarioService.findAll(req.query as any, this.getRequisitante(req));
-
-    res.status(200).json(data);
-  };
-
-  findById = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const usuario = await this.usuarioService.findById(Number(id), this.getRequisitante(req));
-
-    res.status(200).json(usuario);
-  };
-
-  getStats = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const stats = await this.usuarioService.getStats(Number(id), this.getRequisitante(req));
-
-    res.status(200).json(stats);
-  };
-
-  create = async (req: Request, res: Response): Promise<void> => {
-    const usuario = await this.usuarioService.create(req.body, this.getRequisitante(req));
-
-    res.status(201).json(usuario);
-  };
-
-  update = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const atualizado = await this.usuarioService.update(
-      Number(id),
-      req.body,
-      this.getRequisitante(req),
+  listar = asyncHandler(async (req: Request, res: Response) => {
+    const data = await this.usuarioService.listar(
+      req.query as unknown as ListUsuariosQueryDto,
+      getRequisitante(req),
     );
+    res.json(data);
+  });
 
-    res.status(200).json(atualizado);
-  };
+  buscarPorId = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do usuário inválido', 400);
+    const usuario = await this.usuarioService.buscarPorId(id, getRequisitante(req));
+    res.json(usuario);
+  });
 
-  updateSenha = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    await this.usuarioService.updateSenha(Number(id), req.body, this.getRequisitante(req));
+  obterStats = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do usuário inválido', 400);
+    const stats = await this.usuarioService.obterStats(id, getRequisitante(req));
+    res.json(stats);
+  });
 
-    res.status(204).json({ message: 'Senha atualizada com sucesso' });
-  };
+  criar = asyncHandler(async (req: Request, res: Response) => {
+    const usuario = await this.usuarioService.criar(req.body, getRequisitante(req));
+    res.status(201).json(usuario);
+  });
 
-  delete = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
+  atualizar = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do usuário inválido', 400);
+    const atualizado = await this.usuarioService.atualizar(
+      id,
+      req.body,
+      getRequisitante(req),
+    );
+    res.json(atualizado);
+  });
 
-    await this.usuarioService.delete(Number(id), this.getRequisitante(req));
+  atualizarSenha = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do usuário inválido', 400);
+    await this.usuarioService.atualizarSenha(id, req.body, getRequisitante(req));
+    res.status(200).json({ message: 'Senha atualizada com sucesso' });
+  });
 
-    res.status(200).json({ message: 'Usuário inativado com sucesso' });
-  };
+  desativar = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do usuário inválido', 400);
+    await this.usuarioService.desativar(id, getRequisitante(req));
+    res.json({ message: 'Usuário inativado com sucesso' });
+  });
 
-  reactivate = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-
-    await this.usuarioService.reactivate(Number(id), this.getRequisitante(req));
-
-    res.status(200).json({ message: 'Usuário reativado com sucesso' });
-  };
+  reativar = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) throw new AppError('ID do usuário inválido', 400);
+    await this.usuarioService.reativar(id, getRequisitante(req));
+    res.json({ message: 'Usuário reativado com sucesso' });
+  });
 }

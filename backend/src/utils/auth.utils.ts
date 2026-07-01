@@ -8,13 +8,13 @@ export interface Requisitante {
 }
 
 export const getRequisitante = (req: Request): Requisitante => {
-  const auth = (req as any).auth;
+  const auth = req.auth;
 
   if (!auth) throw new AppError('Usuário não autenticado', 401);
 
   return {
-    id: Number(auth.id),
-    perfil: auth.perfil as PerfilUsuario,
+    id: auth.id,
+    perfil: auth.perfil,
   };
 };
 

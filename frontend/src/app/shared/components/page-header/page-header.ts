@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-page-header',
@@ -9,10 +9,8 @@ import { Component, Input } from '@angular/core';
   },
 })
 export class PageHeaderComponent {
-  @Input({ required: true }) title!: string;
-  @Input({ required: true }) subtitle!: string;
-
-  // Propriedades opcionais caso a tela queira usar títulos diferentes no celular
-  @Input() mobileTitle?: string;
-  @Input() mobileSubtitle?: string;
+  title = input.required<string>();
+  subtitle = input.required<string>();
+  mobileTitle = input<string>();
+  mobileSubtitle = input<string>();
 }

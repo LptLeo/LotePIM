@@ -1,20 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Configuracoes } from './configuracoes.js';
 import { ConfiguracoesService } from '../../core/services/configuracoes.service.js';
-import { signal } from '@angular/core';
+import { signal, computed } from '@angular/core';
 
 describe('Configuracoes', () => {
   let component: Configuracoes;
   let fixture: ComponentFixture<Configuracoes>;
-  let mockConfigService: any;
+  let mockConfigService: Partial<ConfiguracoesService>;
 
   beforeEach(async () => {
+    const settingsSignal = signal({
+      lote: { producaoTotalPeriodo: 'mes' as const, atividadeTempoRealBase: 5 },
+      dashboard: {
+        lotesComparacao: 'mes' as const,
+        unidadesComparacao: 'mes' as const,
+        taxaAprovacaoAlvo: 90,
+      },
+    });
     mockConfigService = {
-      settings: signal({
-        lote: { producaoTotalPeriodo: 'mes', atividadeTempoRealBase: 5 },
-        dashboard: { autoRefresh: true },
-      }),
-      updateSettings: jest.fn(),
+      settings: settingsSignal,
+      dashboardSettings: computed(() => settingsSignal().dashboard),
+      loteSettings: computed(() => settingsSignal().lote),
+      updateDashboardSettings: jest.fn(),
+      updateLoteSettings: jest.fn(),
     };
 
     await TestBed.configureTestingModule({

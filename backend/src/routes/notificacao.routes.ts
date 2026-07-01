@@ -1,21 +1,27 @@
 import { Router } from 'express';
 import { NotificacaoController } from '../controllers/notificacao.controller.js';
 import { roleGuard } from '../middlewares/roleGuard.js';
-import { PerfilUsuario } from '../entities/Usuario.js';
+import { PerfilUsuario, Usuario } from '../entities/Usuario.js';
+import { NotificacaoService } from '../services/notificacao.service.js';
+import { appDataSource } from '../config/appDataSource.js';
+import { Notificacao } from '../entities/Notificacao.js';
 
-const router = Router();
-const ctrl = new NotificacaoController();
+const notificacaoService = new NotificacaoService(
+  appDataSource.getRepository(Notificacao),
+  appDataSource.getRepository(Usuario),
+);
+const notificacaoController = new NotificacaoController(notificacaoService);
+const notificacaoRouter = Router();
 
-// Todos os usuários autenticados podem ver suas próprias notificações
-router.get(
+notificacaoRouter.get(
   '/',
   roleGuard(PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR),
-  ctrl.listar,
+  notificacaoController.listar,
 );
-router.patch(
+notificacaoRouter.patch(
   '/:id/lida',
   roleGuard(PerfilUsuario.GESTOR, PerfilUsuario.INSPETOR, PerfilUsuario.OPERADOR),
-  ctrl.marcarComoLida,
+  notificacaoController.marcarComoLida,
 );
 
-export default router;
+export default notificacaoRouter;

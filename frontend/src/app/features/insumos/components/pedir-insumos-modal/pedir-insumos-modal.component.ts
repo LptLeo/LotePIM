@@ -1,7 +1,17 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
+import { Component, effect, input, output, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import type {
+  MateriaPrima,
+  InsumoEstoque,
+} from '../../../../shared/models/lote.models.js';
 
 export interface PedidoInsumoItem {
   materia_prima_id: number;
@@ -9,74 +19,94 @@ export interface PedidoInsumoItem {
   nome: string;
 }
 
-type PedidoInsumoForm = FormGroup;
+interface ItemGrupoFormulario {
+  materia_prima_id: FormControl<number>;
+  nome: FormControl<string>;
+  unidade: FormControl<string>;
+  saldo: FormControl<number>;
+  selecionado: FormControl<boolean>;
+  quantidade: FormControl<number>;
+}
 
 @Component({
   selector: 'app-pedir-insumos-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DecimalPipe],
   templateUrl: './pedir-insumos-modal.component.html',
 })
 export class PedirInsumosModalComponent {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
   private fb = inject(FormBuilder);
 
-  @Input() isOpen = false;
-  @Input() catalogo: MateriaPrima[] = [];
-  @Input() estoqueMap: Map<number, any[]> = new Map();
-  @Output() close = new EventEmitter<void>();
-  @Output() confirm = new EventEmitter<PedidoInsumoItem[]>();
+  // === INPUTS ===
+  estaAberto = input<boolean>(false);
+  catalogo = input<MateriaPrima[]>([]);
+  estoqueMap = input<Map<number, InsumoEstoque[]>>(new Map());
 
-  form = this.fb.group({
-    itens: this.fb.array([]),
+  // === OUTPUTS ===
+  fechar = output<void>();
+  confirmar = output<PedidoInsumoItem[]>();
+
+  // === FORMULÁRIO ===
+  formulario = this.fb.nonNullable.group({
+    itens: this.fb.array<FormGroup<ItemGrupoFormulario>>([]),
   });
 
-  get itensArray(): FormArray<PedidoInsumoForm> {
-    return this.form.get('itens') as FormArray<PedidoInsumoForm>;
+  readonly controlesItens: FormArray<FormGroup<ItemGrupoFormulario>> =
+    this.formulario.controls.itens;
+
+  constructor() {
+    effect(() => {
+      if (this.estaAberto()) {
+        this.inicializarFormulario();
+      }
+    });
   }
 
-  private _previousIsOpen = false;
+  // === MÉTODOS PÚBLICOS ===
+  public inicializarFormulario(): void {
+    this.controlesItens.clear();
 
-  ngOnChanges() {
-    if (this.isOpen && !this._previousIsOpen) {
-      this.initForm();
-    }
-    this._previousIsOpen = this.isOpen;
-  }
+    this.catalogo().forEach((mp) => {
+      const lotes = this.estoqueMap().get(mp.id) || [];
+      const saldoAtual = lotes.reduce(
+        (acc, lote) => acc + Number(lote.quantidade_atual),
+        0,
+      );
+      const saldoArredondado = Math.round(saldoAtual * 1000) / 1000;
 
-  initForm(): void {
-    this.itensArray.clear();
-    this.catalogo.forEach((mp) => {
-      const lotes = this.estoqueMap.get(mp.id) || [];
-      const saldoAtual = lotes.reduce((acc, lote) => acc + Number(lote.quantidade_atual), 0);
-      const saldoArredondado = Number(saldoAtual.toFixed(3));
-
-      this.itensArray.push(
-        this.fb.group({
-          materia_prima_id: [mp.id],
-          nome: [mp.nome],
-          unidade: [mp.unidade_medida],
-          saldo: [saldoArredondado],
-          selecionado: [false],
-          quantidade: [100, [Validators.required, Validators.min(0.01)]],
+      this.controlesItens.push(
+        this.fb.group<ItemGrupoFormulario>({
+          materia_prima_id: this.fb.control(mp.id, { nonNullable: true }),
+          nome: this.fb.control(mp.nome, { nonNullable: true }),
+          unidade: this.fb.control(mp.unidade_medida, { nonNullable: true }),
+          saldo: this.fb.control(saldoArredondado, { nonNullable: true }),
+          selecionado: this.fb.control(false, { nonNullable: true }),
+          quantidade: this.fb.control(100, {
+            validators: [Validators.required, Validators.min(0.01)],
+            nonNullable: true,
+          }),
         }),
       );
     });
   }
 
-  onClose(): void {
-    this.close.emit();
+  public aoFechar(): void {
+    this.fechar.emit();
   }
 
-  onConfirm(): void {
-    const selecionados = this.itensArray.value
+  public aoConfirmar(): void {
+    const todosItens = this.controlesItens.getRawValue();
+    const selecionados: PedidoInsumoItem[] = todosItens
       .filter((item) => item.selecionado)
       .map((item) => ({
         materia_prima_id: item.materia_prima_id,
         quantidade: item.quantidade,
         nome: item.nome,
-      })) as PedidoInsumoItem[];
+      }));
 
     if (selecionados.length === 0) return;
-    this.confirm.emit(selecionados);
+
+    this.confirmar.emit(selecionados);
   }
 }

@@ -1,40 +1,51 @@
-import bcrypt from 'bcrypt';
-import { AppDataSource } from '../config/AppDataSource.js';
+import type { Repository } from 'typeorm';
 import { PerfilUsuario, Usuario } from '../entities/Usuario.js';
 import { Lote } from '../entities/Lote.js';
 import { Inspecao } from '../entities/Inspecao.js';
 import { Produto } from '../entities/Produto.js';
-import { CreateUsuarioDto, UpdateUsuarioDto, UpdateSenhaDto } from '../dto/usuario.dto.js';
-import {
-  PaginacaoQueryDto,
-  formatarRespostaPaginada,
-  type RespostaPaginada,
-} from '../dto/paginacao.dto.js';
+import type {
+  CriarUsuarioDTO,
+  AtualizarUsuarioDTO,
+  AtualizarSenhaDTO,
+  ListUsuariosQueryDto,
+} from '../dto/usuario.dto.js';
+import { formatarRespostaPaginada, type RespostaPaginada } from '../dto/paginacao.dto.js';
 import { AppError } from '../errors/AppError.js';
 import { verificaPermissao, type Requisitante } from '../utils/auth.utils.js';
-
-const SALT_ROUNDS = 12;
+import { findOneByOrFail, findOneOrFail } from '../utils/orm.utils.js';
+import { hashSenha, verificarSenha } from '../utils/crypto.utils.js';
+import { MSG } from '../errors/errorMessages.js';
 
 export type UsuarioSemSenha = Omit<Usuario, 'senha_hash'>;
 
-function omitSenha(usuario: Usuario): UsuarioSemSenha {
-  const { senha_hash: _, ...resto } = usuario;
-  return resto as UsuarioSemSenha;
+export interface UsuarioStats {
+  lotes_produzidos: number;
+  lotes_inspecionados: number;
+  produtos_registrados: number;
+}
+
+interface UsuarioDependencies {
+  usuarioRepo: Repository<Usuario>;
+  loteRepo: Repository<Lote>;
+  inspecaoRepo: Repository<Inspecao>;
+  produtoRepo: Repository<Produto>;
 }
 
 export class UsuarioService {
-  private userRepo = AppDataSource.getRepository(Usuario);
+  constructor(private readonly dependencies: UsuarioDependencies) {}
 
-  findAll = async (
-    query: PaginacaoQueryDto & { perfil?: string; ativo?: string },
+  // === FUNÇÕES PÚBLICAS ===
+
+  public async listar(
+    query: ListUsuariosQueryDto,
     requisitante: Requisitante,
-  ): Promise<RespostaPaginada<UsuarioSemSenha>> => {
+  ): Promise<RespostaPaginada<UsuarioSemSenha>> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
     const { pagina, limite, busca, perfil, ativo } = query;
     const skip = (pagina - 1) * limite;
 
-    const queryBuilder = this.userRepo
+    const queryBuilder = this.dependencies.usuarioRepo
       .createQueryBuilder('usuario')
       .leftJoinAndSelect('usuario.criadoPor', 'criador')
       .skip(skip)
@@ -58,152 +69,193 @@ export class UsuarioService {
 
     const [usuarios, total] = await queryBuilder.getManyAndCount();
 
-    return formatarRespostaPaginada([usuarios.map(omitSenha), total], query);
-  };
+    return formatarRespostaPaginada(
+      [usuarios.map((u) => this.omitSenha(u)), total],
+      query,
+    );
+  }
 
-  findById = async (id: number, requisitante: Requisitante): Promise<UsuarioSemSenha> => {
-    const usuario = await this.userRepo.findOne({
-      where: { id },
-      relations: ['criadoPor'],
-    });
-    if (!usuario) throw new AppError('Usuário não encontrado', 404);
-
-    verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
-
-    return omitSenha(usuario);
-  };
-
-  getStats = async (id: number, requisitante: Requisitante): Promise<any> => {
-    const usuario = await this.userRepo.findOne({ where: { id } });
-    if (!usuario) throw new AppError('Usuário não encontrado', 404);
+  public async buscarPorId(
+    id: number,
+    requisitante: Requisitante,
+  ): Promise<UsuarioSemSenha> {
+    const usuario = await findOneOrFail(
+      this.dependencies.usuarioRepo,
+      { where: { id }, relations: ['criadoPor'] },
+      'Usuário',
+    );
 
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
 
-    let lotes_produzidos = 0;
-    let lotes_inspecionados = 0;
-    let produtos_registrados = 0;
+    return this.omitSenha(usuario);
+  }
 
-    if (usuario.perfil === PerfilUsuario.OPERADOR || usuario.perfil === PerfilUsuario.GESTOR) {
-      lotes_produzidos = await AppDataSource.getRepository(Lote).count({
+  public async obterStats(id: number, requisitante: Requisitante): Promise<UsuarioStats> {
+    const usuario = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { id },
+      'Usuário',
+    );
+
+    verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
+
+    let lotesProduzidos = 0;
+    let lotesInspecionados = 0;
+    let produtosRegistrados = 0;
+
+    if (
+      usuario.perfil === PerfilUsuario.OPERADOR ||
+      usuario.perfil === PerfilUsuario.GESTOR
+    ) {
+      lotesProduzidos = await this.dependencies.loteRepo.count({
         where: { operador: { id } },
       });
     }
 
-    if (usuario.perfil === PerfilUsuario.INSPETOR || usuario.perfil === PerfilUsuario.GESTOR) {
-      lotes_inspecionados = await AppDataSource.getRepository(Inspecao).count({
+    if (
+      usuario.perfil === PerfilUsuario.INSPETOR ||
+      usuario.perfil === PerfilUsuario.GESTOR
+    ) {
+      lotesInspecionados = await this.dependencies.inspecaoRepo.count({
         where: { inspetor: { id } },
       });
     }
 
     if (usuario.perfil === PerfilUsuario.GESTOR) {
-      produtos_registrados = await AppDataSource.getRepository(Produto).count();
+      produtosRegistrados = await this.dependencies.produtoRepo.count();
     }
 
     return {
-      lotes_produzidos,
-      lotes_inspecionados,
-      produtos_registrados,
+      lotes_produzidos: lotesProduzidos,
+      lotes_inspecionados: lotesInspecionados,
+      produtos_registrados: produtosRegistrados,
     };
-  };
+  }
 
-  findByEmail = async (email: string): Promise<UsuarioSemSenha> => {
-    const emailUsuario = await this.userRepo.findOneBy({ email });
+  public async buscarPorEmail(email: string): Promise<UsuarioSemSenha> {
+    const usuario = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { email },
+      'E-mail',
+    );
 
-    if (!emailUsuario) throw new AppError('E-mail não encontrado', 404);
+    return this.omitSenha(usuario);
+  }
 
-    return omitSenha(emailUsuario);
-  };
-
-  create = async (dto: CreateUsuarioDto, requisitante: Requisitante): Promise<UsuarioSemSenha> => {
+  public async criar(
+    dto: CriarUsuarioDTO,
+    requisitante: Requisitante,
+  ): Promise<UsuarioSemSenha> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
-    const existe = await this.userRepo.findOne({ where: { email: dto.email } });
-    if (existe) throw new AppError(`E-mail '${dto.email}' já está em uso`, 409);
+    const existe = await this.dependencies.usuarioRepo.findOne({
+      where: { email: dto.email },
+    });
+    if (existe) throw new AppError(MSG.emailEmUso(dto.email), 409);
 
-    const criador = await this.userRepo.findOneBy({ id: requisitante.id });
-    if (!criador) throw new AppError('Criador não encontrado', 404);
+    const criador = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { id: requisitante.id },
+      'Criador',
+    );
 
-    const senha_hash = await bcrypt.hash(dto.senha, SALT_ROUNDS);
+    const senhaHash = await hashSenha(dto.senha);
 
     const { senha: _, ...dadosSemSenha } = dto;
-    const usuario = this.userRepo.create({
+    const usuario = this.dependencies.usuarioRepo.create({
       ...dadosSemSenha,
-      senha_hash,
+      senha_hash: senhaHash,
       criadoPor: criador,
     });
 
-    const salvo = await this.userRepo.save(usuario);
+    const salvo = await this.dependencies.usuarioRepo.save(usuario);
 
-    return omitSenha(salvo);
-  };
+    return this.omitSenha(salvo);
+  }
 
-  update = async (
+  public async atualizar(
     id: number,
-    dto: UpdateUsuarioDto,
+    dto: AtualizarUsuarioDTO,
     requisitante: Requisitante,
-  ): Promise<UsuarioSemSenha> => {
-    const usuario = await this.userRepo.findOne({ where: { id } });
-    if (!usuario) throw new AppError('Usuário não encontrado', 404);
+  ): Promise<UsuarioSemSenha> {
+    const usuario = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { id },
+      'Usuário',
+    );
 
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
 
-    // Segurança Pesada: Um usuário não-gestor jamais pode alterar seu próprio nível de permissão (perfil) ou status
     if (requisitante.perfil !== PerfilUsuario.GESTOR) {
-      if ('perfil' in dto) delete dto.perfil;
-      if ('ativo' in dto) delete dto.ativo;
+      if ('perfil' in dto) delete (dto as Record<string, unknown>).perfil;
+      if ('ativo' in dto) delete (dto as Record<string, unknown>).ativo;
     }
 
     if (dto.email && dto.email !== usuario.email) {
-      const existe = await this.userRepo.findOne({ where: { email: dto.email } });
-      if (existe) throw new AppError(`E-mail '${dto.email}' já está em uso`, 409);
+      const existe = await this.dependencies.usuarioRepo.findOne({
+        where: { email: dto.email },
+      });
+      if (existe) throw new AppError(MSG.emailEmUso(dto.email), 409);
     }
 
     Object.assign(usuario, dto);
-    const atualizado = await this.userRepo.save(usuario);
+    const atualizado = await this.dependencies.usuarioRepo.save(usuario);
 
-    return omitSenha(atualizado);
-  };
+    return this.omitSenha(atualizado);
+  }
 
-  updateSenha = async (
+  public async atualizarSenha(
     id: number,
-    dto: UpdateSenhaDto,
+    dto: AtualizarSenhaDTO,
     requisitante: Requisitante,
-  ): Promise<void> => {
-    const usuario = await this.userRepo
+  ): Promise<void> {
+    const usuario = await this.dependencies.usuarioRepo
       .createQueryBuilder('usuario')
       .where('usuario.id = :id', { id })
       .addSelect('usuario.senha_hash')
       .getOne();
-    if (!usuario) throw new AppError('Usuário não encontrado', 404);
+    if (!usuario) throw new AppError(MSG.usuarioNaoEncontrado, 404);
 
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
 
-    const senhaCorreta = await bcrypt.compare(dto.senha_atual, usuario.senha_hash);
-    if (!senhaCorreta) throw new AppError('Senha atual incorreta', 401);
+    const senhaCorreta = await verificarSenha(dto.senha_atual, usuario.senha_hash);
+    if (!senhaCorreta) throw new AppError(MSG.senhaIncorreta, 401);
 
-    usuario.senha_hash = await bcrypt.hash(dto.nova_senha, SALT_ROUNDS);
-    await this.userRepo.save(usuario);
-  };
+    usuario.senha_hash = await hashSenha(dto.nova_senha);
+    await this.dependencies.usuarioRepo.save(usuario);
+  }
 
-  delete = async (id: number, requisitante: Requisitante): Promise<void> => {
-    const usuario = await this.userRepo.findOne({ where: { id } });
-
-    if (!usuario) throw new AppError('Usuário não encontrado', 404);
+  public async desativar(id: number, requisitante: Requisitante): Promise<void> {
+    const usuario = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { id },
+      'Usuário',
+    );
 
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR], id);
 
     usuario.ativo = false;
-    usuario.refresh_token = null; // Limpa o token para impedir renovação automática
-    await this.userRepo.save(usuario);
-  };
+    usuario.refresh_token = null;
+    await this.dependencies.usuarioRepo.save(usuario);
+  }
 
-  reactivate = async (id: number, requisitante: Requisitante): Promise<void> => {
+  public async reativar(id: number, requisitante: Requisitante): Promise<void> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
-    const usuario = await this.userRepo.findOne({ where: { id } });
-    if (!usuario) throw new AppError('Usuário não encontrado', 404);
+    const usuario = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { id },
+      'Usuário',
+    );
 
     usuario.ativo = true;
-    await this.userRepo.save(usuario);
-  };
+    await this.dependencies.usuarioRepo.save(usuario);
+  }
+
+  // === FUNÇÕES AUXILIARES ===
+
+  private omitSenha(usuario: Usuario): UsuarioSemSenha {
+    const { senha_hash: _, ...resto } = usuario;
+    return resto as UsuarioSemSenha;
+  }
 }

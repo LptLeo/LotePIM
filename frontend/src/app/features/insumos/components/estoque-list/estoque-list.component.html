@@ -1,10 +1,10 @@
-@if (carregando) {
+@if (carregando()) {
   <div class="flex justify-center items-center py-20 w-full col-span-full">
     <div
       class="w-8 h-8 border-4 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"
     ></div>
   </div>
-} @else if (insumos.length === 0) {
+} @else if (insumos().length === 0) {
   <div
     class="flex flex-col justify-center items-center py-20 w-full col-span-full border border-dashed border-[#484847]/50 rounded-lg bg-[#131313]"
   >
@@ -28,8 +28,8 @@
   </div>
 } @else {
   <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-    @for (item of insumos; track item.id) {
-      <app-estoque-card [item]="item"></app-estoque-card>
+    @for (item of insumos(); track item.id) {
+      <app-estoque-card [insumo]="item"></app-estoque-card>
     }
   </div>
 }

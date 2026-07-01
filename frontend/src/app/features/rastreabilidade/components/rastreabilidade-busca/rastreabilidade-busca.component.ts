@@ -1,49 +1,50 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import type { AutocompleteSugestao } from '../../rastreabilidade.ts';
+import { Component, input, output } from '@angular/core';
+import type { AutocompleteSugestao } from '../../rastreabilidade.js';
 
 @Component({
   selector: 'app-rastreabilidade-busca',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './rastreabilidade-busca.component.html',
 })
 export class RastreabilidadeBuscaComponent {
-  @Input() termo: string = '';
-  @Input() sugestoes: AutocompleteSugestao[] = [];
-  @Input() mostrandoDropdown: boolean = false;
-  @Input() buscandoSugestoes: boolean = false;
-  @Input() buscando: boolean = false;
-  @Input() erro: string | null = null;
+  // === INPUTS ===
+  public termo = input('');
+  public sugestoes = input<AutocompleteSugestao[]>([]);
+  public mostrandoDropdown = input(false);
+  public buscandoSugestoes = input(false);
+  public buscando = input(false);
+  public erro = input<string | null>(null);
 
-  @Output() inputChange = new EventEmitter<Event>();
-  @Output() focus = new EventEmitter<void>();
-  @Output() blur = new EventEmitter<void>();
-  @Output() search = new EventEmitter<void>();
-  @Output() clear = new EventEmitter<void>();
-  @Output() selectSuggestion = new EventEmitter<AutocompleteSugestao>();
+  // === OUTPUTS ===
+  public mudancaEntrada = output<Event>();
+  public focado = output<void>();
+  public desfocado = output<void>();
+  public buscaSubmetida = output<void>();
+  public limpar = output<void>();
+  public sugestaoSelecionada = output<AutocompleteSugestao>();
 
-  onInput(event: Event) {
-    this.inputChange.emit(event);
+  // === MÉTODOS ===
+  public aoDigitar(event: Event): void {
+    this.mudancaEntrada.emit(event);
   }
 
-  onFocus() {
-    this.focus.emit();
+  public aoFocar(): void {
+    this.focado.emit();
   }
 
-  onBlur() {
-    this.blur.emit();
+  public aoDesfocar(): void {
+    this.desfocado.emit();
   }
 
-  onSearch() {
-    this.search.emit();
+  public aoBuscar(): void {
+    this.buscaSubmetida.emit();
   }
 
-  onClear() {
-    this.clear.emit();
+  public aoLimpar(): void {
+    this.limpar.emit();
   }
 
-  onSelect(sug: AutocompleteSugestao) {
-    this.selectSuggestion.emit(sug);
+  public aoSelecionar(sug: AutocompleteSugestao): void {
+    this.sugestaoSelecionada.emit(sug);
   }
 }

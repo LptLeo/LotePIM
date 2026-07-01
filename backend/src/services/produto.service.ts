@@ -1,381 +1,291 @@
-import type { Repository } from 'typeorm';
-import { AppDataSource } from '../config/AppDataSource.js';
+import {
+  type Repository,
+  type EntityManager,
+  type DataSource,
+  type SelectQueryBuilder,
+} from 'typeorm';
 import { Produto } from '../entities/Produto.js';
 import { ReceitaItem } from '../entities/ReceitaItem.js';
 import { MateriaPrima } from '../entities/MateriaPrima.js';
-import { PerfilUsuario } from '../entities/Usuario.js';
-import { AppError } from '../errors/AppError.js';
+import { PerfilUsuario, Usuario } from '../entities/Usuario.js';
+import { MSG } from '../errors/errorMessages.js';
 import { verificaPermissao, type Requisitante } from '../utils/auth.utils.js';
 import type { CriarProdutoDTO, AtualizarReceitaDTO } from '../dto/produto.dto.js';
 import { NotificacaoService } from './notificacao.service.js';
 import { TipoNotificacao } from '../entities/Notificacao.js';
 import {
-  PaginacaoQueryDto,
   formatarRespostaPaginada,
+  type PaginacaoQueryDto,
   type RespostaPaginada,
 } from '../dto/paginacao.dto.js';
+import { gerarSku, garantirSkuUnico } from '../utils/sku.utils.js';
+import {
+  findOneByOrFail,
+  findOneOrFail,
+  listarColunasDistintas,
+  managerFindOneOrFail,
+} from '../utils/orm.utils.js';
+
+// === INTERFACE DE DEPENDÊNCIAS ===
+
+interface ProdutoDependencies {
+  produtoRepo: Repository<Produto>;
+  receitaRepo: Repository<ReceitaItem>;
+  mpRepo: Repository<MateriaPrima>;
+  usuarioRepo: Repository<Usuario>;
+  dataSource: DataSource;
+  notificacaoService: NotificacaoService;
+}
+
+interface ProdutoListarQuery extends PaginacaoQueryDto {
+  categoria?: string | undefined;
+  status?: string | undefined;
+  ordenacao?: string | undefined;
+  linha?: string | undefined;
+}
+
+const FILTROS_STATUS: Record<string, (qb: SelectQueryBuilder<Produto>) => string> = {
+  ativos: () => 'produto.ativo = true',
+  inativos: () => 'produto.ativo = false',
+};
+FILTROS_STATUS['com_insumos'] = (qb) =>
+  `EXISTS ${qb.subQuery().select('1').from(ReceitaItem, 'r').where('r.produto_id = produto.id').getQuery()}`;
+FILTROS_STATUS['sem_insumos'] = (qb) =>
+  `NOT EXISTS ${qb.subQuery().select('1').from(ReceitaItem, 'r').where('r.produto_id = produto.id').getQuery()}`;
+
+type OrdenacaoConfig = {
+  subQuery?: (qb: SelectQueryBuilder<Produto>) => string;
+  alias?: string;
+  campo?: string;
+  order: 'ASC' | 'DESC';
+};
+
+const ORDENACOES: Record<string, OrdenacaoConfig> = {
+  mais_recentes: { campo: 'criado_em', order: 'DESC' },
+  menos_recentes: { campo: 'criado_em', order: 'ASC' },
+  mais_produzidos: {
+    subQuery: (qb) =>
+      qb
+        .subQuery()
+        .select('COALESCE(SUM(l.quantidade_planejada), 0)')
+        .from('lote', 'l')
+        .where('l.produto_id = produto.id')
+        .getQuery(),
+    alias: 'qtd_produzida',
+    order: 'DESC',
+  },
+  menos_produzidos: {
+    subQuery: (qb) =>
+      qb
+        .subQuery()
+        .select('COALESCE(SUM(l.quantidade_planejada), 0)')
+        .from('lote', 'l')
+        .where('l.produto_id = produto.id')
+        .getQuery(),
+    alias: 'qtd_produzida',
+    order: 'ASC',
+  },
+  mais_lotes: {
+    subQuery: (qb) =>
+      qb
+        .subQuery()
+        .select('COUNT(l.id)')
+        .from('lote', 'l')
+        .where('l.produto_id = produto.id')
+        .getQuery(),
+    alias: 'qtd_lotes',
+    order: 'DESC',
+  },
+  menos_lotes: {
+    subQuery: (qb) =>
+      qb
+        .subQuery()
+        .select('COUNT(l.id)')
+        .from('lote', 'l')
+        .where('l.produto_id = produto.id')
+        .getQuery(),
+    alias: 'qtd_lotes',
+    order: 'ASC',
+  },
+  mais_insumos: {
+    subQuery: (qb) =>
+      qb
+        .subQuery()
+        .select('COUNT(r.id)')
+        .from('receita_item', 'r')
+        .where('r.produto_id = produto.id')
+        .getQuery(),
+    alias: 'qtd_insumos',
+    order: 'DESC',
+  },
+  menos_insumos: {
+    subQuery: (qb) =>
+      qb
+        .subQuery()
+        .select('COUNT(r.id)')
+        .from('receita_item', 'r')
+        .where('r.produto_id = produto.id')
+        .getQuery(),
+    alias: 'qtd_insumos',
+    order: 'ASC',
+  },
+};
+
+// === SERVIÇO ===
 
 export class ProdutoService {
-  private produtoRepo: Repository<Produto>;
-  private receitaRepo: Repository<ReceitaItem>;
-  private mpRepo: Repository<MateriaPrima>;
+  constructor(private readonly dependencies: ProdutoDependencies) {}
 
-  constructor() {
-    this.produtoRepo = AppDataSource.getRepository(Produto);
-    this.receitaRepo = AppDataSource.getRepository(ReceitaItem);
-    this.mpRepo = AppDataSource.getRepository(MateriaPrima);
-  }
+  // === CRUD ===
 
-  /** Gera SKU a partir do nome (ex: "Monitor 14 LED" → "PRD-MONITOR14LED") */
-  private gerarSku(nome: string): string {
-    const base = nome
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toUpperCase()
-      .slice(0, 12);
-
-    return `PRD-${base}`;
-  }
-
-  private async garantirSkuUnico(skuBase: string): Promise<string> {
-    let sku = skuBase;
-    let tentativa = 1;
-
-    while (await this.produtoRepo.findOneBy({ sku })) {
-      sku = `${skuBase}-${tentativa}`;
-      tentativa++;
-    }
-
-    return sku;
-  }
-
-  criar = async (dto: CriarProdutoDTO, requisitante: Requisitante): Promise<Produto> => {
+  public async criar(dto: CriarProdutoDTO, requisitante: Requisitante): Promise<Produto> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
-    const userRepo = AppDataSource.getRepository('Usuario');
-    const criador = await userRepo.findOneBy({ id: requisitante.id });
-    if (!criador) throw new AppError('Criador não encontrado.', 404);
+    const criador = await findOneByOrFail(
+      this.dependencies.usuarioRepo,
+      { id: requisitante.id },
+      'Criador',
+      404,
+    );
 
-    const skuBase = this.gerarSku(dto.nome);
-    const skuUnico = await this.garantirSkuUnico(skuBase);
+    const skuBase = gerarSku(dto.nome, 'PRD');
+    const skuUnico = await garantirSkuUnico(
+      this.dependencies.produtoRepo,
+      'sku',
+      skuBase,
+    );
 
-    return AppDataSource.transaction(async (manager) => {
-      const produto = manager.create(Produto, {
-        nome: dto.nome,
-        sku: skuUnico,
-        categoria: dto.categoria,
-        linha_padrao: dto.linha_padrao,
-        percentual_ressalva: dto.percentual_ressalva,
-        ativo: dto.ativo,
-        criadoPor: criador as any,
-      });
+    return this.dependencies.dataSource.transaction((manager) =>
+      this.executarCriacaoEmTransacao(manager, dto, criador, skuUnico),
+    );
+  }
 
-      const produtoSalvo = await manager.save(produto);
-
-      /** Cria os itens da receita vinculados ao produto */
-      if (dto.receita && dto.receita.length > 0) {
-        const itensReceita = await Promise.all(
-          dto.receita.map(async (item) => {
-            const mp = await this.mpRepo.findOneBy({ id: item.materia_prima_id });
-            if (!mp) {
-              throw new AppError(`Matéria-prima ID ${item.materia_prima_id} não encontrada.`, 404);
-            }
-
-            return manager.create(ReceitaItem, {
-              produto: produtoSalvo,
-              materiaPrima: mp,
-              quantidade: item.quantidade,
-              unidade: item.unidade,
-            });
-          }),
-        );
-        await manager.save(itensReceita);
-      }
-
-      const produtoCompleto = await manager.findOne(Produto, {
-        where: { id: produtoSalvo.id },
-        relations: ['receita', 'receita.materiaPrima'],
-      });
-
-      if (!produtoCompleto) throw new AppError('Erro na transação ao criar produto.', 500);
-
-      // Dispara a notificação para todos os operadores
-      const notificacaoService = new NotificacaoService();
-      await notificacaoService.criarNotificacaoParaPerfis(
-        `Novo produto disponível para produção: ${produtoCompleto.nome} (${produtoCompleto.sku})`,
-        TipoNotificacao.PRODUTO,
-        [PerfilUsuario.OPERADOR],
-        { link: '/app/lote/novo', idRef: produtoCompleto.id },
-      );
-
-      return produtoCompleto;
-    });
-  };
-
-  listar = async (
-    query: PaginacaoQueryDto & {
-      categoria?: string;
-      status?: string;
-      ordenacao?: string;
-      linha?: string;
-    },
+  public async listar(
+    query: ProdutoListarQuery,
     requisitante: Requisitante,
-  ): Promise<RespostaPaginada<Produto>> => {
+  ): Promise<RespostaPaginada<Produto>> {
     verificaPermissao(requisitante, [
       PerfilUsuario.OPERADOR,
       PerfilUsuario.INSPETOR,
       PerfilUsuario.GESTOR,
     ]);
 
-    const { pagina, limite, busca, categoria, status, ordenacao, linha } = query;
+    const { pagina, limite } = query;
     const skip = (pagina - 1) * limite;
 
-    const queryBuilder = this.produtoRepo
+    const queryBuilder = this.dependencies.produtoRepo
       .createQueryBuilder('produto')
       .leftJoinAndSelect('produto.receita', 'receita')
       .leftJoinAndSelect('receita.materiaPrima', 'materiaPrima')
       .leftJoinAndSelect('produto.criadoPor', 'criadoPor')
-      .leftJoinAndSelect('produto.lotes', 'lotes')
       .skip(skip)
       .take(limite);
 
-    if (busca) {
-      queryBuilder.andWhere('(produto.nome ILIKE :busca OR produto.sku ILIKE :busca)', {
-        busca: `%${busca}%`,
-      });
-    }
-
-    if (linha && linha !== 'todas') {
-      queryBuilder.andWhere('produto.linha_padrao = :linha', { linha });
-    }
-
-    if (categoria && categoria !== 'todas') {
-      queryBuilder.andWhere('produto.categoria = :categoria', { categoria });
-    }
-
-    if (status && status !== 'todos') {
-      if (status === 'ativos') {
-        queryBuilder.andWhere('produto.ativo = true');
-      } else if (status === 'inativos') {
-        queryBuilder.andWhere('produto.ativo = false');
-      } else if (status === 'com_insumos') {
-        queryBuilder.andWhere((qb) => {
-          const subQuery = qb
-            .subQuery()
-            .select('r.id')
-            .from(ReceitaItem, 'r')
-            .where('r.produto_id = produto.id')
-            .getQuery();
-          return `EXISTS ${subQuery}`;
-        });
-      } else if (status === 'sem_insumos') {
-        queryBuilder.andWhere((qb) => {
-          const subQuery = qb
-            .subQuery()
-            .select('r.id')
-            .from(ReceitaItem, 'r')
-            .where('r.produto_id = produto.id')
-            .getQuery();
-          return `NOT EXISTS ${subQuery}`;
-        });
-      }
-    }
-
-    switch (ordenacao) {
-      case 'mais_recentes':
-        queryBuilder.orderBy('produto.criado_em', 'DESC');
-        break;
-      case 'menos_recentes':
-        queryBuilder.orderBy('produto.criado_em', 'ASC');
-        break;
-      case 'mais_produzidos':
-        queryBuilder.addSelect((subQuery) => {
-          return subQuery
-            .select('COALESCE(SUM(l.quantidade_planejada), 0)')
-            .from('lote', 'l')
-            .where('l.produto_id = produto.id');
-        }, 'qtd_produzida');
-        queryBuilder.orderBy('qtd_produzida', 'DESC');
-        break;
-      case 'menos_produzidos':
-        queryBuilder.addSelect((subQuery) => {
-          return subQuery
-            .select('COALESCE(SUM(l.quantidade_planejada), 0)')
-            .from('lote', 'l')
-            .where('l.produto_id = produto.id');
-        }, 'qtd_produzida');
-        queryBuilder.orderBy('qtd_produzida', 'ASC');
-        break;
-      case 'mais_lotes':
-        queryBuilder.addSelect((subQuery) => {
-          return subQuery
-            .select('COUNT(l.id)')
-            .from('lote', 'l')
-            .where('l.produto_id = produto.id');
-        }, 'qtd_lotes');
-        queryBuilder.orderBy('qtd_lotes', 'DESC');
-        break;
-      case 'menos_lotes':
-        queryBuilder.addSelect((subQuery) => {
-          return subQuery
-            .select('COUNT(l.id)')
-            .from('lote', 'l')
-            .where('l.produto_id = produto.id');
-        }, 'qtd_lotes');
-        queryBuilder.orderBy('qtd_lotes', 'ASC');
-        break;
-      case 'mais_insumos':
-        queryBuilder.addSelect((subQuery) => {
-          return subQuery
-            .select('COUNT(r.id)')
-            .from('receita_item', 'r')
-            .where('r.produto_id = produto.id');
-        }, 'qtd_insumos');
-        queryBuilder.orderBy('qtd_insumos', 'DESC');
-        break;
-      case 'menos_insumos':
-        queryBuilder.addSelect((subQuery) => {
-          return subQuery
-            .select('COUNT(r.id)')
-            .from('receita_item', 'r')
-            .where('r.produto_id = produto.id');
-        }, 'qtd_insumos');
-        queryBuilder.orderBy('qtd_insumos', 'ASC');
-        break;
-      default:
-        queryBuilder.orderBy('produto.nome', 'ASC');
-        break;
-    }
+    this.aplicarFiltroBusca(queryBuilder, query.busca);
+    this.aplicarFiltroString(queryBuilder, query.linha, 'produto.linha_padrao');
+    this.aplicarFiltroString(queryBuilder, query.categoria, 'produto.categoria');
+    this.aplicarFiltroStatus(queryBuilder, query.status);
+    this.aplicarOrdenacao(queryBuilder, query.ordenacao);
 
     const [produtos, total] = await queryBuilder.getManyAndCount();
-
     return formatarRespostaPaginada([produtos, total], query);
-  };
+  }
 
-  buscarPorId = async (id: number, requisitante: Requisitante): Promise<Produto> => {
+  public async buscarPorId(id: number, requisitante: Requisitante): Promise<Produto> {
     verificaPermissao(requisitante, [
       PerfilUsuario.OPERADOR,
       PerfilUsuario.INSPETOR,
       PerfilUsuario.GESTOR,
     ]);
 
-    const produto = await this.produtoRepo.findOne({
-      where: { id },
-      relations: ['receita', 'receita.materiaPrima', 'criadoPor'],
-    });
+    return findOneOrFail(
+      this.dependencies.produtoRepo,
+      { where: { id }, relations: ['receita', 'receita.materiaPrima', 'criadoPor'] },
+      MSG.produtoNaoEncontrado,
+      404,
+    );
+  }
 
-    if (!produto) throw new AppError('Produto não encontrado.', 404);
-    return produto;
-  };
-
-  /** Lista categorias distintas de produtos */
-  listarCategorias = async (requisitante: Requisitante): Promise<string[]> => {
+  public async listarCategorias(requisitante: Requisitante): Promise<string[]> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
+    return listarColunasDistintas<string>(
+      this.dependencies.produtoRepo,
+      'produto',
+      'categoria',
+    );
+  }
 
-    const resultados = await this.produtoRepo
-      .createQueryBuilder('p')
-      .select('DISTINCT p.categoria', 'categoria')
-      .orderBy('p.categoria', 'ASC')
-      .getRawMany<{ categoria: string }>();
-
-    return resultados.map((r) => r.categoria);
-  };
-
-  listarLinhas = async (requisitante: Requisitante): Promise<string[]> => {
+  public async listarLinhas(requisitante: Requisitante): Promise<string[]> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
+    return listarColunasDistintas<string>(
+      this.dependencies.produtoRepo,
+      'produto',
+      'linha_padrao',
+    );
+  }
 
-    const resultados = await this.produtoRepo
-      .createQueryBuilder('p')
-      .select('DISTINCT p.linha_padrao', 'linha')
-      .orderBy('p.linha_padrao', 'ASC')
-      .getRawMany<{ linha: string }>();
-
-    return resultados.map((r) => r.linha);
-  };
-
-  atualizarReceita = async (
+  public async atualizarReceita(
     produtoId: number,
     dto: AtualizarReceitaDTO,
     requisitante: Requisitante,
-  ): Promise<Produto> => {
+  ): Promise<Produto> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
-    const produto = await this.produtoRepo.findOneBy({ id: produtoId });
-    if (!produto) {
-      throw new AppError('Produto não encontrado.', 404);
-    }
+    const produto = await findOneByOrFail(
+      this.dependencies.produtoRepo,
+      { id: produtoId },
+      MSG.produtoNaoEncontrado,
+      404,
+    );
 
-    return AppDataSource.transaction(async (manager) => {
-      // Remover os itens de receita existentes
+    return this.dependencies.dataSource.transaction(async (manager) => {
       await manager.delete(ReceitaItem, { produto: { id: produtoId } });
-
-      // Adicionar os novos itens
-      if (dto.length > 0) {
-        const itensReceita = await Promise.all(
-          dto.map(async (item) => {
-            const mp = await this.mpRepo.findOneBy({ id: item.materia_prima_id });
-            if (!mp) {
-              throw new AppError(`Matéria-prima ID ${item.materia_prima_id} não encontrada.`, 404);
-            }
-
-            return manager.create(ReceitaItem, {
-              produto: produto,
-              materiaPrima: mp,
-              quantidade: item.quantidade,
-              unidade: item.unidade,
-            });
-          }),
-        );
-        await manager.save(itensReceita);
-      }
-
-      const produtoAtualizado = await manager.findOne(Produto, {
-        where: { id: produtoId },
-        relations: ['receita', 'receita.materiaPrima'],
-      });
-
-      if (!produtoAtualizado) throw new AppError('Erro ao recarregar produto atualizado.', 500);
-
-      return produtoAtualizado;
+      await this.processarItensReceita(manager, dto, produto);
+      return this.buscarProdutoComRelacoes(manager, produtoId);
     });
-  };
+  }
 
-  alternarStatus = async (
+  public async alternarStatus(
     id: number,
     ativo: boolean,
     requisitante: Requisitante,
-  ): Promise<Produto> => {
+  ): Promise<Produto> {
     verificaPermissao(requisitante, [PerfilUsuario.GESTOR]);
 
-    const produto = await this.produtoRepo.findOneBy({ id });
-    if (!produto) {
-      throw new AppError('Produto não encontrado.', 404);
-    }
+    const produto = await findOneByOrFail(
+      this.dependencies.produtoRepo,
+      { id },
+      MSG.produtoNaoEncontrado,
+      404,
+    );
 
     produto.ativo = ativo;
-    await this.produtoRepo.save(produto);
+    await this.dependencies.produtoRepo.save(produto);
 
-    const produtoAtualizado = await this.produtoRepo.findOne({
-      where: { id },
-      relations: ['receita', 'receita.materiaPrima', 'criadoPor'],
-    });
+    return findOneOrFail(
+      this.dependencies.produtoRepo,
+      { where: { id }, relations: ['receita', 'receita.materiaPrima', 'criadoPor'] },
+      MSG.produtoNaoEncontrado,
+      500,
+    );
+  }
 
-    return produtoAtualizado!;
-  };
-
-  getContagem = async (requisitante: Requisitante): Promise<any> => {
+  public async obterContagem(
+    requisitante: Requisitante,
+  ): Promise<Record<string, number>> {
     verificaPermissao(requisitante, [
       PerfilUsuario.OPERADOR,
       PerfilUsuario.INSPETOR,
       PerfilUsuario.GESTOR,
     ]);
 
-    const total = await this.produtoRepo.count();
-    const ativos = await this.produtoRepo.count({ where: { ativo: true } });
-    const inativos = await this.produtoRepo.count({ where: { ativo: false } });
+    const total = await this.dependencies.produtoRepo.count();
+    const ativos = await this.dependencies.produtoRepo.count({ where: { ativo: true } });
+    const inativos = await this.dependencies.produtoRepo.count({
+      where: { ativo: false },
+    });
 
-    const sem_insumos = await this.produtoRepo
+    const semInsumos = await this.dependencies.produtoRepo
       .createQueryBuilder('p')
       .leftJoin('p.receita', 'receita')
       .where('receita.id IS NULL')
@@ -385,8 +295,139 @@ export class ProdutoService {
       total,
       ativos,
       inativos,
-      sem_insumos,
-      mais_produzidos: 0, // Placeholder
+      sem_insumos: semInsumos,
+      mais_produzidos: 0,
     };
-  };
+  }
+
+  // === MÉTODOS PRIVADOS ===
+
+  private async buscarProdutoComRelacoes(
+    manager: EntityManager,
+    id: number,
+  ): Promise<Produto> {
+    return managerFindOneOrFail(
+      manager,
+      Produto,
+      {
+        where: { id },
+        relations: ['receita', 'receita.materiaPrima'],
+      },
+      { entityName: 'Produto' },
+    );
+  }
+
+  private async processarItensReceita(
+    manager: EntityManager,
+    receita: CriarProdutoDTO['receita'],
+    produtoSalvo: Produto,
+  ): Promise<void> {
+    if (!receita || receita.length === 0) return;
+
+    const itensReceita = await Promise.all(
+      receita.map(async (item) => {
+        const mp = await findOneByOrFail(
+          this.dependencies.mpRepo,
+          { id: item.materia_prima_id },
+          `Matéria-prima ID ${item.materia_prima_id}`,
+          404,
+        );
+
+        return manager.create(ReceitaItem, {
+          produto: produtoSalvo,
+          materiaPrima: mp,
+          quantidade: item.quantidade,
+          unidade: item.unidade,
+        });
+      }),
+    );
+    await manager.save(itensReceita);
+  }
+
+  private async executarCriacaoEmTransacao(
+    manager: EntityManager,
+    dto: CriarProdutoDTO,
+    criador: Usuario,
+    skuUnico: string,
+  ): Promise<Produto> {
+    const produto = manager.create(Produto, {
+      nome: dto.nome,
+      sku: skuUnico,
+      categoria: dto.categoria,
+      linha_padrao: dto.linha_padrao,
+      percentual_ressalva: dto.percentual_ressalva,
+      ativo: dto.ativo,
+      criadoPor: criador,
+    });
+
+    const produtoSalvo = await manager.save(produto);
+    await this.processarItensReceita(manager, dto.receita, produtoSalvo);
+    const produtoCompleto = await this.buscarProdutoComRelacoes(manager, produtoSalvo.id);
+
+    await this.dependencies.notificacaoService.criarNotificacaoParaPerfis(
+      `Novo produto disponível para produção: ${produtoCompleto.nome} (${produtoCompleto.sku})`,
+      TipoNotificacao.PRODUTO,
+      [PerfilUsuario.OPERADOR],
+      { link: '/app/lote/novo', idRef: produtoCompleto.id },
+    );
+
+    return produtoCompleto;
+  }
+
+  // === FILTROS DE LISTAGEM ===
+
+  private aplicarFiltroBusca(
+    qb: SelectQueryBuilder<Produto>,
+    busca: string | undefined,
+  ): void {
+    if (!busca) return;
+
+    qb.andWhere('(produto.nome ILIKE :busca OR produto.sku ILIKE :busca)', {
+      busca: `%${busca}%`,
+    });
+  }
+
+  private aplicarFiltroString(
+    qb: SelectQueryBuilder<Produto>,
+    valor: string | undefined,
+    coluna: string,
+  ): void {
+    if (!valor || valor === 'todas') return;
+
+    qb.andWhere(`${coluna} = :${coluna.replace(/\./g, '_')}`, {
+      [coluna.replace(/\./g, '_')]: valor,
+    });
+  }
+
+  private aplicarFiltroStatus(
+    qb: SelectQueryBuilder<Produto>,
+    status: string | undefined,
+  ): void {
+    if (!status || status === 'todos') return;
+
+    const whereRaw = FILTROS_STATUS[status];
+    if (!whereRaw) return;
+
+    qb.andWhere(whereRaw(qb));
+  }
+
+  private aplicarOrdenacao(
+    qb: SelectQueryBuilder<Produto>,
+    ordenacao: string | undefined,
+  ): void {
+    const config = ordenacao ? ORDENACOES[ordenacao] : undefined;
+
+    if (!config) {
+      qb.orderBy('produto.nome', 'ASC');
+      return;
+    }
+
+    if (config.subQuery) {
+      qb.addSelect(config.subQuery(qb), config.alias!);
+      qb.orderBy(config.alias!, config.order);
+    } else {
+      qb.orderBy(`produto.${config.campo!}`, config.order);
+      qb.addOrderBy('produto.id', 'ASC');
+    }
+  }
 }

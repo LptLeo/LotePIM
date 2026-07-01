@@ -1,35 +1,38 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, input } from '@angular/core';
+import { ReactiveFormsModule, type FormControl } from '@angular/forms';
+
+let uidCounter = 0;
 
 @Component({
   selector: 'app-password-field',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './password-field.html',
 })
 export class PasswordFieldComponent {
-  @Input({ required: true }) label!: string;
-  @Input({ required: true }) control!: FormControl<string>;
+  label = input.required<string>();
+  control = input.required<FormControl<string>>();
 
-  @Input() submitted = false;
-  @Input() errorMessage = 'Senha inválida';
-  @Input() showGenerator = false;
-  @Input() generatorLabel = 'Gerar Senha Segura';
-  @Input() onGenerate?: () => void;
+  submitted = input(false);
+  errorMessage = input('Senha inválida');
+  showGenerator = input(false);
+  generatorLabel = input('Gerar Senha Segura');
+  onGenerate = input<() => void>();
+  inputId = input(`password-field-${uidCounter++}`);
 
-  visible = false;
+  public visible = false;
 
-  toggleVisibility(): void {
+  public toggleVisibility(): void {
     this.visible = !this.visible;
   }
 
-  generatePassword(): void {
-    this.onGenerate?.();
+  public generatePassword(): void {
+    this.onGenerate()?.();
   }
 
-  showError(): boolean {
-    if (!this.control) return false;
-    return this.control.invalid && (this.control.dirty || this.control.touched || this.submitted);
+  public showError(): boolean {
+    const ctrl = this.control();
+    if (!ctrl) return false;
+    return ctrl.invalid && (ctrl.dirty || ctrl.touched || this.submitted());
   }
 }

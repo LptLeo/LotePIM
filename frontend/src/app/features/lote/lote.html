@@ -2,10 +2,14 @@
   class="page-enter flex flex-col w-full max-w-7xl mx-auto space-y-6 lg:space-y-8 font-sans text-white"
 >
   <!-- Header -->
-  <app-page-header title="Lista de Lotes" subtitle="Listagem de lotes corporativos em tempo real">
+  <app-page-header
+    title="Lista de Lotes"
+    subtitle="Listagem de lotes corporativos em tempo real"
+  >
     <div actions>
       @if (
-        authService.usuario()?.perfil === 'operador' || authService.usuario()?.perfil === 'gestor'
+        authService.usuario()?.perfil === 'operador' ||
+        authService.usuario()?.perfil === 'gestor'
       ) {
         <button
           (click)="irParaNovoLote()"
@@ -19,7 +23,11 @@
             stroke="currentColor"
             class="w-5 h-5"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4.5v15m7.5-7.5h-15"
+            />
           </svg>
           Criar Novo Lote
         </button>
@@ -135,7 +143,9 @@
       <h3 class="text-[#ADAAAA] font-bold uppercase tracking-widest text-sm">
         Nenhum lote localizado
       </h3>
-      <p class="text-[#6B7280] text-xs mt-1">Refine seus filtros ou realize uma nova busca</p>
+      <p class="text-[#6B7280] text-xs mt-1">
+        Refine seus filtros ou realize uma nova busca
+      </p>
     </div>
   }
 
@@ -153,9 +163,12 @@
       }
     </div>
 
-    @if (paginationMeta(); as meta) {
+    @if (metaPaginacao(); as meta) {
       @if (meta.totalPaginas > 1) {
-        <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+        <app-pagination
+          [meta]="meta"
+          (pageChange)="aoMudarPagina($event)"
+        ></app-pagination>
       }
     }
   }

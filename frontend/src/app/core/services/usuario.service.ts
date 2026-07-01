@@ -2,15 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
-export interface RespostaPaginada<T> {
-  itens: T[];
-  meta: {
-    totalItens: number;
-    itensPorPagina: number;
-    totalPaginas: number;
-    paginaAtual: number;
-  };
-}
+import type { RespostaPaginada } from '../../shared/models/pagination.models.js';
 
 export interface UsuarioPerfil {
   id: number;

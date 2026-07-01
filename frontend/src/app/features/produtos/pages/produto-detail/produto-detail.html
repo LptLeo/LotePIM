@@ -1,18 +1,24 @@
-<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-6">
-  <!-- ── Estado: Carregando ── -->
+<div
+  class="flex flex-col w-full min-h-screen text-white font-sans max-w-7xl mx-auto space-y-6"
+>
+  <!--  Estado: Carregando  -->
   @if (carregando()) {
     <div class="flex flex-col items-center justify-center py-32 gap-4">
       <div
         class="w-8 h-8 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"
       ></div>
-      <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">Carregando produto...</p>
+      <p class="text-[12px] text-[#6B7280] uppercase tracking-wider">
+        Carregando produto...
+      </p>
     </div>
   }
 
-  <!-- ── Estado: Erro ── -->
+  <!--  Estado: Erro de carregamento  -->
   @else if (erro()) {
     <div class="flex flex-col items-center justify-center py-32 gap-4">
-      <div class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md text-center max-w-md">
+      <div
+        class="p-4 bg-red-950/20 border border-[#dc2626]/40 rounded-md text-center max-w-md"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -27,7 +33,9 @@
             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
           />
         </svg>
-        <p class="text-[#fca5a5] text-[13px] font-semibold mb-1">Erro ao carregar produto</p>
+        <p class="text-[#fca5a5] text-[13px] font-semibold mb-1">
+          Erro ao carregar produto
+        </p>
         <p class="text-[#ADAAAA] text-[12px]">{{ erro() }}</p>
       </div>
       <button
@@ -39,8 +47,46 @@
     </div>
   }
 
-  <!-- ── Conteúdo do Produto ── -->
+  <!--  Conteúdo do Produto  -->
   @else if (produto()) {
+    <!--  Dialog de Confirmação de Status (substitui window.confirm)  -->
+    @if (confirmacaoPendente()) {
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      >
+        <div
+          class="bg-[#131313] border border-[#484847]/60 rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl"
+        >
+          <p class="text-white text-[14px] font-semibold mb-1">Confirmar ação</p>
+          <p class="text-[#ADAAAA] text-[12px] mb-5">
+            Tem certeza que deseja
+            <strong class="text-white">{{ confirmacaoPendente() }}</strong> o produto
+            <strong class="text-[#00E5FF]">{{ produto()!.nome }}</strong
+            >?
+          </p>
+          <div class="flex justify-end gap-3">
+            <button
+              (click)="cancelarAlternanciaStatus()"
+              class="px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#ADAAAA] border border-[#484847] rounded hover:bg-[#1a1a1a] transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              (click)="confirmarAlternanciaStatus()"
+              class="px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded transition-colors"
+              [class]="
+                confirmacaoPendente() === 'desativar'
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-[#9EEE35] text-black hover:bg-[#8adb22]'
+              "
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- Cabeçalho -->
     <header class="flex flex-col gap-6">
       <div class="flex items-center gap-4">
@@ -73,7 +119,9 @@
       <!-- Título e Status -->
       <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
-          <h2 class="font-bold text-[32px] leading-tight tracking-[-1px] text-white font-mono">
+          <h2
+            class="font-bold text-[32px] leading-tight tracking-[-1px] text-white font-mono"
+          >
             {{ produto()!.nome }}
           </h2>
           <p class="text-[16px] text-[#00E5FF] mt-1 font-medium tracking-wide">
@@ -85,15 +133,17 @@
           <div
             class="px-4 py-2 rounded-md text-[12px] font-bold uppercase tracking-[2px] shadow-sm border"
             [style.color]="produto()!.ativo ? '#9EEE35' : '#ADAAAA'"
-            [style.background]="produto()!.ativo ? 'rgba(58,93,31,0.4)' : 'rgba(74,85,104,0.4)'"
+            [style.background]="
+              produto()!.ativo ? 'rgba(58,93,31,0.4)' : 'rgba(74,85,104,0.4)'
+            "
             [style.border-color]="produto()!.ativo ? '#9EEE35' : '#718096'"
           >
             {{ produto()!.ativo ? 'ATIVO' : 'INATIVO' }}
           </div>
 
-          @if (isGestor()) {
+          @if (ehGestor()) {
             <button
-              (click)="alternarStatus()"
+              (click)="solicitarAlternanciaStatus()"
               [disabled]="alterandoStatus()"
               class="px-4 py-2 rounded-md text-[12px] font-bold uppercase tracking-wider border transition-colors disabled:opacity-50"
               [class]="
@@ -115,12 +165,35 @@
       </div>
     </header>
 
-    <!-- ── Cards de Informações ── -->
+    <!--  Erro de ação inline  -->
+    @if (erroReceita()) {
+      <div
+        class="p-3 bg-red-950/20 border border-[#dc2626]/40 rounded flex items-center gap-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="#fca5a5"
+          class="w-4 h-4 shrink-0"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+          />
+        </svg>
+        <span class="text-[11px] text-red-400 font-semibold">{{ erroReceita() }}</span>
+      </div>
+    }
+
+    <!--  Cards de Informações  -->
     <app-produto-info-cards [produto]="produto()!"></app-produto-info-cards>
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- ── Receita do Produto (Insumos) ── -->
-    <!-- ══════════════════════════════════════════ -->
+    <!--  -->
+    <!--  Receita do Produto (Insumos)  -->
+    <!--  -->
     <app-produto-receita
       [produto]="produto()!"
       [modoEdicao]="modoEdicaoReceita()"
@@ -130,9 +203,9 @@
       (iniciarEdicao)="iniciarEdicaoReceita()"
       (cancelarEdicao)="cancelarEdicaoReceita()"
       (salvar)="salvarReceita()"
-      (addMp)="adicionarMateriaPrima($event)"
-      (removeMp)="removerItemReceita($event)"
-      (updateQtd)="atualizarQuantidade($event.index, $event.qtd)"
+      (adicionarMp)="adicionarMateriaPrima($event)"
+      (removerMp)="removerItemReceita($event)"
+      (atualizarQtd)="atualizarQuantidade($event.index, $event.qtd)"
     >
     </app-produto-receita>
   }

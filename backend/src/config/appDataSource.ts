@@ -15,9 +15,10 @@ import { Usuario } from '../entities/Usuario.js';
 dotenv.config();
 
 const isUrlConnection =
-  process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_HOST.startsWith('postgres'));
+  process.env.DATABASE_URL ||
+  (process.env.DB_HOST && process.env.DB_HOST.startsWith('postgres'));
 
-export const AppDataSource = new DataSource({
+export const appDataSource = new DataSource({
   type: 'postgres',
   ...(isUrlConnection
     ? { url: (process.env.DATABASE_URL || process.env.DB_HOST) as string }

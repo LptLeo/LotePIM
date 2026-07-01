@@ -1,4 +1,6 @@
-<div class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-6">
+<div
+  class="flex flex-col w-full min-h-screen text-white font-sans max-w-3xl mx-auto space-y-6"
+>
   <!-- Header -->
   <header class="flex flex-col gap-6">
     <div class="flex items-center gap-4">
@@ -51,10 +53,13 @@
       <!-- Linha 1: Numero Gerado / Produto -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="num-lote"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Número do Lote</label
           >
           <input
+            id="num-lote"
             type="text"
             class="w-full bg-[#0E0E0E] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#ADAAAA] cursor-not-allowed focus:outline-none"
             value="Gerado automaticamente ao salvar"
@@ -63,11 +68,14 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="produto-select"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Produto *</label
           >
           <div class="relative group">
             <select
+              id="produto-select"
               formControlName="produto_id"
               class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
               [class.border-red-500]="fieldErrors()['produto_id']"
@@ -85,7 +93,11 @@
               stroke="currentColor"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </div>
           @if (fieldErrors()['produto_id']) {
@@ -99,7 +111,9 @@
       <!-- Linha 2: Data / Turno -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="data-producao"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Data de Produção *</label
           >
           <div
@@ -110,7 +124,10 @@
               class="w-full h-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 flex justify-between items-center transition-colors hover:border-[#00E5FF] group"
               [class.border-red-500]="fieldErrors()['data_producao']"
             >
-              <span class="text-sm font-medium" [class.text-[#ADAAAA]]="!form.value.data_producao">
+              <span
+                class="text-sm font-medium"
+                [class.text-[#ADAAAA]]="!form.value.data_producao"
+              >
                 {{ dataFormatada }}
               </span>
               <svg
@@ -143,7 +160,9 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="turno-select"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Turno *</label
           >
           <div class="relative group">
@@ -164,11 +183,17 @@
               stroke="currentColor"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none group-focus-within:text-[#00E5FF] transition-colors"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </div>
           @if (fieldErrors()['turno']) {
-            <span class="text-[10px] text-red-400 font-medium">{{ fieldErrors()['turno'] }}</span>
+            <span class="text-[10px] text-red-400 font-medium">{{
+              fieldErrors()['turno']
+            }}</span>
           }
         </div>
       </div>
@@ -176,7 +201,9 @@
       <!-- Linha 3: Quantidade / Validade -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="qtd-planejada"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Quantidade Planejada *</label
           >
           <div class="relative">
@@ -200,7 +227,9 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+          <label
+            for="data-validade"
+            class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
             >Data de Validade</label
           >
           <div class="flex items-center gap-3">
@@ -226,7 +255,9 @@
 
       <!-- Linha 4: Observações -->
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="observacoes"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >Observações</label
         >
         <textarea
@@ -237,9 +268,9 @@
         ></textarea>
       </div>
 
-      <!-- ═══════════════════════════════════════════════════════ -->
+      <!--  -->
       <!-- Seção de Consumos (gerada dinamicamente pela receita) -->
-      <!-- ═══════════════════════════════════════════════════════ -->
+      <!--  -->
 
       @if ((produtoSelecionado()?.receita?.length ?? 0) > 0) {
         <div class="border-t border-[#484847]/30 pt-6 mt-2">
@@ -275,7 +306,8 @@
           }
 
           <p class="text-[12px] text-[#6B7280] mb-4">
-            Selecione quais lotes de insumo em estoque serão consumidos para fabricar este lote.
+            Selecione quais lotes de insumo em estoque serão consumidos para fabricar este
+            lote.
           </p>
 
           @if (carregandoInsumos()) {
@@ -283,15 +315,19 @@
               <div
                 class="w-4 h-4 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"
               ></div>
-              <span class="text-[12px] text-[#6B7280]">Carregando insumos disponíveis...</span>
+              <span class="text-[12px] text-[#6B7280]"
+                >Carregando insumos disponíveis...</span
+              >
             </div>
           }
 
           <div formArrayName="consumos" class="flex flex-col gap-4">
-            @for (consumo of consumosArray.controls; track consumo; let i = $index) {
+            @for (consumo of consumosArray.controls; track i; let i = $index) {
               <app-lote-insumo-item
-                [formGroup]="$any(consumo)"
-                [insumosDisponiveis]="getInsumosParaMP(consumo.get('materia_prima_id')?.value)"
+                [formGroup]="consumo"
+                [insumosDisponiveis]="
+                  getInsumosParaMP(consumo.controls.materia_prima_id.value)
+                "
               >
               </app-lote-insumo-item>
             }

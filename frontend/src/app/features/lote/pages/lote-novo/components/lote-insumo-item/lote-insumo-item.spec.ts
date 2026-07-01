@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoteInsumoItemComponent } from './lote-insumo-item.js';
 import { FormBuilder, ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component } from '@angular/core';
 
 @Component({
@@ -20,7 +20,7 @@ describe('LoteInsumoItemComponent (via Wrapper)', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestWrapperComponent, LoteInsumoItemComponent, ReactiveFormsModule, CommonModule],
+      imports: [TestWrapperComponent, LoteInsumoItemComponent, ReactiveFormsModule],
       providers: [FormBuilder, DecimalPipe],
     }).compileComponents();
 

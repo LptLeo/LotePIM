@@ -1,0 +1,78 @@
+<section
+  class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 animate-fade-in-up delay-100"
+>
+  <form [formGroup]="form" (ngSubmit)="enviarFormulario()" class="flex flex-col gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-in-left delay-150">
+      <app-text-input-field
+        label="Nome Completo *"
+        [control]="form.controls.nome"
+        [submitted]="enviado()"
+        [errorMessage]="obterErro('nome')"
+        placeholder="Ex.: Ana Maria Silva"
+      />
+
+      <app-text-input-field
+        label="E-mail Corporativo *"
+        type="email"
+        [control]="form.controls.email"
+        [submitted]="enviado()"
+        [errorMessage]="obterErro('email')"
+        placeholder="nome@empresa.com"
+      />
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-in-right delay-200">
+      <app-select-field
+        label="Perfil (Role) *"
+        [control]="form.controls.perfil"
+        [options]="opcoesPerfil()"
+        [submitted]="enviado()"
+      />
+
+      <div class="flex items-end">
+        <app-checkbox-field label="Status Ativo" [control]="form.controls.ativo" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-in-left delay-300">
+      <app-password-field
+        label="Senha *"
+        [control]="form.controls.senha"
+        [submitted]="enviado()"
+        [errorMessage]="obterErro('senha')"
+        [showGenerator]="true"
+        [onGenerate]="gerarSenhaVinculada"
+      />
+
+      <app-password-field
+        label="Confirmar Senha *"
+        [control]="form.controls.confirmarSenha"
+        [submitted]="enviado()"
+        [errorMessage]="obterErroConfirmarSenha()"
+      />
+    </div>
+
+    <div
+      class="pt-4 border-t border-[#484847]/30 flex flex-col min-[425px]:flex-row justify-end gap-3 animate-fade-in delay-400"
+    >
+      <button
+        type="button"
+        (click)="cancelar.emit()"
+        class="w-full min-[425px]:w-auto px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="form.invalid || salvando()"
+        class="w-full min-[425px]:w-auto px-6 py-2.5 bg-[#00E5FF] text-black text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        @if (salvando()) {
+          Cadastrando...
+        } @else {
+          Cadastrar Usuário
+        }
+      </button>
+    </div>
+  </form>
+</section>

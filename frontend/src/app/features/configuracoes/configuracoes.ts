@@ -1,58 +1,66 @@
-import { Component, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
 import {
   ConfiguracoesService,
-  ComparacaoPeriodo,
-  ProducaoPeriodo,
+  PeriodoComparacao,
+  PeriodoProducao,
+  type DashboardSettings,
+  type LoteSettings,
 } from '../../core/services/configuracoes.service.js';
+
+interface OpcaoSelecao {
+  value: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-configuracoes',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeaderComponent],
+  imports: [FormsModule, PageHeaderComponent],
   templateUrl: './configuracoes.html',
   styleUrl: './configuracoes.css',
 })
 export class Configuracoes {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
+
   private configuracoesService = inject(ConfiguracoesService);
 
-  // Settings Signals
-  settings = this.configuracoesService.settings;
+  // === ESTADO ===
 
-  // Dashboard Options
-  periodoOptions: { value: ComparacaoPeriodo; label: string }[] = [
-    { value: 'qualquer_momento', label: 'Qualquer Momento' },
-    { value: 'mes', label: 'Mês' },
-    { value: 'semana', label: 'Semana' },
-    { value: 'dia', label: 'Dia' },
-  ];
+  public settings = this.configuracoesService.settings;
 
-  // Lote Options
-  producaoOptions: { value: ProducaoPeriodo; label: string }[] = [
-    { value: 'qualquer_momento', label: 'Qualquer Momento' },
-    { value: 'mes', label: 'Mês' },
-    { value: 'semana', label: 'Semana' },
-    { value: 'dia', label: 'Dia' },
-  ];
+  // === OPÇÕES DE SELEÇÃO ===
 
-  updateDashboard(key: string, value: any) {
+  public periodoOptions: OpcaoSelecao[] = Object.entries(PeriodoComparacao).map(
+    ([key, value]) => ({ value: key, label: value }),
+  );
+  public producaoOptions: OpcaoSelecao[] = Object.entries(PeriodoProducao).map(
+    ([key, value]) => ({ value: key, label: value }),
+  );
+
+  // === MÉTODOS PÚBLICOS ===
+
+  public atualizarDashboard(key: keyof DashboardSettings, value: string | number): void {
     this.configuracoesService.updateDashboardSettings({ [key]: value });
   }
 
-  updateLote(key: string, value: any) {
+  public atualizarConfiguracaoLote(
+    key: keyof LoteSettings,
+    value: string | number,
+  ): void {
     this.configuracoesService.updateLoteSettings({ [key]: value });
   }
 
-  onNumericInput(key: string, target: any, section: 'dashboard' | 'lote') {
-    const val = parseFloat(target.value);
-    if (!isNaN(val)) {
-      if (section === 'dashboard') {
-        this.updateDashboard(key, val);
-      } else {
-        this.updateLote(key, val);
-      }
+  public aoDigitarNumero(chave: string, evento: Event, secao: string): void {
+    const alvo = evento.target as HTMLInputElement;
+    const valor = parseFloat(alvo.value);
+    if (isNaN(valor)) return;
+
+    if (secao === 'dashboard') {
+      this.configuracoesService.updateDashboardSettings({ [chave]: valor });
+    } else {
+      this.configuracoesService.updateLoteSettings({ [chave]: valor });
     }
   }
 }

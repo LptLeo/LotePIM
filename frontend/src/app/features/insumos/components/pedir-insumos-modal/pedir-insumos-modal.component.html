@@ -1,16 +1,18 @@
-@if (isOpen) {
+@if (estaAberto()) {
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+    class="fixed inset-0 z-50 flex items-center justify-center w-full h-full p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
   >
     <div
-      class="bg-[#131313] border border-[#484847]/40 w-full max-w-xl rounded-md shadow-2xl overflow-hidden animate-fade-in-up"
+      class="flex flex-col w-full max-w-xl max-h-[90vh] bg-[#131313] border border-[#484847]/40 rounded-md shadow-2xl overflow-hidden animate-fade-in-up"
     >
       <!-- Header -->
       <div
-        class="flex justify-between items-center px-6 py-4 border-b border-[#484847]/30 bg-[#0E0E0E]"
+        class="flex justify-between items-center px-6 py-4 bg-[#0E0E0E] border-b border-[#484847]/30"
       >
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-[#00E5FF]/10 flex items-center justify-center">
+          <div
+            class="flex items-center justify-center w-8 h-8 bg-[#00E5FF]/10 rounded-full"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -30,7 +32,10 @@
             Pedido de Matéria-Prima
           </h2>
         </div>
-        <button (click)="onClose()" class="text-[#6B7280] hover:text-white transition-colors">
+        <button
+          (click)="aoFechar()"
+          class="text-[#6B7280] transition-colors hover:text-white"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -39,51 +44,60 @@
             stroke="currentColor"
             class="w-5 h-5"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18 18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Body -->
-      <div class="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
-        <p class="text-[11px] text-[#ADAAAA] mb-6 font-medium leading-relaxed">
-          Selecione as matérias-primas que deseja encomendar e defina a quantidade. O pedido será
-          processado e chegará em <span class="text-[#00E5FF]">10 segundos</span>.
+      <div class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+        <p class="mb-6 text-[11px] text-[#ADAAAA] font-medium leading-relaxed">
+          Selecione as matérias-primas que deseja encomendar e defina a quantidade. O
+          pedido será processado e chegará em
+          <span class="text-[#00E5FF]">10 segundos</span>.
         </p>
 
-        <form [formGroup]="form" class="flex flex-col gap-4">
+        <form [formGroup]="formulario" class="flex flex-col gap-4">
           <div formArrayName="itens" class="space-y-3">
-            @for (item of itensArray.controls; track item; let i = $index) {
+            @for (
+              item of controlesItens.controls;
+              track item.controls.materia_prima_id.value;
+              let i = $index
+            ) {
               <div
                 [formGroupName]="i"
                 class="flex items-center gap-4 p-3 border rounded transition-all"
-                [class.bg-[#00E5FF]/5]="item.get('selecionado')?.value"
-                [class.border-[#00E5FF]/40]="item.get('selecionado')?.value"
-                [class.border-[#484847]/30]="!item.get('selecionado')?.value"
+                [class.bg-[#00E5FF]/5]="item.controls.selecionado.value"
+                [class.border-[#00E5FF]/40]="item.controls.selecionado.value"
+                [class.border-[#484847]/30]="!item.controls.selecionado.value"
               >
                 <input
                   type="checkbox"
                   formControlName="selecionado"
-                  class="w-4 h-4 accent-[#00E5FF] cursor-pointer"
+                  class="w-4 h-4 cursor-pointer accent-[#00E5FF]"
                 />
 
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <p class="text-[11px] font-bold text-white uppercase tracking-wider">
-                      {{ item.get('nome')?.value }}
+                      {{ item.controls.nome.value }}
                     </p>
-                    @if (item.get('saldo')?.value === 0) {
+                    @if (item.controls.saldo.value === 0) {
                       <span
-                        class="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest"
+                        class="px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px] font-bold uppercase tracking-widest"
                         >Esgotado</span
                       >
                     }
                   </div>
-                  <p class="text-[9px] text-[#6B7280] font-bold uppercase mt-1">
+                  <p class="mt-1 text-[9px] text-[#6B7280] font-bold uppercase">
                     Saldo Atual:
                     <span class="text-[#ADAAAA]"
-                      >{{ item.get('saldo')?.value | number: '1.0-3' }}
-                      {{ item.get('unidade')?.value }}</span
+                      >{{ item.controls.saldo.value | number: '1.0-3' }}
+                      {{ item.controls.unidade.value }}</span
                     >
                   </p>
                 </div>
@@ -93,14 +107,14 @@
                     <input
                       type="number"
                       formControlName="quantidade"
-                      class="w-full bg-black border border-[#484847]/60 rounded px-3 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#00E5FF] transition-colors"
-                      [class.opacity-30]="!item.get('selecionado')?.value"
-                      [readonly]="!item.get('selecionado')?.value"
+                      class="w-full px-3 py-1.5 bg-black border border-[#484847]/60 rounded text-[11px] text-white transition-colors focus:outline-none focus:border-[#00E5FF]"
+                      [class.opacity-30]="!item.controls.selecionado.value"
+                      [readonly]="!item.controls.selecionado.value"
                     />
                     <span
                       class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-[#6B7280] font-bold uppercase"
                     >
-                      {{ item.get('unidade')?.value }}
+                      {{ item.controls.unidade.value }}
                     </span>
                   </div>
                 </div>
@@ -111,17 +125,19 @@
       </div>
 
       <!-- Footer -->
-      <div class="px-6 py-4 border-t border-[#484847]/30 flex justify-end gap-3 bg-[#0E0E0E]">
+      <div
+        class="flex justify-end gap-3 px-6 py-4 bg-[#0E0E0E] border-t border-[#484847]/30"
+      >
         <button
-          (click)="onClose()"
-          class="px-5 py-2 border border-[#484847] text-[#ADAAAA] text-[10px] font-bold uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors rounded"
+          (click)="aoFechar()"
+          class="px-5 py-2 border border-[#484847] text-[#ADAAAA] text-[10px] font-bold uppercase tracking-widest rounded transition-colors hover:bg-[#1a1a1a] hover:text-white"
         >
           Cancelar
         </button>
         <button
-          (click)="onConfirm()"
-          [disabled]="form.invalid"
-          class="px-6 py-2 bg-[#00E5FF] text-black text-[10px] font-bold uppercase tracking-widest rounded transition-all hover:bg-[#00E5FF]/90 disabled:opacity-30 shadow-[0_0_15px_rgba(0,229,255,0.2)]"
+          (click)="aoConfirmar()"
+          [disabled]="formulario.invalid"
+          class="px-6 py-2 bg-[#00E5FF] text-black text-[10px] font-bold uppercase tracking-widest rounded shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all hover:bg-[#00E5FF]/90 disabled:opacity-30"
         >
           Realizar Pedido
         </button>

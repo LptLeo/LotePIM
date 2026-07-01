@@ -3,24 +3,30 @@ import { Dashboard } from './dashboard.js';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AuthService } from '../../core/services/auth.service.js';
 import { ConfiguracoesService } from '../../core/services/configuracoes.service.js';
-import { signal } from '@angular/core';
+import { signal, computed } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 describe('Dashboard', () => {
   let component: Dashboard;
   let fixture: ComponentFixture<Dashboard>;
-  let mockAuthService: any;
-  let mockConfigService: any;
+  let mockAuthService: Partial<AuthService>;
+  let mockConfigService: Partial<ConfiguracoesService>;
 
   beforeEach(async () => {
+    const settingsSignal = signal({
+      dashboard: {
+        lotesComparacao: 'mes' as const,
+        unidadesComparacao: 'mes' as const,
+        taxaAprovacaoAlvo: 95,
+      },
+    });
     mockAuthService = {
-      usuario: signal({ id: 1, nome: 'Teste' }),
+      usuario: signal({ id: 1, nome: 'Teste', perfil: 'gestor' }),
+      podeAbrirLote: computed(() => true),
     };
-
     mockConfigService = {
-      settings: signal({
-        dashboard: { lotesComparacao: 'mes', unidadesComparacao: 'mes', taxaAprovacaoAlvo: 95 },
-      }),
+      settings: settingsSignal,
+      dashboardSettings: computed(() => settingsSignal().dashboard),
     };
 
     await TestBed.configureTestingModule({
@@ -42,7 +48,7 @@ describe('Dashboard', () => {
   });
 
   it('deve retornar a classe CSS correta para o status', () => {
-    const css = component.getStatusClass('aprovado');
+    const css = component.obterClasseStatus('aprovado');
     expect(css).toContain('bg-[#506600]');
   });
 });

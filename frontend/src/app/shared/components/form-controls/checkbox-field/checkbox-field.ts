@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, input } from '@angular/core';
+import { ReactiveFormsModule, type FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-checkbox-field',
@@ -8,6 +8,6 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   templateUrl: './checkbox-field.html',
 })
 export class CheckboxFieldComponent {
-  @Input({ required: true }) label!: string;
-  @Input({ required: true }) control!: FormControl<boolean>;
+  label = input.required<string>();
+  control = input.required<FormControl<boolean>>();
 }

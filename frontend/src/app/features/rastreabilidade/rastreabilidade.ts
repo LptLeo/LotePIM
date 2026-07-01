@@ -1,15 +1,20 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { STATUS_CONFIG, type LoteStatus } from '../../shared/models/lote.models.js';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../environments/environment.js';
+import type { LoteStatus } from '../../shared/models/lote.models.js';
 import {
   PaginationComponent,
-  PaginationMeta,
+  type PaginationMeta,
 } from '../../shared/components/pagination/pagination.js';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
+
+import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component.js';
+import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component.js';
+import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component.js';
+
+// === INTERFACES ===
 
 export interface AutocompleteSugestao {
   id: number;
@@ -60,7 +65,11 @@ export interface ResultadoInsumo {
       data_producao: string;
       status: LoteStatus;
       operador_nome: string;
-      insumos_correspondentes: { nome: string; lote_interno: string; quantidade: number }[];
+      insumos_correspondentes: {
+        nome: string;
+        lote_interno: string;
+        quantidade: number;
+      }[];
     }[];
     meta: PaginationMeta;
   };
@@ -68,15 +77,10 @@ export interface ResultadoInsumo {
 
 export type ResultadoRastreabilidade = ResultadoLote | ResultadoInsumo;
 
-import { RastreabilidadeBuscaComponent } from './components/rastreabilidade-busca/rastreabilidade-busca.component.js';
-import { RastreabilidadeArvoreLoteComponent } from './components/rastreabilidade-arvore-lote/rastreabilidade-arvore-lote.component.js';
-import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilidade-arvore-recall/rastreabilidade-arvore-recall.component.js';
-
 @Component({
   selector: 'app-rastreabilidade',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RastreabilidadeBuscaComponent,
     RastreabilidadeArvoreLoteComponent,
@@ -87,22 +91,18 @@ import { RastreabilidadeArvoreRecallComponent } from './components/rastreabilida
   styleUrl: './rastreabilidade.css',
 })
 export class Rastreabilidade {
+  // === DEPENDÊNCIAS ===
   private http = inject(HttpClient);
 
-  // Search input state
-  termoBusca = signal('');
-  termoBuscaEfetuada = signal(''); // Dispara o rastreio real
-  mostrarDropdown = signal(false);
-  currentPage = signal(1);
+  // === ESTADO ===
+  public termoPesquisa = signal('');
+  private termoPesquisaEfetuado = signal('');
+  public mostrarDropdown = signal(false);
+  public paginaAtual = signal(1);
 
-  readonly STATUS_CONFIG = STATUS_CONFIG;
-
-  /**
-   * Resource para Autocomplete.
-   * Reage a mudanças no termo de busca digitado.
-   */
-  sugestoesResource = rxResource({
-    params: () => ({ q: this.termoBusca() }),
+  // === RECURSOS (rxResource) ===
+  private sugestoesResource = rxResource({
+    params: () => ({ q: this.termoPesquisa() }),
     stream: ({ params: resourceParams }) => {
       if (resourceParams.q.length < 2) return of([]);
       return this.http.get<AutocompleteSugestao[]>(
@@ -111,14 +111,10 @@ export class Rastreabilidade {
     },
   });
 
-  /**
-   * Resource para o Rastreio Real.
-   * Reage quando termoBuscaEfetuada ou currentPage mudam.
-   */
-  rastreioResource = rxResource({
+  private rastreioResource = rxResource({
     params: () => ({
-      termo: this.termoBuscaEfetuada(),
-      pagina: this.currentPage(),
+      termo: this.termoPesquisaEfetuado(),
+      pagina: this.paginaAtual(),
     }),
     stream: ({ params: resourceParams }) => {
       if (!resourceParams.termo) return of(null);
@@ -127,95 +123,91 @@ export class Rastreabilidade {
         .set('pagina', String(resourceParams.pagina))
         .set('limite', '10');
 
-      return this.http.get<ResultadoRastreabilidade>(`${environment.apiUrl}/rastreabilidade`, {
-        params,
-      });
+      return this.http.get<ResultadoRastreabilidade>(
+        `${environment.apiUrl}/rastreabilidade`,
+        { params },
+      );
     },
   });
 
-  // Derivações reativas
-  sugestoes = computed(() => this.sugestoesResource.value() || []);
-  buscandoSugestoes = computed(() => this.sugestoesResource.isLoading());
+  // === DERIVAÇÕES ===
+  public sugestoes = computed(() => this.sugestoesResource.value() || []);
+  public buscandoSugestoes = computed(() => this.sugestoesResource.isLoading());
 
-  resultado = computed(() => {
+  public resultado = computed(() => {
     if (this.rastreioResource.error()) return null;
     return this.rastreioResource.value();
   });
 
-  buscando = computed(() => this.rastreioResource.isLoading());
-  
-  erro = computed(() => {
-    const error = this.rastreioResource.error() as any;
-    if (!error) return null;
-    return error.error?.message || 'Nenhum resultado encontrado ou falha no servidor.';
-  });
-  modoResultado = computed(() => !!this.termoBuscaEfetuada());
+  public buscando = computed(() => this.rastreioResource.isLoading());
 
-  onInput(event: Event): void {
+  public erro = computed<string | null>(() => {
+    const error = this.rastreioResource.error();
+    if (!error) return null;
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || 'Nenhum resultado encontrado ou falha no servidor.';
+    }
+    if (error instanceof Error) return error.message;
+    return 'Nenhum resultado encontrado ou falha no servidor.';
+  });
+
+  public modoResultado = computed(() => !!this.termoPesquisaEfetuado());
+
+  public resultadoLote = computed(() => {
+    const r = this.resultado();
+    return r?.tipo === 'lote' ? r.resultado : null;
+  });
+
+  public resultadoInsumos = computed(() => {
+    const r = this.resultado();
+    return r?.tipo === 'insumo' ? r.resultado.itens : null;
+  });
+
+  public metaPaginacao = computed(() => {
+    const r = this.resultado();
+    return r?.tipo === 'insumo' ? r.resultado.meta : null;
+  });
+
+  // === MÉTODOS ===
+  public aoDigitar(event: Event): void {
     const v = (event.target as HTMLInputElement).value;
-    this.termoBusca.set(v);
+    this.termoPesquisa.set(v);
     this.mostrarDropdown.set(v.length >= 2);
   }
 
-  onFocus(): void {
-    if (this.termoBusca().length >= 2) {
+  public aoFocar(): void {
+    if (this.termoPesquisa().length >= 2) {
       this.mostrarDropdown.set(true);
     }
   }
 
-  selecionarSugestao(s: AutocompleteSugestao): void {
-    this.termoBusca.set(s.texto_exibicao);
-    this.mostrarDropdown.set(false);
-    this.buscar(s.texto_exibicao);
-  }
-
-  buscar(termo?: string): void {
-    const q = (termo ?? this.termoBusca()).trim();
-    if (!q) return;
-
-    this.currentPage.set(1);
-    this.termoBuscaEfetuada.set(q);
-  }
-
-  onPageChange(pagina: number): void {
-    this.currentPage.set(pagina);
-  }
-
-  novaBusca(): void {
-    this.termoBuscaEfetuada.set('');
-    this.termoBusca.set('');
-    this.currentPage.set(1);
-  }
-
-  fecharDropdown(): void {
+  public fecharDropdown(): void {
     setTimeout(() => {
       this.mostrarDropdown.set(false);
     }, 150);
   }
 
-  // Typed helpers (computed para máxima performance)
-  resultadoLote = computed(() => {
-    const r = this.resultado();
-    return r?.tipo === 'lote' ? r.resultado : null;
-  });
-
-  resultadoInsumos = computed(() => {
-    const r = this.resultado();
-    return r?.tipo === 'insumo' ? r.resultado.itens : null;
-  });
-
-  paginationMeta = computed(() => {
-    const r = this.resultado();
-    return r?.tipo === 'insumo' ? r.resultado.meta : null;
-  });
-
-  formatarData(data?: string | null): string {
-    if (!data) return '—';
-    const d = new Date(data);
-    return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth() + 1).toString().padStart(2, '0')}/${d.getUTCFullYear()}`;
+  public selecionarSugestao(s: AutocompleteSugestao): void {
+    this.termoPesquisa.set(s.texto_exibicao);
+    this.mostrarDropdown.set(false);
+    this.buscar(s.texto_exibicao);
   }
 
-  turnoLabel(turno: string): string {
-    return { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }[turno] ?? turno;
+  public buscar(termo?: string): void {
+    const q = (termo ?? this.termoPesquisa()).trim();
+    if (!q) return;
+
+    this.paginaAtual.set(1);
+    this.termoPesquisaEfetuado.set(q);
+  }
+
+  public aoMudarPagina(pagina: number): void {
+    this.paginaAtual.set(pagina);
+  }
+
+  public novaBusca(): void {
+    this.termoPesquisaEfetuado.set('');
+    this.termoPesquisa.set('');
+    this.paginaAtual.set(1);
   }
 }

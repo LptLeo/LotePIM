@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, Index, type Relation } from 'typeorm';
 
 import { EntidadeBase } from './base.entity.js';
-import type { MateriaPrima } from './MateriaPrima.js';
-import type { Usuario } from './Usuario.js';
+import { MateriaPrima } from './MateriaPrima.js';
+import { Usuario } from './Usuario.js';
 
 export enum Turno {
   MANHA = 'manha',
@@ -22,7 +22,7 @@ export enum InsumoEstoqueStatus {
  */
 @Entity('insumo_estoque')
 export class InsumoEstoque extends EntidadeBase {
-  @ManyToOne('MateriaPrima')
+  @ManyToOne(() => MateriaPrima)
   @JoinColumn({ name: 'materia_prima_id' })
   materiaPrima!: Relation<MateriaPrima>;
 
@@ -34,9 +34,9 @@ export class InsumoEstoque extends EntidadeBase {
   status!: InsumoEstoqueStatus;
 
   @Column({ type: 'text', nullable: true })
-  numero_lote_fornecedor!: string;
+  numero_lote_fornecedor!: string | null;
 
-  @Index({ unique: true })
+  @Index()
   @Column({ type: 'text', unique: true, nullable: false })
   numero_lote_interno!: string;
 
@@ -50,12 +50,12 @@ export class InsumoEstoque extends EntidadeBase {
   fornecedor!: string;
 
   @Column({ type: 'text', nullable: true })
-  codigo_interno!: string;
+  codigo_interno!: string | null;
 
   @Column({ type: 'enum', enum: Turno, nullable: false })
   turno!: Turno;
 
-  @ManyToOne('Usuario', 'entradas_estoque')
+  @ManyToOne(() => Usuario, (usuario) => usuario.entradas_estoque)
   @JoinColumn({ name: 'operador_id' })
   operador!: Relation<Usuario>;
 
@@ -63,7 +63,7 @@ export class InsumoEstoque extends EntidadeBase {
   data_validade!: Date | null;
 
   @Column({ type: 'text', nullable: true })
-  observacoes!: string;
+  observacoes!: string | null;
 
   @Index()
   @Column({

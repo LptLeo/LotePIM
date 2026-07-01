@@ -1,25 +1,30 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import { InspecaoService } from '../services/inspecao.service.js';
 import { getRequisitante } from '../utils/auth.utils.js';
+import { AppError } from '../errors/AppError.js';
+import { asyncHandler } from '../middlewares/asyncHandler.js';
 
-const service = new InspecaoService();
+export class InspecaoController {
+  constructor(private readonly inspecaoService: InspecaoService) {}
 
-export const registrar = async (req: Request, res: Response, next: NextFunction) => {
-  try {
+  registrar = asyncHandler(async (req: Request, res: Response) => {
     const loteId = Number(req.params.loteId);
-    const resultado = await service.registrar(loteId, req.body, getRequisitante(req));
+    if (isNaN(loteId)) throw new AppError('ID do lote inválido', 400);
+    const resultado = await this.inspecaoService.registrar({
+      loteId,
+      dto: req.body,
+      requisitante: getRequisitante(req),
+    });
     res.status(201).json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
 
-export const buscarPorLote = async (req: Request, res: Response, next: NextFunction) => {
-  try {
+  buscarPorLote = asyncHandler(async (req: Request, res: Response) => {
     const loteId = Number(req.params.loteId);
-    const resultado = await service.buscarPorLote(loteId, getRequisitante(req));
+    if (isNaN(loteId)) throw new AppError('ID do lote inválido', 400);
+    const resultado = await this.inspecaoService.buscarPorLote(
+      loteId,
+      getRequisitante(req),
+    );
     res.json(resultado);
-  } catch (e) {
-    next(e);
-  }
-};
+  });
+}

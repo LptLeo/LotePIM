@@ -1,11 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProdutosService, CriarProdutoPayload } from '../../services/produtos.service.js';
-import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
-import { finalize } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { WizardBaseComponent } from './components/wizard-base/wizard-base.component.js';
 import { WizardReceitaComponent } from './components/wizard-receita/wizard-receita.component.js';
@@ -13,42 +12,45 @@ import { WizardReceitaComponent } from './components/wizard-receita/wizard-recei
 @Component({
   selector: 'app-produto-novo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, WizardBaseComponent, WizardReceitaComponent],
+  imports: [ReactiveFormsModule, WizardBaseComponent, WizardReceitaComponent],
   templateUrl: './produto-novo.html',
 })
 export class ProdutoNovo {
+  // === DEPENDÊNCIAS ===
   private fb = inject(FormBuilder);
   private produtosService = inject(ProdutosService);
   private router = inject(Router);
 
-  /** Controle do wizard de 2 etapas */
-  etapaAtual = signal<1 | 2>(1);
+  // === ESTADO ===
+  public etapaAtual = signal<1 | 2>(1);
+  public salvando = signal(false);
+  public erro = signal<string | null>(null);
 
-  salvando = signal(false);
-  erro = signal<string | null>(null);
-
-  categoriasResource = rxResource({
-    stream: () => this.produtosService.getCategorias(),
+  // === RECURSOS ===
+  private categoriasResource = rxResource({
+    stream: () => this.produtosService.listarCategorias(),
   });
 
-  mpsResource = rxResource({
-    stream: () => this.produtosService.getMateriasPrimas(),
+  private mpsResource = rxResource({
+    stream: () => this.produtosService.listarMateriasPrimas(),
   });
 
-  categoriasExistentes = computed(() => this.categoriasResource.value() || []);
-  materiasPrimas = computed(() => this.mpsResource.value() || []);
+  public categoriasExistentes = computed(() => this.categoriasResource.value() || []);
+  public materiasPrimas = computed(() => this.mpsResource.value() || []);
 
-  // ─── Formulário da Etapa 1: Dados Base ───
-  formBase = this.fb.nonNullable.group({
+  // === FORMULÁRIOS ===
+  public formBase = this.fb.nonNullable.group({
     nome: ['', [Validators.required, Validators.minLength(2)]],
     categoria: ['', [Validators.required]],
     linha_padrao: ['Linha A', [Validators.required]],
-    percentual_ressalva: [10, [Validators.required, Validators.min(0), Validators.max(100)]],
+    percentual_ressalva: [
+      10,
+      [Validators.required, Validators.min(0), Validators.max(100)],
+    ],
     ativo: [true],
   });
 
-  /** SKU gerado automaticamente — preview apenas */
-  skuPreview = computed(() => {
+  public skuPreview = computed(() => {
     const nome = this.formBase.controls.nome.value;
     if (!nome || nome.length < 2) return 'PRD-...';
 
@@ -62,23 +64,21 @@ export class ProdutoNovo {
     return `PRD-${base}`;
   });
 
-  // ─── Formulário da Etapa 2: Receita ───
-  receitaArray = this.fb.array<FormGroup>([]);
+  public receitaArray = this.fb.array<FormGroup>([]);
 
-  /** Matérias-primas já adicionadas à receita (IDs) */
-  mpIdsNaReceita = computed(() => {
-    return this.receitaArray.controls.map((fg) => fg.get('materia_prima_id')?.value as number);
+  public mpIdsNaReceita = computed(() => {
+    return this.receitaArray.controls.map(
+      (fg) => fg.get('materia_prima_id')?.value as number,
+    );
   });
 
-  /** Matérias-primas disponíveis para adicionar (filtradas) */
-  mpDisponiveis = computed(() => {
+  public mpDisponiveis = computed(() => {
     const idsUsados = this.mpIdsNaReceita();
     return this.materiasPrimas().filter((mp) => !idsUsados.includes(mp.id));
   });
 
-  // ─── Navegação do Wizard ───
-
-  avancarEtapa(): void {
+  // === NAVEGAÇÃO DO WIZARD ===
+  public avancarEtapa(): void {
     if (this.formBase.invalid) {
       this.formBase.markAllAsTouched();
       return;
@@ -86,30 +86,26 @@ export class ProdutoNovo {
     this.etapaAtual.set(2);
   }
 
-  voltarEtapa(): void {
+  public voltarEtapa(): void {
     this.etapaAtual.set(1);
   }
 
-  // ─── Manipulação da Receita ───
-
-  adicionarItemReceita(materiaPrimaId: number): void {
+  // === MANIPULAÇÃO DA RECEITA ===
+  public adicionarItemReceita(materiaPrimaId: number): void {
     const mpId = Number(materiaPrimaId);
     if (!mpId) return;
 
-    // Verifica se já existe na receita
     const indexExistente = this.receitaArray.controls.findIndex(
       (c) => c.get('materia_prima_id')?.value === mpId,
     );
 
     if (indexExistente !== -1) {
-      // Já existe, aumenta a quantidade
       const control = this.receitaArray.controls[indexExistente];
       const qtdeAtual = Number(control.get('quantidade')?.value) || 0;
       control.get('quantidade')?.setValue(qtdeAtual + 1);
       return;
     }
 
-    // Se não existir, adiciona nova linha
     const mp = this.materiasPrimas().find((m) => m.id === mpId);
     if (!mp) return;
 
@@ -124,17 +120,16 @@ export class ProdutoNovo {
     );
   }
 
-  removerItemReceita(index: number): void {
+  public removerItemReceita(index: number): void {
     this.receitaArray.removeAt(index);
   }
 
-  // ─── Submit Final ───
-
-  voltarParaLista(): void {
+  // === SUBMIT ===
+  public voltarParaLista(): void {
     this.router.navigate(['/app/produtos']);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.formBase.invalid) {
       this.erro.set('Preencha todos os campos obrigatórios da base do produto.');
       return;
@@ -158,12 +153,17 @@ export class ProdutoNovo {
       })),
     };
 
-    this.produtosService
-      .criarProduto(payload)
-      .pipe(finalize(() => this.salvando.set(false)))
-      .subscribe({
-        next: () => this.router.navigate(['/app/produtos']),
-        error: (err) => this.erro.set(err.error?.message || 'Não foi possível salvar o produto.'),
-      });
+    try {
+      await lastValueFrom(this.produtosService.criar(payload));
+      this.router.navigate(['/app/produtos']);
+    } catch (err) {
+      this.erro.set(
+        err instanceof HttpErrorResponse
+          ? err.error?.message || 'Não foi possível salvar o produto.'
+          : 'Não foi possível salvar o produto.',
+      );
+    } finally {
+      this.salvando.set(false);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-metric-cards',
@@ -6,7 +6,8 @@ import { Component, Input } from '@angular/core';
   templateUrl: './metric-cards.component.html',
 })
 export class MetricCardsComponent {
-  @Input() totalRegistros!: number;
-  @Input() totalComSaldo!: number;
-  @Input() totalEsgotados!: number;
+  // === INPUTS ===
+  totalRegistros = input.required<number>();
+  totalComSaldo = input.required<number>();
+  totalEsgotados = input.required<number>();
 }

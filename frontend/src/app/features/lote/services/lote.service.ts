@@ -3,22 +3,19 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import type { LoteDetalhe } from '../../../shared/models/lote.models.js';
+import type {
+  LoteDetalhe,
+  CriarLoteDTO,
+  RegistrarInspecaoDTO,
+  Produto,
+  InsumoEstoque,
+} from '../../../shared/models/lote.models.js';
+import type { RespostaPaginada } from '../../../shared/models/pagination.models.js';
 
 const API_URL = environment.apiUrl;
 
 export interface LoteConfig {
   tempo_producao_minutos: number;
-}
-
-export interface RespostaPaginada<T> {
-  itens: T[];
-  meta: {
-    totalItens: number;
-    itensPorPagina: number;
-    totalPaginas: number;
-    paginaAtual: number;
-  };
 }
 
 @Injectable({
@@ -27,13 +24,11 @@ export interface RespostaPaginada<T> {
 export class LoteFeatureService {
   private http = inject(HttpClient);
 
-  getLoteById(id: number): Observable<LoteDetalhe> {
-    return this.http.get<LoteDetalhe>(`${API_URL}/lotes/${id}`);
-  }
-
-  getLotes(filtros?: Record<string, string | number>): Observable<RespostaPaginada<LoteDetalhe>> {
+  // === MÉTODOS PRIVADOS ===
+  private montarHttpParams(
+    filtros?: Record<string, string | number | boolean | null | undefined>,
+  ): HttpParams {
     let params = new HttpParams();
-
     if (filtros) {
       Object.entries(filtros).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -41,40 +36,53 @@ export class LoteFeatureService {
         }
       });
     }
+    return params;
+  }
 
+  // === CONSULTAS ===
+  public obterLotePorId(id: number): Observable<LoteDetalhe> {
+    return this.http.get<LoteDetalhe>(`${API_URL}/lotes/${id}`);
+  }
+
+  public listarLotes(
+    filtros?: Record<string, string | number | boolean | null | undefined>,
+  ): Observable<RespostaPaginada<LoteDetalhe>> {
+    const params = this.montarHttpParams(filtros);
     return this.http.get<RespostaPaginada<LoteDetalhe>>(`${API_URL}/lotes`, { params });
   }
 
-  getContagem(): Observable<Record<string, number>> {
+  public obterContagem(): Observable<Record<string, number>> {
     return this.http.get<Record<string, number>>(`${API_URL}/lotes/stats/contagem`);
   }
 
-  getProdutos(): Observable<any[]> {
+  public listarProdutos(): Observable<Produto[]> {
     return this.http
-      .get<RespostaPaginada<any>>(`${API_URL}/produtos`, {
+      .get<RespostaPaginada<Produto>>(`${API_URL}/produtos`, {
         params: { limite: 1000, status: 'com_insumos' },
       })
-      .pipe(map((res) => res.itens));
+      .pipe(map((res) => res.itens.filter((p) => p.ativo)));
   }
 
-  /** Busca o tempo de produção configurado no backend para cálculo da barra de progresso */
-  getConfig(): Observable<LoteConfig> {
+  public obterConfig(): Observable<LoteConfig> {
     return this.http.get<LoteConfig>(`${API_URL}/lotes/config`);
   }
 
-  /** Busca insumos em estoque filtrados por matérias-primas (IDs separados por vírgula) */
-  getInsumosDisponiveis(materiaPrimaIds: number[]): Observable<any[]> {
+  public obterInsumosDisponiveis(materiaPrimaIds: number[]): Observable<InsumoEstoque[]> {
     const params = new HttpParams().set('ids', materiaPrimaIds.join(','));
-    return this.http.get<any[]>(`${API_URL}/insumos-estoque/disponiveis`, { params });
+    return this.http.get<InsumoEstoque[]>(`${API_URL}/insumos-estoque/disponiveis`, {
+      params,
+    });
   }
 
-  /** Cria um novo lote com consumos inline (transação atômica no backend) */
-  createLote(loteDTO: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/lotes`, loteDTO);
+  // === COMANDOS ===
+  public criarLote(loteDTO: CriarLoteDTO): Observable<LoteDetalhe> {
+    return this.http.post<LoteDetalhe>(`${API_URL}/lotes`, loteDTO);
   }
 
-  /** Registra a inspeção do lote */
-  registrarInspecao(loteId: number, inspecao: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/lotes/${loteId}/inspecao`, inspecao);
+  public registrarInspecao(
+    loteId: number,
+    inspecao: RegistrarInspecaoDTO,
+  ): Observable<LoteDetalhe> {
+    return this.http.post<LoteDetalhe>(`${API_URL}/lotes/${loteId}/inspecao`, inspecao);
   }
 }

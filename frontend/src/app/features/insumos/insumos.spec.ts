@@ -4,21 +4,26 @@ import { InsumosService } from './services/insumos.service.js';
 import { AuthService } from '../../core/services/auth.service.js';
 import { of } from 'rxjs';
 import { signal } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('Insumos Component', () => {
   let component: Insumos;
   let fixture: ComponentFixture<Insumos>;
-  let mockInsumosService: any;
-  let mockAuthService: any;
+  let mockInsumosService: jest.Mocked<Partial<InsumosService>>;
+  let mockAuthService: Partial<AuthService>;
 
   beforeEach(async () => {
     mockInsumosService = {
-      getAll: jest.fn().mockReturnValue(of({ itens: [], meta: {} })),
-      getMateriasPrimasPaginado: jest.fn().mockReturnValue(of({ itens: [], meta: {} })),
-      getMateriasPrimas: jest.fn().mockReturnValue(of([])),
-      getCategoriasMateriasPrimas: jest.fn().mockReturnValue(of([])),
-      getContagem: jest.fn().mockReturnValue(of({ total: 0, comSaldo: 0, esgotados: 0 })),
+      listar: jest.fn().mockReturnValue(of({ itens: [], meta: {} })),
+      listarMateriasPrimasPaginado: jest
+        .fn()
+        .mockReturnValue(of({ itens: [], meta: {} })),
+      obterMateriasPrimas: jest.fn().mockReturnValue(of([])),
+      obterCategorias: jest.fn().mockReturnValue(of([])),
+      obterContagem: jest
+        .fn()
+        .mockReturnValue(of({ total: 0, comSaldo: 0, esgotados: 0 })),
     };
 
     mockAuthService = {
@@ -26,8 +31,10 @@ describe('Insumos Component', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [Insumos, HttpClientTestingModule],
+      imports: [Insumos],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: InsumosService, useValue: mockInsumosService },
         { provide: AuthService, useValue: mockAuthService },
       ],
@@ -42,23 +49,23 @@ describe('Insumos Component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve trocar a aba ativa ao chamar setAba', () => {
-    component.setAba('catalogo');
-    expect(component.abaAtiva()).toBe('catalogo');
-    expect(component.termoPesquisa()).toBe('');
+  it('deve trocar a aba ativa ao chamar definirAba e atualizar o estado', () => {
+    component.definirAba('catalogo');
+    expect(component.state.abaAtiva()).toBe('catalogo');
+    expect(component.state.termoPesquisa()).toBe('');
   });
 
-  it('deve limpar filtros de estoque no método dedicado', () => {
-    component.filtroEsgotado.set(true);
-    component.filtroFornecedor.set('Fornecedor XPTO');
-    component.ordenarPor.set('menor_estoque');
-    component.currentPageEstoque.set(3);
+  it('deve delegar a limpeza de filtros para o InsumosStateService', () => {
+    component.state.filtroEsgotado.set(true);
+    component.state.filtroFornecedor.set('Fornecedor XPTO');
+    component.state.ordenarPor.set('menor_estoque');
+    component.state.paginaAtualEstoque.set(3);
 
-    component.limparFiltrosEstoque();
+    component.state.limparFiltrosEstoque();
 
-    expect(component.filtroEsgotado()).toBe(false);
-    expect(component.filtroFornecedor()).toBe('');
-    expect(component.ordenarPor()).toBe('mais_recente');
-    expect(component.currentPageEstoque()).toBe(1);
+    expect(component.state.filtroEsgotado()).toBe(false);
+    expect(component.state.filtroFornecedor()).toBe('');
+    expect(component.state.ordenarPor()).toBe('mais_recente');
+    expect(component.state.paginaAtualEstoque()).toBe(1);
   });
 });

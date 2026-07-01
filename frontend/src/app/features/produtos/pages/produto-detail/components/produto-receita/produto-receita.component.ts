@@ -1,51 +1,56 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import type { Produto } from '../../../../../../shared/models/lote.models.js';
+import { Component, input, output } from '@angular/core';
+import type {
+  Produto,
+  ReceitaItem,
+  MateriaPrima,
+} from '../../../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-produto-receita',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './produto-receita.component.html',
 })
 export class ProdutoReceitaComponent {
-  @Input() produto!: Produto;
-  @Input() modoEdicao: boolean = false;
-  @Input() receitaEditada: any[] = [];
-  @Input() mpDisponiveis: any[] = [];
-  @Input() salvando: boolean = false;
+  // === INPUTS ===
+  public produto = input.required<Produto>();
+  public modoEdicao = input(false);
+  public receitaEditada = input<ReceitaItem[]>([]);
+  public mpDisponiveis = input<MateriaPrima[]>([]);
+  public salvando = input(false);
 
-  @Output() iniciarEdicao = new EventEmitter<void>();
-  @Output() cancelarEdicao = new EventEmitter<void>();
-  @Output() salvar = new EventEmitter<void>();
-  @Output() addMp = new EventEmitter<number>();
-  @Output() removeMp = new EventEmitter<number>();
-  @Output() updateQtd = new EventEmitter<{ index: number; qtd: string }>();
+  // === OUTPUTS ===
+  public iniciarEdicao = output<void>();
+  public cancelarEdicao = output<void>();
+  public salvar = output<void>();
+  public adicionarMp = output<number>();
+  public removerMp = output<number>();
+  public atualizarQtd = output<{ index: number; qtd: string }>();
 
-  onIniciarEdicao() {
+  // === MÉTODOS ===
+  public aoIniciarEdicao(): void {
     this.iniciarEdicao.emit();
   }
 
-  onCancelarEdicao() {
+  public aoCancelarEdicao(): void {
     this.cancelarEdicao.emit();
   }
 
-  onSalvar() {
+  public aoSalvar(): void {
     this.salvar.emit();
   }
 
-  onAddMp(idStr: string) {
+  public aoAdicionarMp(idStr: string): void {
     const id = Number(idStr);
     if (id) {
-      this.addMp.emit(id);
+      this.adicionarMp.emit(id);
     }
   }
 
-  onRemoveMp(index: number) {
-    this.removeMp.emit(index);
+  public aoRemoverMp(index: number): void {
+    this.removerMp.emit(index);
   }
 
-  onUpdateQtd(index: number, qtd: string) {
-    this.updateQtd.emit({ index, qtd });
+  public aoAtualizarQtd(index: number, qtd: string): void {
+    this.atualizarQtd.emit({ index, qtd });
   }
 }

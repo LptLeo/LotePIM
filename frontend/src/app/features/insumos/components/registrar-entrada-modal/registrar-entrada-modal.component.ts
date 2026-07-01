@@ -1,75 +1,104 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, inject, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
+import type { MateriaPrima } from '../../../../shared/models/lote.models.js';
+import type { RegistrarEntradaDTO, Turno } from '../../services/insumos.service.js';
 
 @Component({
   selector: 'app-registrar-entrada-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './registrar-entrada-modal.component.html',
 })
-export class RegistrarEntradaModalComponent implements OnInit {
+export class RegistrarEntradaModalComponent {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
   private fb = inject(FormBuilder);
 
-  @Input() isOpen = false;
-  @Input() salvando = false;
-  @Input() erro: string | null = null;
-  @Input() catalogo: any[] = [];
+  // === INPUTS ===
+  estaAberto = input<boolean>(false);
+  salvando = input<boolean>(false);
+  erro = input<string | null>(null);
+  catalogo = input<MateriaPrima[]>([]);
 
-  @Output() close = new EventEmitter<void>();
-  @Output() save = new EventEmitter<any>();
+  // === OUTPUTS ===
+  fechar = output<void>();
+  salvar = output<RegistrarEntradaDTO>();
 
-  private getTurnoAtual(): 'manha' | 'tarde' | 'noite' {
+  // === FORMULÁRIO ===
+  private obterTurnoAtual(): Turno {
     const hora = new Date().getHours();
     if (hora >= 6 && hora < 12) return 'manha';
     if (hora >= 12 && hora < 18) return 'tarde';
     return 'noite';
   }
 
-  formEstoque = this.fb.group({
+  formularioEstoque = this.fb.group({
     materia_prima_id: [null as number | null, Validators.required],
     numero_lote_fornecedor: ['', Validators.required],
     fornecedor: ['', Validators.required],
-    quantidade_inicial: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    quantidade_inicial: [
+      null as number | null,
+      [Validators.required, Validators.min(0.01)],
+    ],
     data_validade: [null as string | null],
     naoAplicaValidade: [false],
-    turno: [this.getTurnoAtual(), Validators.required],
+    turno: [this.obterTurnoAtual() as Turno, Validators.required],
   });
 
-  private mpIdSelecionado = toSignal(
-    this.formEstoque.controls.materia_prima_id.valueChanges.pipe(startWith(null)),
+  private idMateriaPrimaSelecionado = toSignal(
+    this.formularioEstoque.controls.materia_prima_id.valueChanges.pipe(startWith(null)),
   );
 
   unidadeSelecionada = computed(() => {
-    const mpId = Number(this.mpIdSelecionado());
-    if (!mpId) return '--';
-    const mp = this.catalogo.find((item) => item.id === mpId);
-    return mp ? mp.unidade_medida : '--';
+    const idMateriaPrima = Number(this.idMateriaPrimaSelecionado());
+    if (!idMateriaPrima) return '--';
+    const materiaPrima = this.catalogo().find((item) => item.id === idMateriaPrima);
+    return materiaPrima ? materiaPrima.unidade_medida : '--';
   });
 
-  ngOnInit() {
-    this.formEstoque.reset({ turno: this.getTurnoAtual(), naoAplicaValidade: false });
-  }
+  private dataValidadeValue = toSignal(
+    this.formularioEstoque.controls.data_validade.valueChanges.pipe(startWith(null)),
+  );
 
-  dataValidadeFormatada(): string {
-    const data = this.formEstoque.controls.data_validade.value;
-    if (!data) return 'DD/MM/AAAA';
-    const [ano, mes, dia] = data.split('-');
+  dataValidadeExibicao = computed(() => {
+    const valorData = this.dataValidadeValue();
+    if (!valorData) return 'DD/MM/AAAA';
+    const [ano, mes, dia] = valorData.split('-');
     return `${dia}/${mes}/${ano}`;
+  });
+
+  // === MÉTODOS PÚBLICOS ===
+  public aoFechar(): void {
+    this.formularioEstoque.reset({
+      turno: this.obterTurnoAtual(),
+      naoAplicaValidade: false,
+      materia_prima_id: null,
+      quantidade_inicial: null,
+      data_validade: null,
+    });
+    this.fechar.emit();
   }
 
-  onClose() {
-    this.close.emit();
+  public aoSalvar(): void {
+    if (this.formularioEstoque.invalid) return;
+
+    const valoresFormulario = this.formularioEstoque.getRawValue();
+    const payload: RegistrarEntradaDTO = {
+      materia_prima_id: valoresFormulario.materia_prima_id!,
+      numero_lote_fornecedor: valoresFormulario.numero_lote_fornecedor ?? '',
+      fornecedor: valoresFormulario.fornecedor ?? '',
+      quantidade_inicial: valoresFormulario.quantidade_inicial!,
+      turno: valoresFormulario.turno as Turno,
+      naoAplicaValidade: valoresFormulario.naoAplicaValidade ?? false,
+      data_validade: valoresFormulario.data_validade,
+    };
+
+    this.salvar.emit(payload);
+    this.aoFechar();
   }
 
-  onSave() {
-    if (this.formEstoque.invalid) return;
-    this.save.emit(this.formEstoque.getRawValue());
-  }
-
-  resetQuantidade() {
-    this.formEstoque.controls.quantidade_inicial.setValue(null);
+  public limparQuantidade(): void {
+    this.formularioEstoque.controls.quantidade_inicial.setValue(null);
   }
 }

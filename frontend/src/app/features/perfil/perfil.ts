@@ -1,118 +1,118 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { NgIf, DatePipe } from '@angular/common';
+import { Component, inject, signal, computed, effect } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
 import {
   UsuarioService,
-  UsuarioPerfil,
-  UsuarioStats,
+  type UsuarioPerfil,
+  type UsuarioStats,
 } from '../../core/services/usuario.service.js';
 import { AuthService } from '../../core/services/auth.service.js';
-import { forkJoin, finalize } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+
+interface DadosPerfilCarregados {
+  perfil: UsuarioPerfil;
+  stats: UsuarioStats;
+}
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [NgIf, DatePipe, PageHeaderComponent, ReactiveFormsModule],
+  imports: [DatePipe, PageHeaderComponent, ReactiveFormsModule],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
-export class Perfil implements OnInit {
+export class Perfil {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
+
   private usuarioService = inject(UsuarioService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
-  perfil = signal<UsuarioPerfil | null>(null);
-  stats = signal<UsuarioStats | null>(null);
-  loading = signal(true);
+  // === ESTADO DOS DADOS ===
 
-  isOperador = computed(() => this.perfil()?.perfil === 'operador');
-  isInspetor = computed(() => this.perfil()?.perfil === 'inspetor');
-  isGestor = computed(() => this.perfil()?.perfil === 'gestor');
+  private dadosPerfil = signal<DadosPerfilCarregados | null>(null);
+  public estaCarregando = signal(true);
+  public perfil = computed(() => this.dadosPerfil()?.perfil ?? null);
+  public stats = computed(() => this.dadosPerfil()?.stats ?? null);
 
-  // Estados de edição
-  isEditingPerfil = signal(false);
-  isEditingSenha = signal(false);
-  salvandoPerfil = signal(false);
-  salvandoSenha = signal(false);
+  // === PERFIS DE ACESSO ===
 
-  erroPerfil = signal<string | null>(null);
-  sucessoPerfil = signal<string | null>(null);
-  erroSenha = signal<string | null>(null);
-  sucessoSenha = signal<string | null>(null);
+  public ehOperador = computed(() => this.perfil()?.perfil === 'operador');
+  public ehInspetor = computed(() => this.perfil()?.perfil === 'inspetor');
+  public ehGestor = computed(() => this.perfil()?.perfil === 'gestor');
 
-  formPerfil = this.fb.nonNullable.group({
+  // === ESTADOS DE EDIÇÃO ===
+
+  public editandoPerfil = signal(false);
+  public editandoSenha = signal(false);
+  public salvandoPerfil = signal(false);
+  public salvandoSenha = signal(false);
+  public erroPerfil = signal<string | null>(null);
+  public sucessoPerfil = signal<string | null>(null);
+  public erroSenha = signal<string | null>(null);
+  public sucessoSenha = signal<string | null>(null);
+
+  // === FORMULÁRIOS ===
+
+  public formPerfil = this.fb.nonNullable.group({
     nome: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
   });
 
-  formSenha = this.fb.nonNullable.group({
+  public formSenha = this.fb.nonNullable.group({
     senha_atual: ['', [Validators.required, Validators.minLength(8)]],
     nova_senha: ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  ngOnInit() {
-    this.carregarDados();
+  // === INICIALIZAÇÃO ===
+
+  constructor() {
+    this.carregarPerfil();
+
+    effect(() => {
+      const perfil = this.perfil();
+      if (perfil && !this.editandoPerfil()) {
+        this.formPerfil.patchValue({
+          nome: perfil.nome,
+          email: perfil.email,
+        });
+      }
+    });
   }
 
-  carregarDados() {
-    this.loading.set(true);
-    const user = this.authService.usuario();
-    if (user?.id) {
-      forkJoin({
-        perfil: this.usuarioService.getPerfil(user.id),
-        stats: this.usuarioService.getStats(user.id),
-      }).subscribe({
-        next: (res) => {
-          this.perfil.set(res.perfil);
-          this.stats.set(res.stats);
+  // === MÉTODOS PÚBLICOS ===
 
-          this.formPerfil.patchValue({
-            nome: res.perfil.nome,
-            email: res.perfil.email,
-          });
-
-          this.loading.set(false);
-        },
-        error: (err) => {
-          console.error('Erro ao carregar perfil', err);
-          this.loading.set(false);
-        },
-      });
-    }
-  }
-
-  toggleEditPerfil() {
+  public alternarEdicaoPerfil(): void {
     this.erroPerfil.set(null);
     this.sucessoPerfil.set(null);
-    if (this.isEditingPerfil()) {
-      // Cancela edição
-      this.isEditingPerfil.set(false);
-      const current = this.perfil();
-      if (current) {
-        this.formPerfil.patchValue({ nome: current.nome, email: current.email });
+    if (this.editandoPerfil()) {
+      this.editandoPerfil.set(false);
+      const perfilAtual = this.perfil();
+      if (perfilAtual) {
+        this.formPerfil.patchValue({ nome: perfilAtual.nome, email: perfilAtual.email });
       }
     } else {
-      this.isEditingPerfil.set(true);
+      this.editandoPerfil.set(true);
     }
   }
 
-  toggleEditSenha() {
+  public alternarEdicaoSenha(): void {
     this.erroSenha.set(null);
     this.sucessoSenha.set(null);
-    if (this.isEditingSenha()) {
-      // Cancela edição
-      this.isEditingSenha.set(false);
+    if (this.editandoSenha()) {
+      this.editandoSenha.set(false);
       this.formSenha.reset();
     } else {
-      this.isEditingSenha.set(true);
+      this.editandoSenha.set(true);
     }
   }
 
-  salvarPerfil() {
+  public async salvarPerfil(): Promise<void> {
     if (this.formPerfil.invalid) return;
-    const currentUserId = this.authService.usuario()?.id;
-    if (!currentUserId) return;
+    const idUsuarioAtual = this.authService.usuario()?.id;
+    if (!idUsuarioAtual) return;
 
     this.salvandoPerfil.set(true);
     this.erroPerfil.set(null);
@@ -120,31 +120,22 @@ export class Perfil implements OnInit {
 
     const payload = this.formPerfil.getRawValue();
 
-    this.usuarioService
-      .updatePerfil(currentUserId, payload)
-      .pipe(finalize(() => this.salvandoPerfil.set(false)))
-      .subscribe({
-        next: (atualizado) => {
-          this.perfil.set(atualizado);
-          this.isEditingPerfil.set(false);
-          this.sucessoPerfil.set('Perfil atualizado com sucesso.');
-
-          // Atualiza a visualização do header atualizando o sinal local no authService se aplicável
-          // Como o authService apenas tem o payload básico decodificado do JWT, uma alteração de nome/email
-          // não refletirá no Header até o próximo login (pois o JWT precisaria ser renovado).
-          // Para forçar a renovação local (se a API suportar) precisaria chamar o refresh ou relogar,
-          // mas vamos apenas exibir o sucesso para o usuário.
-        },
-        error: (err) => {
-          this.erroPerfil.set(err.error?.message || 'Falha ao atualizar o perfil.');
-        },
-      });
+    try {
+      await lastValueFrom(this.usuarioService.updatePerfil(idUsuarioAtual, payload));
+      await this.carregarPerfil();
+      this.editandoPerfil.set(false);
+      this.sucessoPerfil.set('Perfil atualizado com sucesso.');
+    } catch (err) {
+      this.erroPerfil.set(this.obterMensagemErro(err, 'Falha ao atualizar o perfil.'));
+    } finally {
+      this.salvandoPerfil.set(false);
+    }
   }
 
-  salvarSenha() {
+  public async salvarSenha(): Promise<void> {
     if (this.formSenha.invalid) return;
-    const currentUserId = this.authService.usuario()?.id;
-    if (!currentUserId) return;
+    const idUsuarioAtual = this.authService.usuario()?.id;
+    if (!idUsuarioAtual) return;
 
     this.salvandoSenha.set(true);
     this.erroSenha.set(null);
@@ -152,18 +143,41 @@ export class Perfil implements OnInit {
 
     const payload = this.formSenha.getRawValue();
 
-    this.usuarioService
-      .updateSenha(currentUserId, payload)
-      .pipe(finalize(() => this.salvandoSenha.set(false)))
-      .subscribe({
-        next: () => {
-          this.isEditingSenha.set(false);
-          this.formSenha.reset();
-          this.sucessoSenha.set('Senha alterada com sucesso.');
-        },
-        error: (err) => {
-          this.erroSenha.set(err.error?.message || 'Falha ao alterar a senha.');
-        },
-      });
+    try {
+      await lastValueFrom(this.usuarioService.updateSenha(idUsuarioAtual, payload));
+      this.editandoSenha.set(false);
+      this.formSenha.reset();
+      this.sucessoSenha.set('Senha alterada com sucesso.');
+    } catch (err) {
+      this.erroSenha.set(this.obterMensagemErro(err, 'Falha ao alterar a senha.'));
+    } finally {
+      this.salvandoSenha.set(false);
+    }
+  }
+
+  // === MÉTODOS PRIVADOS ===
+
+  private obterMensagemErro(err: unknown, mensagemPadrao: string): string {
+    return err instanceof HttpErrorResponse
+      ? err.error?.message || mensagemPadrao
+      : mensagemPadrao;
+  }
+
+  private async carregarPerfil(): Promise<void> {
+    const id = this.authService.usuario()?.id;
+    if (!id) return;
+
+    this.estaCarregando.set(true);
+    try {
+      const [perfil, stats] = await Promise.all([
+        lastValueFrom(this.usuarioService.getPerfil(id)),
+        lastValueFrom(this.usuarioService.getStats(id)),
+      ]);
+      this.dadosPerfil.set({ perfil, stats });
+    } catch {
+      this.dadosPerfil.set(null);
+    } finally {
+      this.estaCarregando.set(false);
+    }
   }
 }

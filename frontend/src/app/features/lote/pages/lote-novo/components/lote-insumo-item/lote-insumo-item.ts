@@ -1,18 +1,15 @@
-import { Component, Input, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, input } from '@angular/core';
+import { ReactiveFormsModule, type FormGroup } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
 import type { InsumoEstoque } from '../../../../../../shared/models/lote.models.js';
 
 @Component({
   selector: 'app-lote-insumo-item',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DecimalPipe],
   templateUrl: './lote-insumo-item.html',
 })
 export class LoteInsumoItemComponent {
-  /** O FormGroup que representa este item no FormArray */
   formGroup = input.required<FormGroup>();
-
-  /** Lista de lotes de insumo disponíveis para esta matéria-prima */
   insumosDisponiveis = input<InsumoEstoque[]>([]);
 }

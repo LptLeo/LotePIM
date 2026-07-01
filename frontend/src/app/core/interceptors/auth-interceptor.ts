@@ -18,7 +18,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       // Caso a conta tenha sido desativada (Backend retorna 403 neste caso específico)
-      if (error.status === 403 && error.error?.message?.toLowerCase().includes('desativada')) {
+      if (
+        error.status === 403 &&
+        error.error?.message?.toLowerCase().includes('desativada')
+      ) {
         authService.logout();
         router.navigate(['/login'], { queryParams: { motivo: 'desativado' } });
         return throwError(() => error);

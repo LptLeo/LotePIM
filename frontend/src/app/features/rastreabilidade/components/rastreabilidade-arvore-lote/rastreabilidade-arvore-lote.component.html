@@ -1,6 +1,6 @@
 <div class="flex flex-col items-center gap-0">
   <!-- Nó Raiz: Lote de Produto -->
-  <div @treeRoot class="w-full max-w-2xl">
+  <div class="tree-root w-full max-w-2xl">
     <div
       class="node-glow bg-[#131313] border-2 border-[#00E5FF]/60 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,229,255,0.1)] transition-all"
     >
@@ -29,24 +29,26 @@
               Lote de Produção · Nó Raiz
             </div>
             <div class="text-xl font-bold text-white font-mono">
-              {{ resultadoLote.numero_lote }}
+              {{ resultadoLote().numero_lote }}
             </div>
           </div>
         </div>
         <span
           class="text-[10px] font-bold uppercase px-3 py-1 rounded-lg border"
-          [style.color]="STATUS_CONFIG[resultadoLote.status].cor"
-          [style.background]="STATUS_CONFIG[resultadoLote.status].corBg"
-          [style.border-color]="STATUS_CONFIG[resultadoLote.status].corBorda"
+          [style.color]="STATUS_CONFIG[resultadoLote().status].cor"
+          [style.background]="STATUS_CONFIG[resultadoLote().status].corBg"
+          [style.border-color]="STATUS_CONFIG[resultadoLote().status].corBorda"
         >
-          {{ STATUS_CONFIG[resultadoLote.status].label }}
+          {{ STATUS_CONFIG[resultadoLote().status].label }}
         </span>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="flex flex-col">
-          <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider">Produto</span>
+          <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider"
+            >Produto</span
+          >
           <span class="text-sm font-medium text-white mt-0.5">{{
-            resultadoLote.produto.nome
+            resultadoLote().produto.nome
           }}</span>
         </div>
         <div class="flex flex-col">
@@ -54,13 +56,15 @@
             >Data Produção</span
           >
           <span class="text-sm font-medium text-white mt-0.5">{{
-            formatarData(resultadoLote.data_producao)
+            formatarData(resultadoLote().data_producao)
           }}</span>
         </div>
         <div class="flex flex-col">
-          <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider">Operador</span>
+          <span class="text-[9px] uppercase font-bold text-[#6B7280] tracking-wider"
+            >Operador</span
+          >
           <span class="text-sm font-medium text-white mt-0.5">{{
-            resultadoLote.operador.nome
+            resultadoLote().operador.nome
           }}</span>
         </div>
         <div class="flex flex-col">
@@ -68,11 +72,11 @@
             >Qtd. Planejada</span
           >
           <span class="text-sm font-bold text-[#00E5FF] mt-0.5"
-            >{{ resultadoLote.quantidade_planejada }} un.</span
+            >{{ resultadoLote().quantidade_planejada }} un.</span
           >
         </div>
       </div>
-      @if (resultadoLote.inspecao) {
+      @if (resultadoLote().inspecao; as inspecao) {
         <div class="mt-4 pt-4 border-t border-[#484847]/30 flex items-center gap-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -90,10 +94,10 @@
           </svg>
           <span class="text-[11px] text-[#ADAAAA]"
             >Inspeção por
-            <span class="text-white font-medium">{{ resultadoLote.inspecao.inspetor.nome }}</span> ·
-            Reprovadas:
+            <span class="text-white font-medium">{{ inspecao.inspetor.nome }}</span>
+            · Reprovadas:
             <span class="text-red-400 font-bold">{{
-              resultadoLote.inspecao.quantidade_reprovada
+              inspecao.quantidade_reprovada
             }}</span></span
           >
         </div>
@@ -102,19 +106,24 @@
   </div>
 
   <!-- Conector vertical -->
-  @if (resultadoLote.consumos.length > 0) {
-    <div @lineGrow class="w-px h-12 bg-gradient-to-b from-[#00E5FF]/40 to-[#00E5FF]/10"></div>
+  @if (resultadoLote().consumos.length > 0) {
+    <div
+      class="line-grow w-px h-12 bg-gradient-to-b from-[#00E5FF]/40 to-[#00E5FF]/10"
+    ></div>
 
     <!-- Label -->
-    <div @fadeScale class="text-[9px] font-bold uppercase tracking-[2px] text-[#00E5FF]/60 mb-3">
-      {{ resultadoLote.consumos.length }} Insumo(s) Consumido(s)
+    <div
+      class="fade-scale text-[9px] font-bold uppercase tracking-[2px] text-[#00E5FF]/60 mb-3"
+    >
+      {{ resultadoLote().consumos.length }} Insumo(s) Consumido(s)
     </div>
 
     <!-- Nós filhos: Insumos -->
-    <div @treeChildren class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6 w-full">
-      @for (consumo of resultadoLote.consumos; track consumo.id) {
+    <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6 w-full">
+      @for (consumo of resultadoLote().consumos; track consumo.id; let i = $index) {
         <div
-          class="node-glow bg-[#131313] border border-[#484847]/50 hover:border-[#00E5FF]/40 rounded-xl p-5 transition-all relative"
+          class="tree-child node-glow bg-[#131313] border border-[#484847]/50 hover:border-[#00E5FF]/40 rounded-xl p-5 transition-all relative"
+          [style.animation-delay.ms]="i * 80"
         >
           <div
             class="absolute -top-3 left-4 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#0A0A0A] border border-[#484847]/40 text-[#6B7280]"
@@ -161,7 +170,9 @@
               <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider"
                 >Fornecedor</span
               >
-              <span class="text-[11px] text-[#ADAAAA]">{{ consumo.insumoEstoque.fornecedor }}</span>
+              <span class="text-[11px] text-[#ADAAAA]">{{
+                consumo.insumoEstoque.fornecedor
+              }}</span>
             </div>
             <div class="flex justify-between items-center">
               <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider"
@@ -171,7 +182,9 @@
                 consumo.insumoEstoque.operador?.nome || '—'
               }}</span>
             </div>
-            <div class="flex justify-between items-center pt-2 border-t border-[#484847]/20">
+            <div
+              class="flex justify-between items-center pt-2 border-t border-[#484847]/20"
+            >
               <span class="text-[9px] text-[#6B7280] uppercase font-bold tracking-wider"
                 >Qtd. Consumida</span
               >

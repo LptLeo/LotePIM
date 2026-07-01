@@ -32,7 +32,11 @@
     >
       <div class="flex items-start">
         <div class="bg-[#81ECFF]/10 p-2 mr-auto">
-          <img class="w-[18.03px] h-[18.51px]" src="assets/icons/lotes-prod-icon.svg" alt="" />
+          <img
+            class="w-[18.03px] h-[18.51px]"
+            src="assets/icons/lotes-prod-icon.svg"
+            alt=""
+          />
         </div>
         <p
           class="font-bold text-[11.2px] leading-[16.8px] tracking-[0px]"
@@ -44,7 +48,9 @@
         </p>
       </div>
       <div>
-        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3 uppercase">
+        <h4
+          class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3 uppercase"
+        >
           {{ lotesLabel() }}
         </h4>
       </div>
@@ -54,7 +60,9 @@
         </span>
       </div>
       <div>
-        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
+        <span
+          class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]"
+        >
           {{ lotesSublabel() }}
         </span>
       </div>
@@ -64,7 +72,11 @@
     >
       <div class="flex items-start">
         <div class="bg-[#81ECFF]/10 p-2 mr-auto">
-          <img class="w-[18.03px] h-[18.51px]" src="assets/icons/products-prod-icon.svg" alt="" />
+          <img
+            class="w-[18.03px] h-[18.51px]"
+            src="assets/icons/products-prod-icon.svg"
+            alt=""
+          />
         </div>
         <p
           class="font-bold text-[11.2px] leading-[16.8px] tracking-[0px]"
@@ -76,7 +88,9 @@
         </p>
       </div>
       <div>
-        <h4 class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3 uppercase">
+        <h4
+          class="text-[10.4px] leading-[15.6px] tracking-[1.04px] text-[#ADAAAA] mt-3 uppercase"
+        >
           {{ unidadesLabel() }}
         </h4>
       </div>
@@ -86,7 +100,9 @@
         </span>
       </div>
       <div>
-        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
+        <span
+          class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]"
+        >
           {{ unidadesSublabel() }}
         </span>
       </div>
@@ -94,7 +110,9 @@
     <div
       class="flex flex-col gap-[7px] bg-[#1A1919] p-6 border-b-2 rounded-[4px] order-4 lg:order-3 col-span-2 lg:col-span-1"
       [style.border-color]="
-        taxaDeAprovacaoMes() >= taxaAlvo() ? 'rgba(195, 244, 0, 0.2)' : 'rgba(255, 113, 108, 0.2)'
+        taxaDeAprovacaoMes() >= taxaAprovacaoAlvo()
+          ? 'rgba(195, 244, 0, 0.2)'
+          : 'rgba(255, 113, 108, 0.2)'
       "
     >
       <div class="flex items-start">
@@ -109,7 +127,9 @@
         </div>
       </div>
       <div>
-        <h4 class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]">
+        <h4
+          class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF] my-[9px]"
+        >
           {{ taxaDeAprovacaoMes() }}%
         </h4>
       </div>
@@ -117,15 +137,18 @@
         <div
           class="h-full rounded-l-[12px]"
           [style.width.%]="taxaDeAprovacaoMes()"
-          [style.background-color]="taxaDeAprovacaoMes() >= taxaAlvo() ? '#C3F400' : '#FF716C'"
+          [style.background-color]="
+            taxaDeAprovacaoMes() >= taxaAprovacaoAlvo() ? '#C3F400' : '#FF716C'
+          "
         ></div>
       </div>
       <div>
         <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA]">
           {{
-            taxaDeAprovacaoMes() >= taxaAlvo()
+            taxaDeAprovacaoMes() >= taxaAprovacaoAlvo()
               ? 'Acima da meta configurada'
-              : 'Abaixo da meta configurada'
+              : 'Abaixo da
+          meta configurada'
           }}
         </span>
       </div>
@@ -135,7 +158,11 @@
     >
       <div class="flex items-start">
         <div class="bg-[#FF716C]/10 p-2 mr-auto">
-          <img class="w-[18.03px] h-[18.51px]" src="assets/icons/inspection-icon.svg" alt="" />
+          <img
+            class="w-[18.03px] h-[18.51px]"
+            src="assets/icons/inspection-icon.svg"
+            alt=""
+          />
         </div>
         <div class="w-2 h-2 bg-[#FF716C] rounded-full"></div>
       </div>
@@ -146,18 +173,22 @@
       </div>
       <div>
         <span class="font-bold text-[30px] leading-[36px] tracking-[0px] text-[#FFFFFF]">
-          {{ lotesEmAberto() }}
+          {{ aguardandoInspecao() }}
         </span>
       </div>
       <div>
-        <span class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]">
+        <span
+          class="text-[10.4px] leading-[15.6px] tracking-[0px] text-[#ADAAAA] mt-[3px]"
+        >
           Aguardando aprovação
         </span>
       </div>
     </div>
   </section>
   <section class="w-full rounded-sm mb-20 lg:mb-0">
-    <div class="flex justify-between items-center px-4 md:px-6 py-4 bg-[#201F1F]/50 rounded-t-sm">
+    <div
+      class="flex justify-between items-center px-4 md:px-6 py-4 bg-[#201F1F]/50 rounded-t-sm"
+    >
       <h5
         class="font-bold text-[12px] leading-[18px] tracking-[1.2px] text-[#FFFFFF] lg:text-[#81ECFF]"
       >
@@ -206,14 +237,17 @@
                 {{ lote.aberto_em | date: 'HH:mm:ss' }}
               </td>
               <td class="px-6 py-4 text-right w-[19.49%] flex justify-end items-center">
-                <div [class]="getStatusClass(lote.status)">
-                  {{ formatStatus(lote.status) }}
+                <div [class]="obterClasseStatus(lote.status)">
+                  {{ formatarStatus(lote.status) }}
                 </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="px-6 py-10 text-center text-[#ADAAAA] text-[14px] w-full">
+              <td
+                colspan="5"
+                class="px-6 py-10 text-center text-[#ADAAAA] text-[14px] w-full"
+              >
                 Nenhum lote encontrado no sistema.
               </td>
             </tr>
@@ -238,8 +272,8 @@
             <span class="text-[12px] text-[#ADAAAA] mt-1">{{ lote.produto.nome }}</span>
           </div>
           <div class="flex items-center gap-3 w-1/2 justify-end">
-            <div [class]="getStatusClass(lote.status) + ' text-right shrink-0'">
-              {{ formatStatus(lote.status) }}
+            <div [class]="obterClasseStatus(lote.status) + ' text-right shrink-0'">
+              {{ formatarStatus(lote.status) }}
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -249,7 +283,11 @@
               stroke="#ADAAAA"
               class="w-4 h-4 flex-shrink-0"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+              />
             </svg>
           </div>
         </div>

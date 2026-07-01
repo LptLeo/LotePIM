@@ -1,5 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { AuthService } from './auth.service.js';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
@@ -8,20 +12,21 @@ import { SseClientService } from './sse-client.service.js';
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
-  let routerSpy: any;
-  let sseClientSpy: any;
+  let routerSpy: { navigate: jest.Mock };
+  let sseClientSpy: { iniciar: jest.Mock; fechar: jest.Mock };
 
   beforeEach(() => {
     routerSpy = { navigate: jest.fn() };
     sseClientSpy = { iniciar: jest.fn(), fechar: jest.fn() };
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
         AuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: Router, useValue: routerSpy },
-        { provide: SseClientService, useValue: sseClientSpy }
-      ]
+        { provide: SseClientService, useValue: sseClientSpy },
+      ],
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -42,7 +47,7 @@ describe('AuthService', () => {
 
   it('deve limpar a sessao e fechar SSE no logoutLocal', () => {
     service.setSessao('token', { id: 1, nome: 'Teste', perfil: 'operador' });
-    
+
     service.logoutLocal();
 
     expect(service.tokenAcesso()).toBe('');

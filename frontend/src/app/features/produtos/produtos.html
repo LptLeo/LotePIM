@@ -3,24 +3,6 @@
 >
   <!-- Header -->
   <app-page-header title="Gestão de Produtos" subtitle="Catálogo e Configurações Base">
-    <div
-      badge
-      class="flex items-center gap-2 px-2 py-0.5 rounded-full bg-[#DFFF00]/10 border border-[#DFFF00]/20 w-fit"
-    >
-      <div class="flex items-center gap-1.5 border-r border-[#DFFF00]/20 pr-2 mr-1">
-        <span class="relative flex h-1.5 w-1.5">
-          <span
-            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DFFF00] opacity-75"
-          ></span>
-          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#DFFF00]"></span>
-        </span>
-        <span class="text-[8px] font-black text-[#DFFF00] uppercase tracking-widest">Live</span>
-      </div>
-      <span class="text-[8px] font-bold text-[#ADAAAA] uppercase tracking-widest"
-        >Sinc: {{ ultimaAtualizacao() }}</span
-      >
-    </div>
-
     <div actions class="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">
       <div
         class="flex items-center bg-[#131313] border border-[#484847]/30 rounded-lg px-4 py-2 w-full lg:w-64"
@@ -42,7 +24,7 @@
         <input
           type="text"
           [value]="termoPesquisa()"
-          (input)="onSearch($event)"
+          (input)="aoPesquisar($event)"
           placeholder="Buscar código, nome..."
           class="bg-transparent text-[11px] text-white focus:outline-none w-full placeholder:text-[#484847]"
         />
@@ -93,39 +75,39 @@
       class="flex overflow-x-auto whitespace-nowrap gap-6 md:gap-8 pb-1 min-[1440px]:pb-0 w-full min-[1440px]:w-auto"
     >
       <app-produto-filter-button
-        value="todos"
-        label="Todos"
-        [count]="metrics().total"
-        [active]="filtroAtivo() === 'todos'"
-        (action)="aplicarFiltroTab($event)"
+        [valor]="'todos'"
+        [rotulo]="'Todos'"
+        [contagem]="metrics().total"
+        [ativo]="filtroAtivo() === 'todos'"
+        (acao)="aplicarFiltroTab($event)"
       >
       </app-produto-filter-button>
 
       <app-produto-filter-button
-        value="ativos"
-        label="Ativos"
-        [count]="metrics().ativos"
-        [active]="filtroAtivo() === 'ativos'"
-        (action)="aplicarFiltroTab($event)"
+        [valor]="'ativos'"
+        [rotulo]="'Ativos'"
+        [contagem]="metrics().ativos"
+        [ativo]="filtroAtivo() === 'ativos'"
+        (acao)="aplicarFiltroTab($event)"
       >
       </app-produto-filter-button>
 
       <app-produto-filter-button
-        value="inativos"
-        label="Inativos"
-        [count]="metrics().inativos"
-        [active]="filtroAtivo() === 'inativos'"
-        (action)="aplicarFiltroTab($event)"
+        [valor]="'inativos'"
+        [rotulo]="'Inativos'"
+        [contagem]="metrics().inativos"
+        [ativo]="filtroAtivo() === 'inativos'"
+        (acao)="aplicarFiltroTab($event)"
       >
       </app-produto-filter-button>
 
       <app-produto-filter-button
-        value="sem_insumos"
-        label="Sem Insumos"
-        [count]="metrics().sem_insumos"
-        [active]="filtroAtivo() === 'sem_insumos'"
-        [isWarning]="true"
-        (action)="aplicarFiltroTab($event)"
+        [valor]="'sem_insumos'"
+        [rotulo]="'Sem Insumos'"
+        [contagem]="metrics().sem_insumos"
+        [ativo]="filtroAtivo() === 'sem_insumos'"
+        [ehAlerta]="true"
+        (acao)="aplicarFiltroTab($event)"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -151,7 +133,7 @@
       <!-- Ordenação -->
       <select
         [value]="ordenacao()"
-        (change)="onOrdenacaoChange($event)"
+        (change)="aoMudarOrdenacao($event)"
         class="w-full bg-[#131313] border border-[#484847]/60 rounded px-3 py-1.5 text-[11px] font-bold text-[#ADAAAA] focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer uppercase"
       >
         <option value="mais_recentes">Mais recentes</option>
@@ -168,7 +150,7 @@
       @if (linhasPadrao().length > 0) {
         <select
           [value]="linhaFiltro()"
-          (change)="onLinhaChange($event)"
+          (change)="aoMudarLinha($event)"
           class="w-full min-[1440px]:max-w-[150px] bg-[#131313] border border-[#484847]/60 rounded px-3 py-1.5 text-[11px] font-bold text-[#ADAAAA] focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer uppercase truncate"
         >
           <option value="todas">Todas as Linhas</option>
@@ -182,7 +164,7 @@
       @if (categoriasExistentes().length > 0) {
         <select
           [value]="categoriaFiltro()"
-          (change)="onCategoriaChange($event)"
+          (change)="aoMudarCategoria($event)"
           class="w-full min-[1440px]:max-w-[150px] bg-[#131313] border border-[#484847]/60 rounded px-3 py-1.5 text-[11px] font-bold text-[#ADAAAA] focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer uppercase truncate"
         >
           <option value="todas">Todas as Categorias</option>
@@ -227,13 +209,19 @@
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       @for (prod of produtos(); track prod.id) {
-        <app-produto-card [prod]="prod" (cardClick)="irParaDetalhe($event)"></app-produto-card>
+        <app-produto-card
+          [produto]="prod"
+          (cliqueCartao)="irParaDetalhe($event)"
+        ></app-produto-card>
       }
     </div>
 
-    @if (paginationMeta(); as meta) {
+    @if (metaPaginacao(); as meta) {
       @if (meta.totalPaginas > 1) {
-        <app-pagination [meta]="meta" (pageChange)="onPageChange($event)"></app-pagination>
+        <app-pagination
+          [meta]="meta"
+          (pageChange)="aoMudarPagina($event)"
+        ></app-pagination>
       }
     }
   }

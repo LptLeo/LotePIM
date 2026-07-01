@@ -2,7 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service.js';
 import { Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { lastValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -10,58 +11,53 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-
 export class Login {
+  // === INJEÇÃO DE DEPENDÊNCIAS ===
+
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
-  errorMessage = signal('');
-  isLoading = signal(false);
+  // === ESTADO ===
 
-  loginForm = this.fb.nonNullable.group({
+  public mensagemErro = signal('');
+  public estaCarregando = signal(false);
+
+  // === FORMULÁRIO ===
+
+  public loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(8)]]
-  })
+    senha: ['', [Validators.required, Validators.minLength(8)]],
+  });
 
-  constructor() {
-    this.loginForm.valueChanges
-      .pipe(takeUntilDestroyed()) // Evita vazamento de memória, cancelando a inscrição quando o componente for destruído.
-      .subscribe(() => this.errorMessage.set('')); // Limpa a mensagem de erro sempre que o usuário digitar algo no formulário.
-  }
+  // === AUTENTICAÇÃO ===
 
-  login(): void {
-    if (this.loginForm.invalid) return; // Para o usuário não apertar Enter e tentar logar mesmo com o botão desabilitado.
+  public async login(): Promise<void> {
+    if (this.loginForm.invalid) return;
 
-    this.isLoading.set(true);
-    this.errorMessage.set('');
+    this.estaCarregando.set(true);
+    this.mensagemErro.set('');
 
-    const { email, senha } = this.loginForm.getRawValue();
-    const credentials = { email, senha };
+    try {
+      const credenciais = this.loginForm.getRawValue();
+      await lastValueFrom(this.authService.login(credenciais));
+      this.loginForm.reset();
+      this.router.navigate(['/app/dashboard']);
+    } catch (err) {
+      const erroHttp = err instanceof HttpErrorResponse ? err : null;
+      const status = erroHttp?.status;
 
-    this.authService.login(credentials).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.loginForm.reset();
-        this.router.navigate(['/app/dashboard']);
-      },
+      if (status === 0) {
+        this.mensagemErro.set(
+          'Erro de conexão. Verifique sua internet ou se o servidor está online.',
+        );
+      } else {
+        const msg = erroHttp?.error?.message;
 
-      error: (err) => {
-        this.isLoading.set(false);
-
-        if (err.status === 0) {
-          this.errorMessage.set('Erro de conexão. Verifique sua internet ou se o servidor está online.');
-          return;
-        }
-
-        const mensagemDoBackend = err.error?.message;
-
-        if (mensagemDoBackend) {
-          this.errorMessage.set(mensagemDoBackend);
-        } else {
-          this.errorMessage.set('Ocorreu um erro inesperado ao fazer login.');
-        }
+        this.mensagemErro.set(msg || 'Ocorreu um erro inesperado ao fazer login.');
       }
-    });
+    } finally {
+      this.estaCarregando.set(false);
+    }
   }
 }

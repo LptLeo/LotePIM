@@ -1,4 +1,9 @@
-import { PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Column } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Column,
+} from 'typeorm';
 
 /**
  * Classe base para todas as entidades do sistema.

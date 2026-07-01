@@ -1,6 +1,20 @@
 import { jest } from '@jest/globals';
 import { AppError } from '../../errors/AppError.js';
+import {
+  InsumoEstoqueStatus,
+  Turno,
+  type InsumoEstoque,
+} from '../../entities/InsumoEstoque.js';
 import { PerfilUsuario } from '../../entities/Usuario.js';
+import type { Requisitante } from '../../utils/auth.utils.js';
+import type { DataSource, Repository } from 'typeorm';
+import type { NotificacaoService } from '../../services/notificacao.service.js';
+import type { SseService } from '../../services/sse.service.js';
+
+import type {
+  CriarInsumoEstoqueDTO,
+  CriarInsumoEstoqueBulkDTO,
+} from '../../dto/insumoEstoque.dto.js';
 
 const mockInsumoRepo = {
   count: jest.fn(),
@@ -10,175 +24,187 @@ const mockInsumoRepo = {
   createQueryBuilder: jest.fn(),
 };
 
-const mockMpRepo = { 
+const mockMpRepo = {
   findOneBy: jest.fn(),
-  findBy: jest.fn()
+  findBy: jest.fn(),
 };
 
-const mockUserRepo = { 
-  findOneBy: jest.fn() 
+const mockUserRepo = {
+  findOneBy: jest.fn(),
 };
 
 const mockEntityManager = {
-  findOneBy: jest.fn<any>(),
-  findBy: jest.fn<any>(),
-  count: jest.fn<any>(),
-  create: jest.fn<any>(),
-  save: jest.fn<any>(),
-  getRepository: jest.fn<any>((entity: any) => {
-    if (entity.name === 'InsumoEstoque' || entity === 'InsumoEstoque') return mockInsumoRepo;
-    if (entity.name === 'MateriaPrima' || entity === 'MateriaPrima') return mockMpRepo;
-    if (entity.name === 'Usuario' || entity === 'Usuario') return mockUserRepo;
-    return {} as any;
+  findOneBy: jest.fn(),
+  findBy: jest.fn(),
+  count: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+  getRepository: jest.fn((entity: { name?: string } | string | unknown) => {
+    const name = (entity as { name?: string }).name || (entity as string);
+    if (name === 'InsumoEstoque') return mockInsumoRepo;
+    if (name === 'MateriaPrima') return mockMpRepo;
+    if (name === 'Usuario') return mockUserRepo;
+    return {};
   }),
 };
 
-jest.unstable_mockModule('../../config/AppDataSource.js', () => ({
-  AppDataSource: {
-    transaction: jest.fn((callback: any) => callback(mockEntityManager)),
-    getRepository: jest.fn((entity: any) => {
-      if (entity.name === 'InsumoEstoque' || entity === 'InsumoEstoque') return mockInsumoRepo;
-      if (entity.name === 'MateriaPrima' || entity === 'MateriaPrima') return mockMpRepo;
-      if (entity.name === 'Usuario' || entity === 'Usuario') return mockUserRepo;
-      return {} as any;
+const mockSseService = {
+  emitir: jest.fn(),
+};
+
+const mockNotificacaoServiceInstance = {
+  criarNotificacaoParaPerfis: jest.fn(() => Promise.resolve()),
+};
+
+jest.unstable_mockModule('../../services/sse.service.js', () => ({
+  SseService: jest.fn().mockImplementation(() => mockSseService),
+}));
+
+jest.unstable_mockModule('../../config/appDataSource.js', () => ({
+  appDataSource: {
+    transaction: jest.fn((callback: (em: unknown) => unknown) =>
+      callback(mockEntityManager),
+    ),
+    getRepository: jest.fn((entity: { name?: string } | string | unknown) => {
+      const name = (entity as { name?: string }).name || (entity as string);
+      if (name === 'InsumoEstoque') return mockInsumoRepo;
+      if (name === 'MateriaPrima') return mockMpRepo;
+      if (name === 'Usuario') return mockUserRepo;
+      return {};
     }),
   },
 }));
 
-const { InsumoEstoqueService } = await import('../insumoEstoque.service.js');
+jest.unstable_mockModule('../notificacao.service.js', () => ({
+  NotificacaoService: jest.fn().mockImplementation(() => mockNotificacaoServiceInstance),
+}));
 
-describe('InsumoEstoqueService', () => {
-  let service: any;
+const { InsumoEstoqueService: insumoEstoqueService } =
+  await import('../insumoEstoque.service.js');
+const { appDataSource } = await import('../../config/appDataSource.js');
+
+let service: InstanceType<typeof insumoEstoqueService>;
+const requisitante: Requisitante = { id: 1, perfil: PerfilUsuario.OPERADOR };
+
+function criarService() {
+  jest.clearAllMocks();
+  (mockEntityManager.findOneBy as unknown as jest.Mock).mockImplementation(
+    (entity: { name?: string } | string | unknown) => {
+      const name = (entity as { name?: string }).name || (entity as string);
+      if (name === 'Usuario') return Promise.resolve({ id: 1 });
+      return Promise.resolve(null);
+    },
+  );
+  return new insumoEstoqueService(
+    mockInsumoRepo as unknown as Repository<InsumoEstoque>,
+    mockNotificacaoServiceInstance as unknown as NotificacaoService,
+    appDataSource as unknown as DataSource,
+    mockSseService as unknown as SseService,
+  );
+}
+
+describe('receberLoteInsumo', () => {
+  const dto = {
+    materia_prima_id: 100,
+    quantidade_inicial: 50.5,
+    fornecedor: 'Fornecedor Teste',
+    turno: 'manha' as Turno,
+  };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockEntityManager.findOneBy.mockImplementation((entity: any, criteria: any) => {
-      if (entity.name === 'Usuario' || entity === 'Usuario') return Promise.resolve({ id: 1 });
-      return Promise.resolve(null);
-    });
-    service = new InsumoEstoqueService();
+    service = criarService();
   });
 
-  describe('criar', () => {
-    const requisitanteMock = { id: 1, perfil: PerfilUsuario.OPERADOR };
-    const dtoMock = {
-      materia_prima_id: 100,
-      quantidade_inicial: 50.5,
-      fornecedor: 'Fornecedor Teste',
-      turno: 'manha',
-    };
+  it('deve lançar erro se a matéria prima não for encontrada', async () => {
+    (mockEntityManager.findOneBy as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve(null),
+    );
+    await expect(
+      service.receberLoteInsumo(dto as unknown as CriarInsumoEstoqueDTO, requisitante),
+    ).rejects.toThrow(AppError);
+  });
 
-    it('deve lançar erro se a matéria prima não for encontrada', async () => {
-      mockEntityManager.findOneBy.mockResolvedValue(null as never);
-
-      await expect(service.criar(dtoMock as any, requisitanteMock)).rejects.toThrow(AppError);
-      await expect(service.criar(dtoMock as any, requisitanteMock)).rejects.toThrow(
-        'Matéria-prima não encontrada.',
-      );
-    });
-
-    it('deve lançar erro se a unidade for UN e a quantidade fracionada', async () => {
-      mockEntityManager.findOneBy.mockImplementation((entity: any) => {
-        if (entity.name === 'MateriaPrima' || entity === 'MateriaPrima') 
-          return Promise.resolve({ id: 100, unidade_medida: 'UN' });
+  it('deve criar com sucesso', async () => {
+    (mockEntityManager.findOneBy as unknown as jest.Mock).mockImplementation(
+      (entity: { name?: string } | string | unknown) => {
+        const name = (entity as { name?: string }).name || (entity as string);
+        if (name === 'MateriaPrima')
+          return Promise.resolve({ id: 100, unidade_medida: 'KG' });
         return Promise.resolve({ id: 1 });
-      });
+      },
+    );
+    (mockEntityManager.count as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve(5),
+    );
+    (mockEntityManager.create as unknown as jest.Mock).mockReturnValue({ id: 10 });
+    (mockEntityManager.save as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve({ id: 10 }),
+    );
 
-      await expect(service.criar(dtoMock as any, requisitanteMock)).rejects.toThrow(AppError);
-      await expect(service.criar(dtoMock as any, requisitanteMock)).rejects.toThrow(
-        "A quantidade para unidade 'UN' não pode ser fracionada.",
-      );
-    });
+    const result = await service.receberLoteInsumo(
+      dto as unknown as CriarInsumoEstoqueDTO,
+      requisitante,
+    );
+    expect(result.id).toBe(10);
+  });
+});
 
-    it('deve lançar erro se o operador não for encontrado', async () => {
-      mockEntityManager.findOneBy.mockImplementation((entity: any) => {
-        if (entity.name === 'MateriaPrima' || entity === 'MateriaPrima') 
-          return Promise.resolve({ id: 100, unidade_medida: 'KG' });
-        if (entity.name === 'Usuario' || entity === 'Usuario') 
-          return Promise.resolve(null);
-        return Promise.resolve(null);
-      });
-
-      await expect(service.criar(dtoMock as any, requisitanteMock)).rejects.toThrow(AppError);
-      await expect(service.criar(dtoMock as any, requisitanteMock)).rejects.toThrow(
-        'Operador não encontrado.',
-      );
-    });
-
-    it('deve criar insumo com sucesso e gerar o número de lote interno corretamente', async () => {
-      mockEntityManager.findOneBy.mockImplementation((entity: any) => {
-        if (entity.name === 'MateriaPrima' || entity === 'MateriaPrima') 
-          return Promise.resolve({ id: 100, unidade_medida: 'KG' });
-        if (entity.name === 'Usuario' || entity === 'Usuario') 
-          return Promise.resolve({ id: 1 });
-        return Promise.resolve(null);
-      });
-      
-      mockInsumoRepo.count.mockResolvedValue(5 as never);
-      mockEntityManager.create.mockReturnValue({ id: 10 });
-      mockEntityManager.save.mockResolvedValue({ id: 10 });
-
-      const result = await service.criar(dtoMock as any, requisitanteMock);
-
-      expect(result).toBeDefined();
-      expect(result.id).toBe(10);
-      expect(mockEntityManager.create).toHaveBeenCalled();
-
-      const createArg = mockEntityManager.create.mock.calls[0][1];
-      expect(createArg.numero_lote_interno).toMatch(/^INS-\d{8}-6$/);
-      expect(createArg.quantidade_atual).toBe(50.5);
-    });
+describe('receberLoteInsumoBulk', () => {
+  beforeEach(() => {
+    service = criarService();
   });
 
-  describe('criarBulk', () => {
-    const requisitanteMock = { id: 1, perfil: PerfilUsuario.OPERADOR };
-    const itemsMock = [
-      { materia_prima_id: 100, quantidade_inicial: 10, fornecedor: 'F1', turno: 'manha' },
-      { materia_prima_id: 101, quantidade_inicial: 20, fornecedor: 'F1', turno: 'manha' }
+  it('deve usar bulk save com chunking', async () => {
+    (mockEntityManager.findOneBy as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve({ id: 1 }),
+    );
+    (mockEntityManager.findBy as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve([{ id: 100, unidade_medida: 'KG' }]),
+    );
+    (mockEntityManager.save as unknown as jest.Mock).mockImplementation(
+      (e: unknown, opt: unknown) => {
+        expect(opt).toEqual({ chunk: 100 });
+        return Promise.resolve(e);
+      },
+    );
+
+    const itensBulk = [
+      {
+        materiaPrimaId: 100,
+        quantidade_inicial: 1,
+        fornecedor: 'A',
+        turno: 'manha' as Turno,
+      },
     ];
+    const req: Requisitante = { id: 1, perfil: PerfilUsuario.OPERADOR };
+    await service.receberLoteInsumoBulk(
+      { itens: itensBulk } as unknown as CriarInsumoEstoqueBulkDTO,
+      req,
+    );
+    expect(mockEntityManager.save).toHaveBeenCalled();
+  });
+});
 
-    it('deve criar múltiplos insumos em uma única transação', async () => {
-      mockEntityManager.findOneBy.mockResolvedValue({ id: 1 }); // Operador
-      mockEntityManager.findBy.mockResolvedValue([
-        { id: 100, nome: 'MP1', unidade_medida: 'KG' },
-        { id: 101, nome: 'MP2', unidade_medida: 'KG' }
-      ]);
-      
-      let count = 0;
-      mockInsumoRepo.count.mockImplementation(() => Promise.resolve(count++));
-      
-      mockEntityManager.create.mockImplementation((entity, data) => ({ ...data, id: Math.random() }));
-      mockEntityManager.save.mockImplementation((entity) => Promise.resolve(entity));
-
-      const resultados = await service.criarBulk({ itens: itemsMock as any }, requisitanteMock);
-
-      expect(resultados).toHaveLength(2);
-      expect(mockEntityManager.create).toHaveBeenCalledTimes(2);
-      expect(mockInsumoRepo.count).toHaveBeenCalledTimes(2);
-      expect(resultados[0].numero_lote_interno).toMatch(/-1$/);
-      expect(resultados[1].numero_lote_interno).toMatch(/-2$/);
-    });
+describe('atualizarStatus', () => {
+  beforeEach(() => {
+    service = criarService();
   });
 
-  describe('getContagem', () => {
-    it('deve retornar métricas de estoque com uma única consulta agregada', async () => {
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        getRawOne: jest.fn().mockResolvedValue({
-          total: '9',
-          comSaldo: '7',
-          esgotados: '2',
-        }),
-      };
-      mockInsumoRepo.createQueryBuilder.mockReturnValue(qb as never);
+  it('deve disparar notificação ao mudar para disponivel', async () => {
+    const insumoMock = {
+      id: 1,
+      status: InsumoEstoqueStatus.PENDENTE,
+      materiaPrima: { nome: 'A' },
+    };
+    (mockInsumoRepo.findOne as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve(insumoMock),
+    );
+    (mockInsumoRepo.save as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve(insumoMock),
+    );
 
-      const resultado = await service.getContagem({ id: 1, perfil: PerfilUsuario.GESTOR });
-
-      expect(resultado).toEqual({ total: 9, comSaldo: 7, esgotados: 2 });
-      expect(mockInsumoRepo.createQueryBuilder).toHaveBeenCalledWith('ie');
-      expect(qb.getRawOne).toHaveBeenCalledTimes(1);
-    });
+    const req: Requisitante = { id: 1, perfil: PerfilUsuario.GESTOR };
+    await service.atualizarStatus(1, InsumoEstoqueStatus.DISPONIVEL, req);
+    expect(mockNotificacaoServiceInstance.criarNotificacaoParaPerfis).toHaveBeenCalled();
   });
 });

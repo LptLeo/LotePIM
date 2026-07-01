@@ -1,10 +1,15 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProdutosService } from '../../services/produtos.service.js';
-import { Produto } from '../../../../shared/models/lote.models.js';
-import { finalize } from 'rxjs';
+import type {
+  Produto,
+  ReceitaItem,
+  MateriaPrima,
+} from '../../../../shared/models/lote.models.js';
+import { lastValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service.js';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 
 import { ProdutoInfoCardsComponent } from './components/produto-info-cards/produto-info-cards.component.js';
 import { ProdutoReceitaComponent } from './components/produto-receita/produto-receita.component.js';
@@ -12,188 +17,182 @@ import { ProdutoReceitaComponent } from './components/produto-receita/produto-re
 @Component({
   selector: 'app-produto-detail',
   standalone: true,
-  imports: [CommonModule, ProdutoInfoCardsComponent, ProdutoReceitaComponent],
+  imports: [ProdutoInfoCardsComponent, ProdutoReceitaComponent],
   templateUrl: './produto-detail.html',
 })
-export class ProdutoDetail implements OnInit {
+export class ProdutoDetail {
+  // === DEPENDÊNCIAS ===
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private produtosService = inject(ProdutosService);
   private authService = inject(AuthService);
 
-  produto = signal<Produto | null>(null);
-  carregando = signal<boolean>(true);
-  erro = signal<string | null>(null);
+  // === ROTA ===
+  private params = toSignal(this.route.paramMap);
+  private produtoId = computed(() => Number(this.params()?.get('id')));
 
-  materiasPrimas = signal<any[]>([]);
-  modoEdicaoReceita = signal<boolean>(false);
-  receitaEditada = signal<any[]>([]);
-  salvandoReceita = signal<boolean>(false);
-  alterandoStatus = signal<boolean>(false);
+  // === RECURSOS ===
+  public produtoResource = rxResource<Produto, { id: number }>({
+    params: () => ({ id: this.produtoId() }),
+    stream: ({ params }) => this.produtosService.buscarPorId(params.id),
+  });
 
-  isGestor = computed(() => this.authService.usuario()?.perfil === 'gestor');
+  public materiasResource = rxResource<MateriaPrima[], void>({
+    stream: () => this.produtosService.listarMateriasPrimas(),
+  });
 
-  mpDisponiveis = computed(() => {
-    const idsUsados = this.receitaEditada().map((r: any) => r.materiaPrima.id);
+  // === DERIVAÇÕES ===
+  public produto = computed(() => this.produtoResource.value() ?? null);
+  public carregando = computed(() => this.produtoResource.isLoading());
+  public erro = computed<string | null>(() =>
+    this.produtoResource.error()
+      ? 'Não foi possível carregar os detalhes do produto. Ele pode não existir ou o servidor está offline.'
+      : null,
+  );
+  public materiasPrimas = computed(() => this.materiasResource.value() ?? []);
+
+  // === ESTADO LOCAL ===
+  public modoEdicaoReceita = signal(false);
+  public receitaEditada = signal<ReceitaItem[]>([]);
+  public salvandoReceita = signal(false);
+  public alterandoStatus = signal(false);
+  public erroReceita = signal<string | null>(null);
+  public confirmacaoPendente = signal<'ativar' | 'desativar' | null>(null);
+
+  public ehGestor = computed(() => this.authService.usuario()?.perfil === 'gestor');
+
+  public mpDisponiveis = computed<MateriaPrima[]>(() => {
+    const idsUsados = this.receitaEditada().map((r) => r.materiaPrima.id);
     return this.materiasPrimas().filter((mp) => !idsUsados.includes(mp.id));
   });
 
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.carregarProduto(Number(id));
-      this.carregarMateriasPrimas();
-    } else {
-      this.erro.set('ID do produto não informado.');
-      this.carregando.set(false);
-    }
-  }
-
-  carregarMateriasPrimas(): void {
-    this.produtosService.getMateriasPrimas().subscribe({
-      next: (mps) => this.materiasPrimas.set(mps),
-      error: (e) => console.error('Erro ao carregar matérias-primas', e),
+  constructor() {
+    effect(() => {
+      const prod = this.produto();
+      if (prod && !this.modoEdicaoReceita()) {
+        this.receitaEditada.set(structuredClone(prod.receita ?? []));
+      }
     });
   }
 
-  carregarProduto(id: number): void {
-    this.carregando.set(true);
-    this.erro.set(null);
-
-    this.produtosService
-      .getProdutoById(id)
-      .pipe(finalize(() => this.carregando.set(false)))
-      .subscribe({
-        next: (data) => {
-          this.produto.set(data);
-          // Inicializa o estado de edição com uma cópia profunda da receita
-          this.receitaEditada.set(JSON.parse(JSON.stringify(data.receita || [])));
-        },
-        error: (err) => {
-          console.error('Erro ao carregar produto:', err);
-          this.erro.set(
-            'Não foi possível carregar os detalhes do produto. Ele pode não existir ou o servidor está offline.',
-          );
-        },
-      });
-  }
-
-  iniciarEdicaoReceita(): void {
+  // === MÉTODOS DE EDIÇÃO ===
+  public iniciarEdicaoReceita(): void {
+    const prod = this.produto();
+    if (prod) {
+      this.receitaEditada.set(structuredClone(prod.receita ?? []));
+    }
+    this.erroReceita.set(null);
     this.modoEdicaoReceita.set(true);
-    const prod = this.produto();
-    if (prod) {
-      this.receitaEditada.set(JSON.parse(JSON.stringify(prod.receita || [])));
-    }
   }
 
-  cancelarEdicaoReceita(): void {
+  public cancelarEdicaoReceita(): void {
     this.modoEdicaoReceita.set(false);
+    this.erroReceita.set(null);
     const prod = this.produto();
     if (prod) {
-      this.receitaEditada.set(JSON.parse(JSON.stringify(prod.receita || [])));
+      this.receitaEditada.set(structuredClone(prod.receita ?? []));
     }
   }
 
-  adicionarMateriaPrima(mpId: number): void {
-    const mp = this.materiasPrimas().find((m) => m.id === Number(mpId));
+  public adicionarMateriaPrima(mpId: number): void {
+    const mp = this.materiasPrimas().find((m) => m.id === mpId);
     if (!mp) return;
 
-    this.receitaEditada.update((receita) => {
-      return [
-        ...receita,
-        {
-          id: 0, // novo item
-          materiaPrima: mp,
-          quantidade: 1,
-          unidade: mp.unidade_medida,
-        },
-      ];
-    });
+    this.receitaEditada.update((receita) => [
+      ...receita,
+      { id: 0, materiaPrima: mp, quantidade: 1, unidade: mp.unidade_medida },
+    ]);
   }
 
-  removerItemReceita(index: number): void {
-    this.receitaEditada.update((receita) => {
-      const nova = [...receita];
-      nova.splice(index, 1);
-      return nova;
-    });
+  public removerItemReceita(index: number): void {
+    this.receitaEditada.update((receita) => receita.filter((_, i) => i !== index));
   }
 
-  atualizarQuantidade(index: number, novaQtd: string): void {
+  public atualizarQuantidade(index: number, novaQtd: string): void {
     const qtd = Number(novaQtd);
     if (isNaN(qtd) || qtd <= 0) return;
 
     this.receitaEditada.update((receita) => {
       const nova = [...receita];
-      nova[index].quantidade = qtd;
+      nova[index] = { ...nova[index], quantidade: qtd };
       return nova;
     });
   }
 
-  salvarReceita(): void {
+  async salvarReceita(): Promise<void> {
     const prod = this.produto();
     if (!prod) return;
 
     this.salvandoReceita.set(true);
+    this.erroReceita.set(null);
+
     const payload = this.receitaEditada().map((item) => ({
       materia_prima_id: item.materiaPrima.id,
       quantidade: item.quantidade,
       unidade: item.unidade,
     }));
 
-    this.produtosService
-      .atualizarReceita(prod.id, payload)
-      .pipe(finalize(() => this.salvandoReceita.set(false)))
-      .subscribe({
-        next: (atualizado) => {
-          this.produto.set(atualizado);
-          this.receitaEditada.set(JSON.parse(JSON.stringify(atualizado.receita || [])));
-          this.modoEdicaoReceita.set(false);
-        },
-        error: (err) => {
-          console.error('Erro ao salvar receita:', err);
-
-          let errorMsg = err.error?.message || 'Erro ao salvar a receita.';
-
-          if (err.error?.details && Array.isArray(err.error.details)) {
-            const details = err.error.details.map((d: any) => d.mensagem).join('\n');
-            if (details) {
-              errorMsg += `\n\nDetalhes:\n${details}`;
-            }
-          }
-
-          alert(errorMsg);
-          // O modo de edição NÃO é fechado se der erro, permitindo que o usuário conserte e salve de novo.
-        },
-      });
+    try {
+      await lastValueFrom(this.produtosService.atualizarReceita(prod.id, payload));
+      this.modoEdicaoReceita.set(false);
+      this.produtoResource.reload();
+    } catch (err) {
+      this.erroReceita.set(this.formatarErroReceita(err));
+    } finally {
+      this.salvandoReceita.set(false);
+    }
   }
 
-  voltarParaLista(): void {
+  private formatarErroReceita(err: unknown): string {
+    let msg =
+      err instanceof HttpErrorResponse
+        ? err.error?.message || 'Erro ao salvar a receita.'
+        : 'Erro ao salvar a receita.';
+    if (
+      err instanceof HttpErrorResponse &&
+      err.error?.details &&
+      Array.isArray(err.error.details)
+    ) {
+      const detalhes = (err.error.details as { mensagem: string }[])
+        .map((d) => d.mensagem)
+        .join(' • ');
+      if (detalhes) msg += ` — ${detalhes}`;
+    }
+    return msg;
+  }
+
+  public voltarParaLista(): void {
     this.router.navigate(['/app/produtos']);
   }
 
-  alternarStatus(): void {
+  public solicitarAlternanciaStatus(): void {
+    const prod = this.produto();
+    if (!prod) return;
+    this.confirmacaoPendente.set(prod.ativo ? 'desativar' : 'ativar');
+  }
+
+  public cancelarAlternanciaStatus(): void {
+    this.confirmacaoPendente.set(null);
+  }
+
+  async confirmarAlternanciaStatus(): Promise<void> {
     const prod = this.produto();
     if (!prod) return;
 
-    const acao = prod.ativo ? 'desativar' : 'ativar';
-    const confirmado = window.confirm(`Tem certeza que deseja ${acao} o produto "${prod.nome}"?`);
-    if (!confirmado) return;
-
+    this.confirmacaoPendente.set(null);
     this.alterandoStatus.set(true);
-    const novoStatus = !prod.ativo;
 
-    this.produtosService
-      .alternarStatus(prod.id, novoStatus)
-      .pipe(finalize(() => this.alterandoStatus.set(false)))
-      .subscribe({
-        next: (atualizado) => {
-          this.produto.set(atualizado);
-        },
-        error: (err) => {
-          console.error('Erro ao alternar status do produto:', err);
-          alert(err.error?.message || 'Erro ao alterar o status do produto.');
-        },
-      });
+    try {
+      await lastValueFrom(this.produtosService.alternarStatus(prod.id, !prod.ativo));
+      this.produtoResource.reload();
+    } catch (err) {
+      this.erroReceita.set(
+        err instanceof HttpErrorResponse
+          ? err.error?.message || 'Erro ao alterar o status do produto.'
+          : 'Erro ao alterar o status do produto.',
+      );
+    } finally {
+      this.alterandoStatus.set(false);
+    }
   }
 }

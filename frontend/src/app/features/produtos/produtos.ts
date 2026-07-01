@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { ProdutosService } from './services/produtos.service.js';
+import { ProdutosService, ContagemProdutos } from './services/produtos.service.js';
 import { AuthService } from '../../core/services/auth.service.js';
 import { ProdutoFilterButtonComponent } from './components/produto-filter-button/produto-filter-button.js';
 import { ProdutoCardComponent } from './components/produto-card/produto-card.js';
@@ -14,7 +13,6 @@ import { rxResource } from '@angular/core/rxjs-interop';
   selector: 'app-produtos',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
     ProdutoFilterButtonComponent,
     ProdutoCardComponent,
@@ -25,65 +23,65 @@ import { rxResource } from '@angular/core/rxjs-interop';
   templateUrl: './produtos.html',
 })
 export class Produtos {
+  // === DEPENDÊNCIAS ===
   private produtosService = inject(ProdutosService);
   private router = inject(Router);
   authService = inject(AuthService);
 
-  // States (Inputs reativos para o resource)
-  termoPesquisa = signal('');
-  filtroAtivo = signal('todos');
-  ordenacao = signal('mais_recentes');
-  linhaFiltro = signal('todas');
-  categoriaFiltro = signal('todas');
-  currentPage = signal(1);
-  ultimaAtualizacao = signal(new Date().toLocaleTimeString('pt-BR'));
+  // === ESTADO ===
+  public termoPesquisa = signal('');
+  public filtroAtivo = signal('todos');
+  public ordenacao = signal('mais_recentes');
+  public linhaFiltro = signal('todas');
+  public categoriaFiltro = signal('todas');
+  public paginaAtual = signal(1);
 
-  categoriasResource = rxResource({
-    stream: () => this.produtosService.getCategorias(),
+  // === RECURSOS (rxResource) ===
+  private categoriasResource = rxResource({
+    stream: () => this.produtosService.listarCategorias(),
   });
 
-  linhasResource = rxResource({
-    stream: () => this.produtosService.getLinhas(),
+  private linhasResource = rxResource({
+    stream: () => this.produtosService.listarLinhas(),
   });
 
-  categoriasExistentes = computed(() => this.categoriasResource.value() || []);
-  linhasPadrao = computed(() => this.linhasResource.value() || []);
+  public categoriasExistentes = computed(() =>
+    (this.categoriasResource.value() || []).filter((v) => v !== ''),
+  );
+  public linhasPadrao = computed(() =>
+    (this.linhasResource.value() || []).filter((v) => v !== ''),
+  );
 
-  /**
-   * Resource Reativo: Gerencia automaticamente o ciclo de vida da requisição.
-   * Re-executa sempre que termoPesquisa, filtroAtivo ou currentPage mudarem.
-   */
-  produtosResource = rxResource({
+  private produtosResource = rxResource({
     params: () => ({
       busca: this.termoPesquisa().trim(),
       status: this.filtroAtivo(),
       ordenacao: this.ordenacao(),
       linha: this.linhaFiltro(),
       categoria: this.categoriaFiltro(),
-      pagina: this.currentPage(),
+      pagina: this.paginaAtual(),
       limite: 10,
     }),
-    stream: ({ params }) => this.produtosService.getProdutos(params),
+    stream: ({ params }) => this.produtosService.listar(params),
   });
 
-  /** Resource para as contagens globais de filtros */
-  contagemResource = rxResource({
-    stream: () => this.produtosService.getContagem(),
+  private contagemResource = rxResource({
+    stream: () => this.produtosService.obterContagem(),
   });
 
-  // Derivações reativas do resource para o template
-  produtos = computed(() => this.produtosResource.value()?.itens || []);
-  paginationMeta = computed(() => this.produtosResource.value()?.meta || null);
-  carregando = computed(() => this.produtosResource.isLoading());
-  erro = computed(() =>
+  // === DERIVAÇÕES ===
+  public produtos = computed(() => this.produtosResource.value()?.itens || []);
+  public metaPaginacao = computed(() => this.produtosResource.value()?.meta || null);
+  public carregando = computed(() => this.produtosResource.isLoading());
+  public erro = computed<string | null>(() =>
     this.produtosResource.error() ? 'Erro ao carregar produtos do servidor.' : null,
   );
 
-  totalProdutos = computed(() => this.paginationMeta()?.totalItens || 0);
+  public totalProdutos = computed(() => this.metaPaginacao()?.totalItens || 0);
 
-  contagens = computed(
+  public contagens = computed<ContagemProdutos>(
     () =>
-      this.contagemResource.value() || {
+      this.contagemResource.value() ?? {
         total: 0,
         ativos: 0,
         inativos: 0,
@@ -92,7 +90,7 @@ export class Produtos {
       },
   );
 
-  metrics = computed(() => ({
+  public metrics = computed(() => ({
     total: this.contagens().total,
     ativos: this.contagens().ativos,
     inativos: this.contagens().inativos,
@@ -100,45 +98,46 @@ export class Produtos {
     mais_produzido: this.produtos().length > 0 ? this.produtos()[0].nome : '—',
   }));
 
-  aplicarFiltroTab(tab: string): void {
+  // === MÉTODOS ===
+  public aplicarFiltroTab(tab: string): void {
     this.filtroAtivo.set(tab);
-    this.currentPage.set(1);
+    this.paginaAtual.set(1);
   }
 
-  onOrdenacaoChange(event: Event): void {
+  public aoMudarOrdenacao(event: Event): void {
     this.ordenacao.set((event.target as HTMLSelectElement).value);
-    this.currentPage.set(1);
+    this.paginaAtual.set(1);
   }
 
-  onLinhaChange(event: Event): void {
+  public aoMudarLinha(event: Event): void {
     this.linhaFiltro.set((event.target as HTMLSelectElement).value);
-    this.currentPage.set(1);
+    this.paginaAtual.set(1);
   }
 
-  onCategoriaChange(event: Event): void {
+  public aoMudarCategoria(event: Event): void {
     this.categoriaFiltro.set((event.target as HTMLSelectElement).value);
-    this.currentPage.set(1);
+    this.paginaAtual.set(1);
   }
 
-  onSearch(event: Event): void {
+  public aoPesquisar(event: Event): void {
     const valor = (event.target as HTMLInputElement).value;
     this.termoPesquisa.set(valor);
-    this.currentPage.set(1);
+    this.paginaAtual.set(1);
   }
 
-  onPageChange(pagina: number): void {
-    this.currentPage.set(pagina);
+  public aoMudarPagina(pagina: number): void {
+    this.paginaAtual.set(pagina);
   }
 
-  irParaNovo(): void {
+  public irParaNovo(): void {
     this.router.navigate(['/app/produtos/novo']);
   }
 
-  irParaDetalhe(id: number): void {
+  public irParaDetalhe(id: number): void {
     this.router.navigate(['/app/produtos', id]);
   }
 
-  formatarData(data?: string): string {
+  public formatarData(data?: string): string {
     if (!data) return '—';
     return new Date(data).toLocaleDateString('pt-BR');
   }

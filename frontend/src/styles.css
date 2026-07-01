@@ -49,7 +49,7 @@ html {
   scrollbar-width: none;
 }
 
-/* ─── Global Animation Library ───────────────────────────────────────────── */
+/*  Global Animation Library  */
 
 /* Keyframes */
 @keyframes fadeInUp {
@@ -131,7 +131,7 @@ html {
   }
 }
 
-/* ── Utility classes ─────────────────────────────────────────────────────── */
+/*  Utility classes  */
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
@@ -162,7 +162,7 @@ html {
   animation: pulseGlow 2.5s ease-in-out infinite;
 }
 
-/* ── Page entrance: aplicado no container root de cada página ────────────── */
+/*  Page entrance: aplicado no container root de cada página  */
 .page-enter {
   animation: fadeInUp 0.45s ease-out forwards;
   opacity: 0;
@@ -178,7 +178,7 @@ html {
   opacity: 0;
 }
 
-/* ── Stagger para itens de lista/grid ────────────────────────────────────── */
+/*  Stagger para itens de lista/grid  */
 .stagger-item:nth-child(1) {
   animation-delay: 0ms;
 }
@@ -219,7 +219,7 @@ html {
   animation-delay: 540ms;
 }
 
-/* ── Delay utilities ─────────────────────────────────────────────────────── */
+/*  Delay utilities  */
 .delay-75 {
   animation-delay: 75ms;
 }
@@ -248,7 +248,7 @@ html {
   animation-delay: 500ms;
 }
 
-/* ── Shimmer skeleton (loading) ──────────────────────────────────────────── */
+/*  Shimmer skeleton (loading)  */
 .skeleton {
   background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
   background-size: 400px 100%;

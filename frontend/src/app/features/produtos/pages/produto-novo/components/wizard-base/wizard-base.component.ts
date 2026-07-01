@@ -1,31 +1,33 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-wizard-base',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './wizard-base.component.html',
 })
 export class WizardBaseComponent {
-  @Input() formBase!: FormGroup;
-  @Input() skuPreview: string = '';
-  @Input() categoriasExistentes: string[] = [];
+  // === INPUTS ===
+  public formBase = input.required<FormGroup>();
+  public skuPreview = input('');
+  public categoriasExistentes = input<string[]>([]);
 
-  @Output() cancel = new EventEmitter<void>();
-  @Output() saveSemReceita = new EventEmitter<void>();
-  @Output() next = new EventEmitter<void>();
+  // === OUTPUTS ===
+  public cancelar = output<void>();
+  public salvarSemReceita = output<void>();
+  public proximo = output<void>();
 
-  onCancel() {
-    this.cancel.emit();
+  // === MÉTODOS ===
+  public aoCancelar(): void {
+    this.cancelar.emit();
   }
 
-  onSaveSemReceita() {
-    this.saveSemReceita.emit();
+  public aoSalvarSemReceita(): void {
+    this.salvarSemReceita.emit();
   }
 
-  onNext() {
-    this.next.emit();
+  public aoProximo(): void {
+    this.proximo.emit();
   }
 }

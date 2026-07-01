@@ -1,30 +1,30 @@
-import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { Component, inject, computed } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoteFeatureService } from './services/lote.service.js';
-import { STATUS_CONFIG } from '../../shared/models/lote.models.js';
 import { AuthService } from '../../core/services/auth.service.js';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.js';
 import { LoteCardComponent } from '../../shared/components/lote-card/lote-card.js';
-import { FilterTabsComponent, FilterTab } from '../../shared/components/filter-tabs/filter-tabs.js';
+import {
+  FilterTabsComponent,
+  FilterTab,
+} from '../../shared/components/filter-tabs/filter-tabs.js';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.js';
 import { ConfiguracoesService } from '../../core/services/configuracoes.service.js';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.js';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DashboardService } from '../dashboard/services/dashboard.service.js';
 import { DashboardData } from '../dashboard/models/dashboard.interface.js';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { filter } from 'rxjs/operators';
 import { SseClientService } from '../../core/services/sse-client.service.js';
 
-/** Fallback caso o backend não responda — 2 minutos como padrão de demo */
 const FALLBACK_DURACAO_MS = 2 * 60 * 1000;
 
 @Component({
   selector: 'app-lote',
   standalone: true,
   imports: [
-    CommonModule,
     StatCardComponent,
     LoteCardComponent,
     FilterTabsComponent,
@@ -36,6 +36,7 @@ const FALLBACK_DURACAO_MS = 2 * 60 * 1000;
   styleUrl: './lote.css',
 })
 export class Lote {
+  // === DEPENDÊNCIAS ===
   private loteService = inject(LoteFeatureService);
   private dashboardService = inject(DashboardService);
   private sseService = inject(SseClientService);
@@ -44,7 +45,8 @@ export class Lote {
   private configuracoesService = inject(ConfiguracoesService);
   authService = inject(AuthService);
 
-  filtrosTabs: FilterTab[] = [
+  // === FILTROS ===
+  public filtrosTabs: FilterTab[] = [
     { id: 'todos', label: 'Todos', hideBorder: true },
     { id: 'em_producao', label: 'Em Produção' },
     { id: 'aguardando_inspecao', label: 'Aguardando Inspeção' },
@@ -53,38 +55,32 @@ export class Lote {
     { id: 'reprovado', label: 'Reprovado' },
   ];
 
-  // Inputs reativos via URL
-  queryParams = toSignal(this.route.queryParams);
-  filtroAtivo = computed(() => this.queryParams()?.['status'] || 'todos');
-  termoPesquisa = computed(() => this.queryParams()?.['busca'] || '');
-  currentPage = computed(() => Number(this.queryParams()?.['pagina']) || 1);
+  // === ESTADO (ROTA) ===
+  private queryParams = toSignal(this.route.queryParams);
+  public filtroAtivo = computed(() => this.queryParams()?.['status'] || 'todos');
+  public termoPesquisa = computed(() => this.queryParams()?.['busca'] || '');
+  public paginaAtual = computed(() => Number(this.queryParams()?.['pagina']) || 1);
 
-  /** Trigger para o Polling reativo — removido, SSE assume */
-  // private pollingTrigger = signal<number>(0);
-
-  /** Resource para a listagem principal de lotes */
-  lotesResource = rxResource({
+  // === RECURSOS ===
+  public lotesResource = rxResource({
     params: () => ({
-      pagina: this.currentPage(),
+      pagina: this.paginaAtual(),
       limite: 9,
       status: this.filtroAtivo(),
       busca: this.termoPesquisa(),
     }),
-    stream: ({ params }) => this.loteService.getLotes(params),
+    stream: ({ params }) => this.loteService.listarLotes(params),
   });
 
-  /** Resource para a contagem de status */
-  contagemResource = rxResource({
-    stream: () => this.loteService.getContagem(),
+  private contagemResource = rxResource({
+    stream: () => this.loteService.obterContagem(),
   });
 
-  /** Resource para o tempo de produção */
-  configResource = rxResource({
-    stream: () => this.loteService.getConfig(),
+  private configResource = rxResource({
+    stream: () => this.loteService.obterConfig(),
   });
 
-  /** Resource para o dashboard (produção total) */
-  dashboardResource = rxResource<DashboardData, any>({
+  private dashboardResource = rxResource<DashboardData, HttpErrorResponse>({
     stream: () =>
       this.dashboardService.getDashboardData(
         'mes',
@@ -92,14 +88,14 @@ export class Lote {
       ),
   });
 
-  // Derivações reativas para o template
-  lotes = computed(() => this.lotesResource.value()?.itens || []);
-  paginationMeta = computed(() => this.lotesResource.value()?.meta || null);
-  carregando = computed(() => this.lotesResource.isLoading());
-  erro = computed(() =>
+  // === DERIVAÇÕES ===
+  public lotes = computed(() => this.lotesResource.value()?.itens || []);
+  public metaPaginacao = computed(() => this.lotesResource.value()?.meta || null);
+  public carregando = computed(() => this.lotesResource.isLoading());
+  public erro = computed<string | null>(() =>
     this.lotesResource.error() ? 'Não foi possível carregar a lista de lotes.' : null,
   );
-  contagemPorStatus = computed(
+  public contagemPorStatus = computed<Record<string, number>>(
     () =>
       this.contagemResource.value() || {
         todos: 0,
@@ -111,12 +107,13 @@ export class Lote {
       },
   );
 
-  duracaoMs = computed(
+  public duracaoMs = computed(
     () =>
-      (this.configResource.value()?.tempo_producao_minutos || 0) * 60 * 1000 || FALLBACK_DURACAO_MS,
+      (this.configResource.value()?.tempo_producao_minutos || 0) * 60 * 1000 ||
+      FALLBACK_DURACAO_MS,
   );
 
-  producaoTotalLabel = computed(() => {
+  public producaoTotalLabel = computed(() => {
     const p = this.configuracoesService.settings().lote.producaoTotalPeriodo;
     const map: Record<string, string> = {
       qualquer_momento: 'Produção Total Acumulada',
@@ -127,20 +124,18 @@ export class Lote {
     return map[p] || 'Produção Total';
   });
 
-  producaoTotalAcumulada = computed(() => this.dashboardResource.value()?.unidades_mes || 0);
+  public producaoTotalAcumulada = computed(
+    () => this.dashboardResource.value()?.unidades_mes || 0,
+  );
 
-  statsCargaSistema = computed(() => {
-    const baseValue = this.configuracoesService.settings().lote.atividadeTempoRealBase || 5;
+  public statsCargaSistema = computed(() => {
+    const baseValue =
+      this.configuracoesService.settings().lote.atividadeTempoRealBase || 5;
     const emProducao = this.contagemPorStatus()['em_producao'] || 0;
     return parseFloat(((emProducao / baseValue) * 100).toFixed(1));
   });
 
   constructor() {
-    /**
-     * Assina o stream SSE e recarrega lista e contagem ao receber
-     * qualquer evento do domínio de lotes.
-     * takeUntilDestroyed() cancela automáticamente ao sair da tela.
-     */
     this.sseService.eventos$
       .pipe(
         takeUntilDestroyed(),
@@ -152,7 +147,8 @@ export class Lote {
       });
   }
 
-  onPageChange(pagina: number): void {
+  // === MÉTODOS ===
+  public aoMudarPagina(pagina: number): void {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { pagina },
@@ -160,7 +156,7 @@ export class Lote {
     });
   }
 
-  alterarFiltro(status: string): void {
+  public alterarFiltro(status: string): void {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { status, pagina: 1, busca: null },
@@ -168,11 +164,11 @@ export class Lote {
     });
   }
 
-  irParaDetalhe(id: number): void {
+  public irParaDetalhe(id: number): void {
     this.router.navigate(['/app/lote', id]);
   }
 
-  irParaNovoLote(): void {
+  public irParaNovoLote(): void {
     this.router.navigate(['/app/lote/novo']);
   }
 }

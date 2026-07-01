@@ -1,12 +1,15 @@
 <div class="bg-[#131313] border border-[#484847]/30 rounded-md p-6 sm:p-8">
-  <form [formGroup]="formBase" (ngSubmit)="onNext()" class="flex flex-col gap-6">
+  <form [formGroup]="formBase()" (ngSubmit)="aoProximo()" class="flex flex-col gap-6">
     <!-- Nome + SKU Preview -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="produto-nome"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >Nome do Produto *</label
         >
         <input
+          id="produto-nome"
           type="text"
           formControlName="nome"
           placeholder="Ex: Monitor Gamer 144Hz"
@@ -14,12 +17,15 @@
         />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="sku-auto"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >SKU (Auto)</label
         >
         <input
+          id="sku-auto"
           type="text"
-          [value]="skuPreview"
+          [value]="skuPreview()"
           disabled
           class="w-full bg-[#0E0E0E] border border-[#484847]/40 rounded px-4 py-2.5 text-sm text-[#00E5FF] font-mono cursor-not-allowed focus:outline-none"
         />
@@ -29,10 +35,13 @@
     <!-- Categoria + Linha -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="produto-categoria"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >Categoria *</label
         >
         <input
+          id="produto-categoria"
           type="text"
           formControlName="categoria"
           list="categoriasDatalist"
@@ -40,16 +49,19 @@
           class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors"
         />
         <datalist id="categoriasDatalist">
-          @for (cat of categoriasExistentes; track cat) {
+          @for (cat of categoriasExistentes(); track cat) {
             <option [value]="cat"></option>
           }
         </datalist>
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="linha-producao"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >Linha de Produção *</label
         >
         <input
+          id="linha-producao"
           type="text"
           formControlName="linha_padrao"
           placeholder="Ex: Linha A"
@@ -61,11 +73,14 @@
     <!-- Percentual de Ressalva -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        <label
+          for="limiar-ressalva"
+          class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
           >Limiar de Ressalva (%) *</label
         >
         <div class="relative">
           <input
+            id="limiar-ressalva"
             type="number"
             min="0"
             max="100"
@@ -79,8 +94,8 @@
           >
         </div>
         <p class="text-[10px] text-[#6B7280] leading-relaxed">
-          Taxa de falha acima deste valor = <span class="text-[#fca5a5]">REPROVADO</span>. Abaixo =
-          <span class="text-[#A0AEC0]">APROVADO COM RESTRIÇÃO</span>.
+          Taxa de falha acima deste valor = <span class="text-[#fca5a5]">REPROVADO</span>.
+          Abaixo = <span class="text-[#A0AEC0]">APROVADO COM RESTRIÇÃO</span>.
         </p>
       </div>
 
@@ -104,7 +119,7 @@
     >
       <button
         type="button"
-        (click)="onCancel()"
+        (click)="aoCancelar()"
         class="w-full md:w-auto px-6 py-2.5 border border-[#484847] text-[#ADAAAA] text-xs font-bold uppercase tracking-wider hover:bg-[#1a1a1a] hover:text-white transition-colors rounded"
       >
         Cancelar
@@ -112,7 +127,7 @@
       <div class="flex flex-col min-[425px]:flex-row gap-4 w-full md:w-auto">
         <button
           type="button"
-          (click)="onSaveSemReceita()"
+          (click)="aoSalvarSemReceita()"
           class="w-full min-[425px]:flex-1 md:w-auto px-6 py-2.5 bg-[#1a1a1a] border border-[#00E5FF]/50 text-[#00E5FF] text-xs font-bold uppercase tracking-wider rounded transition-all hover:bg-[#00E5FF]/10 disabled:opacity-50"
         >
           Salvar (Sem Receita)

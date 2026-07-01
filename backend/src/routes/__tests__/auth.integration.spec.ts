@@ -4,10 +4,9 @@ import {
   startTestContainer,
   stopTestContainer,
   limparBanco,
-  criarUsuarioTeste,
 } from './integration.setup.js';
 import bcrypt from 'bcrypt';
-import { AppDataSource } from '../../config/AppDataSource.js';
+import { appDataSource } from '../../config/appDataSource.js';
 import { Usuario, PerfilUsuario } from '../../entities/Usuario.js';
 
 describe('Autenticação (Integração)', () => {
@@ -24,7 +23,7 @@ describe('Autenticação (Integração)', () => {
   });
 
   it('deve permitir login com credenciais válidas', async () => {
-    const userRepo = AppDataSource.getRepository(Usuario);
+    const userRepo = appDataSource.getRepository(Usuario);
     const pass = await bcrypt.hash('senha123', 10);
     await userRepo.save(
       userRepo.create({
@@ -46,7 +45,7 @@ describe('Autenticação (Integração)', () => {
   });
 
   it('deve rejeitar login com senha errada', async () => {
-    const userRepo = AppDataSource.getRepository(Usuario);
+    const userRepo = appDataSource.getRepository(Usuario);
     const pass = await bcrypt.hash('senha123', 10);
     await userRepo.save(
       userRepo.create({
@@ -65,4 +64,3 @@ describe('Autenticação (Integração)', () => {
     expect(response.status).toBe(401);
   });
 });
-

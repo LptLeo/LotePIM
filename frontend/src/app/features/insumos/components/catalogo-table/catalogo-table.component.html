@@ -1,10 +1,10 @@
-@if (carregando) {
+@if (carregando()) {
   <div class="flex justify-center items-center py-20 w-full">
     <div
       class="w-8 h-8 border-4 border-[#484847] border-t-[#00E5FF] rounded-full animate-spin"
     ></div>
   </div>
-} @else if (catalogo.length === 0) {
+} @else if (catalogo().length === 0) {
   <div
     class="flex flex-col justify-center items-center py-20 w-full border border-dashed border-[#484847]/50 rounded-lg bg-[#131313]"
   >
@@ -29,7 +29,7 @@
 } @else {
   <!-- Mobile View: Cards -->
   <div class="flex flex-col gap-4 md:hidden">
-    @for (mp of catalogo; track mp.id) {
+    @for (mp of catalogo(); track mp.id) {
       <div
         class="bg-[#131313] border border-[#484847]/30 rounded-lg p-5 flex flex-col gap-4 transition-all hover:border-[#00E5FF]/40"
       >
@@ -52,7 +52,9 @@
             <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
               >SKU Interno</span
             >
-            <span class="font-mono text-[11px] text-[#00E5FF] truncate">{{ mp.sku_interno }}</span>
+            <span class="font-mono text-[11px] text-[#00E5FF] truncate">{{
+              mp.sku_interno
+            }}</span>
           </div>
           <div class="flex flex-col gap-1">
             <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
@@ -66,17 +68,25 @@
   </div>
 
   <!-- Desktop View: Table -->
-  <div class="hidden md:block bg-[#131313] border border-[#484847]/30 rounded-lg overflow-hidden">
+  <div
+    class="hidden md:block bg-[#131313] border border-[#484847]/30 rounded-lg overflow-hidden"
+  >
     <table class="w-full text-left">
       <thead>
         <tr class="bg-[#1A1A1A] border-b border-[#484847]/30">
-          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          <th
+            class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+          >
             Nome da MP
           </th>
-          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          <th
+            class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+          >
             SKU Interno
           </th>
-          <th class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          <th
+            class="py-3 px-4 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+          >
             Categoria
           </th>
           <th
@@ -87,7 +97,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (mp of catalogo; track mp.id) {
+        @for (mp of catalogo(); track mp.id) {
           <tr class="border-b border-[#1e1e1e] hover:bg-[#1a1a1a] transition-colors">
             <td class="py-4 px-4 text-[13px] font-medium text-white">{{ mp.nome }}</td>
             <td class="py-4 px-4">
@@ -99,9 +109,10 @@
             </td>
             <td class="py-4 px-4 text-[12px] text-[#ADAAAA]">{{ mp.categoria }}</td>
             <td class="py-4 px-4 text-right">
-              <span class="text-[11px] font-bold text-[#6B7280] bg-[#1a1a1a] px-2 py-1 rounded">{{
-                mp.unidade_medida
-              }}</span>
+              <span
+                class="text-[11px] font-bold text-[#6B7280] bg-[#1a1a1a] px-2 py-1 rounded"
+                >{{ mp.unidade_medida }}</span
+              >
             </td>
           </tr>
         }

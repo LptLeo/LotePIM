@@ -1,9 +1,14 @@
 <div class="flex flex-col gap-2">
-  <label class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]">{{ label }}</label>
+  <label
+    [for]="inputId()"
+    class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+    >{{ label() }}</label
+  >
   <input
-    [type]="type"
-    [formControl]="control"
-    [placeholder]="placeholder"
+    [id]="inputId()"
+    [type]="type()"
+    [formControl]="control()"
+    [placeholder]="placeholder()"
     class="w-full bg-[#0E0E0E] border rounded px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
     [class.border-[#dc2626]]="showError()"
     [class.border-[#484847]/80]="!showError()"
@@ -11,6 +16,6 @@
     [class.focus:border-[#00E5FF]]="!showError()"
   />
   @if (showError()) {
-    <span class="text-[11px] text-[#fca5a5]">{{ errorMessage }}</span>
+    <span class="text-[11px] text-[#fca5a5]">{{ errorMessage() }}</span>
   }
 </div>

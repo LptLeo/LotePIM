@@ -1,0 +1,238 @@
+<!-- Cabeçalho da Seção de Listagem -->
+<div class="flex items-center justify-between mb-4 animate-fade-in delay-150">
+  <h3 class="text-[12px] font-bold uppercase tracking-[1.5px] text-[#00E5FF]">
+    Cadastrados
+  </h3>
+  <button
+    type="button"
+    (click)="atualizar.emit()"
+    class="text-[11px] text-[#ADAAAA] hover:text-white transition-colors"
+  >
+    Atualizar
+  </button>
+</div>
+
+<!-- Barra de Filtros -->
+<div class="flex flex-col gap-3 mb-4 animate-fade-in-up delay-200">
+  <div class="flex items-center gap-2">
+    <input
+      #searchInput
+      type="text"
+      [value]="filtroTermo()"
+      (input)="mudarBusca.emit(searchInput.value)"
+      placeholder="Filtrar por nome ou e-mail..."
+      class="w-full bg-[#0E0E0E] border border-[#484847]/60 rounded px-3 py-2 text-[12px] text-white placeholder:text-[#6B7280] focus:outline-none focus:border-[#00E5FF] transition-colors"
+    />
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <!-- Filtro de Perfil -->
+    <div class="flex flex-col gap-2">
+      <label
+        for="perfil-filter"
+        class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        >Perfil</label
+      >
+      <div class="relative group">
+        <select
+          id="perfil-filter"
+          #perfilSelect
+          [value]="filtroPerfil()"
+          (change)="mudarFiltroPerfil.emit(perfilSelect.value)"
+          class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
+        >
+          @for (option of filtroPerfilOptions(); track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m19.5 8.25-7.5 7.5-7.5-7.5"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Filtro de Status -->
+    <div class="flex flex-col gap-2">
+      <label
+        for="status-filter"
+        class="text-[10px] font-bold tracking-[1.5px] uppercase text-[#6B7280]"
+        >Status</label
+      >
+      <div class="relative group">
+        <select
+          id="status-filter"
+          #statusSelect
+          [value]="filtroStatus()"
+          (change)="mudarFiltroStatus.emit(statusSelect.value)"
+          class="w-full bg-[#0E0E0E] border border-[#484847]/80 rounded pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E5FF] transition-colors appearance-none cursor-pointer"
+        >
+          @for (option of filtroStatusOptions(); track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ADAAAA] pointer-events-none"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m19.5 8.25-7.5 7.5-7.5-7.5"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estados de Erro e Carregamento -->
+@if (erro()) {
+  <div
+    class="p-3 mb-3 bg-red-950/20 border border-[#dc2626]/40 rounded-md animate-fade-in"
+  >
+    <p class="text-[#fca5a5] text-[12px] font-semibold">{{ erro() }}</p>
+  </div>
+}
+@if (carregando()) {
+  <div class="flex items-center gap-3 py-3 animate-fade-in delay-300">
+    <div
+      class="w-4 h-4 border-2 border-[#00E5FF] border-t-transparent rounded-full animate-spin"
+    ></div>
+    <span class="text-[12px] text-[#6B7280]">Carregando usuários...</span>
+  </div>
+} @else {
+  @if (usuarios().length === 0) {
+    <p class="text-[12px] text-[#ADAAAA] animate-fade-in delay-300">
+      Nenhum usuário encontrado para o filtro atual.
+    </p>
+  } @else {
+    <!-- Mobile View: Cards -->
+    <div class="flex flex-col gap-4 md:hidden animate-fade-in-up delay-300">
+      @for (usuario of usuarios(); track usuario.id) {
+        <div
+          class="bg-[#1A1A1A] border border-[#484847]/30 rounded-lg p-5 flex flex-col gap-4 transition-all hover:border-[#00E5FF]/40"
+        >
+          <div class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Nome</span
+              >
+              <span class="text-[15px] font-bold text-white">{{ usuario.nome }}</span>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Status</span
+              >
+              <app-status-badge [ativo]="usuario.ativo"></app-status-badge>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 pt-3 border-t border-[#484847]/10">
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >E-mail</span
+              >
+              <span class="text-[12px] text-[#ADAAAA] truncate">{{ usuario.email }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Perfil</span
+              >
+              <span class="text-[12px] text-white capitalize truncate">{{
+                usuario.perfil
+              }}</span>
+            </div>
+          </div>
+
+          <div
+            class="flex justify-between items-center pt-3 border-t border-[#484847]/10"
+          >
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider"
+                >Cadastrado Por</span
+              >
+              <span class="text-[11px] text-[#ADAAAA]">{{
+                usuario.criadoPor?.nome || 'Sistema'
+              }}</span>
+            </div>
+            <app-user-actions
+              [id]="usuario.id"
+              [ativo]="usuario.ativo"
+              [perfil]="usuario.perfil"
+              [showText]="false"
+              (deactivate)="desativar.emit($event)"
+              (reactivate)="reativar.emit($event)"
+            ></app-user-actions>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <div
+      class="hidden md:block overflow-x-auto max-h-[420px] pr-1 animate-fade-in-up delay-300"
+    >
+      <table class="w-full text-left text-[12px]">
+        <thead class="sticky top-0 bg-[#131313]">
+          <tr class="text-[#6B7280] border-b border-[#484847]/30">
+            <th class="py-2 pr-2">Nome</th>
+            <th class="py-2 pr-2">E-mail</th>
+            <th class="py-2 pr-2">Perfil</th>
+            <th class="py-2 pr-2">Status</th>
+            <th class="py-2">Cadastrado Por</th>
+            <th class="py-2 text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id) {
+            <tr class="border-b border-[#484847]/20 stagger-item animate-fade-in-up">
+              <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.nome }}</td>
+              <td class="py-2 pr-2 text-[#ADAAAA]">{{ usuario.email }}</td>
+              <td class="py-2 pr-2 text-white capitalize">{{ usuario.perfil }}</td>
+              <td class="py-2 pr-2">
+                <app-status-badge [ativo]="usuario.ativo"></app-status-badge>
+              </td>
+              <td class="py-2 text-[#ADAAAA]">
+                {{ usuario.criadoPor?.nome || 'Sistema' }}
+              </td>
+              <td class="py-2 text-right">
+                <app-user-actions
+                  [id]="usuario.id"
+                  [ativo]="usuario.ativo"
+                  [perfil]="usuario.perfil"
+                  (deactivate)="desativar.emit($event)"
+                  (reactivate)="reativar.emit($event)"
+                ></app-user-actions>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    @if (paginationMeta(); as meta) {
+      @if (meta.totalPaginas > 1) {
+        <app-pagination
+          [meta]="meta"
+          (pageChange)="mudarPagina.emit($event)"
+        ></app-pagination>
+      }
+    }
+  }
+}

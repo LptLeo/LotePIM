@@ -10,12 +10,10 @@ import {
 } from 'typeorm';
 
 import { EntidadeBase } from './base.entity.js';
-import type { Produto } from './Produto.js';
-import type { Usuario } from './Usuario.js';
-import type { ConsumoInsumo } from './ConsumoInsumo.js';
-import type { Inspecao } from './Inspecao.js';
-
-export { Turno } from './InsumoEstoque.js';
+import { Produto } from './Produto.js';
+import { Usuario } from './Usuario.js';
+import { ConsumoInsumo } from './ConsumoInsumo.js';
+import { Inspecao } from './Inspecao.js';
 
 export enum LoteStatus {
   EM_PRODUCAO = 'em_producao',
@@ -31,11 +29,11 @@ export enum LoteStatus {
  */
 @Entity('lote')
 export class Lote extends EntidadeBase {
-  @Index({ unique: true })
-  @Column({ type: 'text', unique: true, nullable: false })
+  @Index()
+  @Column({ type: 'text', unique: true, nullable: false, default: '' })
   numero_lote!: string;
 
-  @ManyToOne('Produto', 'lotes')
+  @ManyToOne(() => Produto, (produto) => produto.lotes)
   @JoinColumn({ name: 'produto_id' })
   produto!: Relation<Produto>;
 
@@ -53,7 +51,7 @@ export class Lote extends EntidadeBase {
   })
   turno!: string;
 
-  @ManyToOne('Usuario', 'lotes')
+  @ManyToOne(() => Usuario, (usuario) => usuario.lotes)
   @JoinColumn({ name: 'operador_id' })
   operador!: Relation<Usuario>;
 
@@ -65,7 +63,7 @@ export class Lote extends EntidadeBase {
   data_validade!: Date | null;
 
   @Column({ type: 'text', nullable: true })
-  observacoes!: string;
+  observacoes!: string | null;
 
   @Index()
   @Column({ type: 'timestamptz', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
@@ -74,9 +72,9 @@ export class Lote extends EntidadeBase {
   @Column({ type: 'timestamptz', nullable: true })
   encerrado_em!: Date | null;
 
-  @OneToMany('ConsumoInsumo', 'lote')
+  @OneToMany(() => ConsumoInsumo, (consumo) => consumo.lote)
   consumos!: Relation<ConsumoInsumo>[];
 
-  @OneToOne('Inspecao', 'lote')
+  @OneToOne(() => Inspecao, (inspecao) => inspecao.lote)
   inspecao!: Relation<Inspecao>;
 }

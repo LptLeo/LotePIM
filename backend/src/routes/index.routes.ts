@@ -11,10 +11,25 @@ import rastreabilidadeRoutes from './rastreabilidade.routes.js';
 import notificacaoRoutes from './notificacao.routes.js';
 import eventsRoutes from './events.routes.js';
 import { authGuard } from '../middlewares/authGuard.js';
+import { env } from '../config/env.js';
 
 const routes = Router();
 
-/** Rota pública de autenticação */
+/** Rotas públicas */
+routes.get('/configuracoes/publicas', (req, res) => {
+  res.json({
+    minLengthNome: 1, // Fixado como regra geral
+    minLengthEmailPrefix: 1, // Fixado como regra geral
+    minLengthSenha: env.SENHA_MIN_LENGTH,
+    maxLengthSenha: env.SENHA_MAX_LENGTH,
+    tamanhoSenhaGerada: env.TAMANHO_SENHA_GERADA,
+    alertaEstoqueBaixoPorcentagem: env.ALERTA_ESTOQUE_BAIXO_PORCENTAGEM,
+    limiteMaximoLotesAtivos: env.LIMITE_MAXIMO_LOTES_ATIVOS,
+    itensPorPaginaPadrao: env.ITENS_POR_PAGINA_PADRAO,
+    diasMaximosRastreabilidade: env.DIAS_MAXIMOS_RASTREABILIDADE,
+  });
+});
+
 routes.use('/auth', authRoutes);
 
 /**

@@ -1,17 +1,17 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-stat-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [NgClass],
   templateUrl: './stat-card.html',
   host: {
     class: 'flex-1 flex flex-col min-w-0',
   },
 })
 export class StatCardComponent {
-  @Input({ required: true }) title!: string;
-  @Input() tooltip?: string;
-  @Input() trackingClass: string = 'tracking-[1px]';
+  title = input.required<string>();
+  tooltip = input<string>();
+  trackingClass = input('tracking-[1px]');
 }

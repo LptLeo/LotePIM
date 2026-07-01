@@ -1,120 +1,144 @@
-import type { Repository } from 'typeorm';
-import { AppDataSource } from '../config/AppDataSource.js';
+import type { DataSource, Repository } from 'typeorm';
 import { Inspecao, ResultadoInspecao } from '../entities/Inspecao.js';
 import { Lote, LoteStatus } from '../entities/Lote.js';
 import { PerfilUsuario, Usuario } from '../entities/Usuario.js';
 import { AppError } from '../errors/AppError.js';
 import { verificaPermissao, type Requisitante } from '../utils/auth.utils.js';
 import type { RegistrarInspecaoDTO } from '../dto/inspecao.dto.js';
+import { calcularResultadoInspecao } from '../utils/inspecao.utils.js';
+import { findOneByOrFail, findOneOrFail } from '../utils/orm.utils.js';
+import type { SseService } from './sse.service.js';
 
-/** Mapeia resultado da inspeção para o status final do lote */
-const resultadoParaStatus: Record<ResultadoInspecao, LoteStatus> = {
-  [ResultadoInspecao.APROVADO]: LoteStatus.APROVADO,
-  [ResultadoInspecao.APROVADO_RESTRICAO]: LoteStatus.APROVADO_RESTRICAO,
-  [ResultadoInspecao.REPROVADO]: LoteStatus.REPROVADO,
-};
+interface RegistrarInspecaoParams {
+  loteId: number;
+  dto: RegistrarInspecaoDTO;
+  requisitante: Requisitante;
+}
 
 export class InspecaoService {
-  private inspecaoRepo: Repository<Inspecao>;
-  private loteRepo: Repository<Lote>;
-  private usuarioRepo: Repository<Usuario>;
+  private static readonly resultadoParaStatus: Record<ResultadoInspecao, LoteStatus> = {
+    [ResultadoInspecao.APROVADO]: LoteStatus.APROVADO,
+    [ResultadoInspecao.APROVADO_RESTRICAO]: LoteStatus.APROVADO_RESTRICAO,
+    [ResultadoInspecao.REPROVADO]: LoteStatus.REPROVADO,
+  };
 
-  constructor() {
-    this.inspecaoRepo = AppDataSource.getRepository(Inspecao);
-    this.loteRepo = AppDataSource.getRepository(Lote);
-    this.usuarioRepo = AppDataSource.getRepository(Usuario);
-  }
+  constructor(
+    private readonly inspecaoRepo: Repository<Inspecao>,
+    private readonly loteRepo: Repository<Lote>,
+    private readonly usuarioRepo: Repository<Usuario>,
+    private readonly dataSource: DataSource,
+    private readonly sseService: SseService,
+  ) {}
 
-  /**
-   * Calcula o resultado da inspeção automaticamente com base na fórmula:
-   * taxa = (reprovados / planejados) × 100
-   *
-   * - taxa == 0              → APROVADO
-   * - 0 < taxa ≤ pct_ressalva → APROVADO COM RESTRIÇÃO
-   * - taxa > pct_ressalva     → REPROVADO
-   */
-  private calcularResultado(
-    qtdReprovada: number,
-    qtdPlanejada: number,
-    percentualRessalva: number,
-  ): ResultadoInspecao {
-    if (qtdReprovada === 0) return ResultadoInspecao.APROVADO;
+  public async registrar(params: RegistrarInspecaoParams): Promise<Inspecao> {
+    verificaPermissao(params.requisitante, [PerfilUsuario.INSPETOR]);
 
-    const taxaFalha = (qtdReprovada / qtdPlanejada) * 100;
+    const { loteId, dto, requisitante } = params;
 
-    if (taxaFalha <= percentualRessalva) return ResultadoInspecao.APROVADO_RESTRICAO;
-    return ResultadoInspecao.REPROVADO;
-  }
+    const lote = await this.buscarEValidarLote(loteId);
 
-  registrar = async (
-    loteId: number,
-    dto: RegistrarInspecaoDTO,
-    requisitante: Requisitante,
-  ): Promise<Inspecao> => {
-    verificaPermissao(requisitante, [PerfilUsuario.INSPETOR]);
+    await this.validarInspecaoDuplicada(loteId);
+    this.validarQuantidadeReprovada(dto.quantidade_reprovada, lote.quantidade_planejada);
 
-    const lote = await this.loteRepo.findOne({
-      where: { id: loteId },
-      relations: ['produto'],
-    });
+    const inspetor = await this.buscarInspetor(requisitante.id);
 
-    if (!lote) throw new AppError('Lote não encontrado.', 404);
-
-    if (lote.status !== LoteStatus.AGUARDANDO_INSPECAO) {
-      throw new AppError("Só é possível inspecionar lotes com status 'aguardando_inspecao'.", 400);
-    }
-
-    const jaInspecionado = await this.inspecaoRepo.findOneBy({ lote: { id: loteId } });
-    if (jaInspecionado) throw new AppError('Este lote já foi inspecionado.', 409);
-
-    if (dto.quantidade_reprovada > lote.quantidade_planejada) {
-      throw new AppError(
-        `Quantidade reprovada (${dto.quantidade_reprovada}) não pode exceder a planejada (${lote.quantidade_planejada}).`,
-        400,
-      );
-    }
-
-    const inspetor = await this.usuarioRepo.findOneBy({ id: requisitante.id });
-    if (!inspetor) throw new AppError('Inspetor não encontrado.', 404);
-
-    const resultado = this.calcularResultado(
+    const resultado = calcularResultadoInspecao(
       dto.quantidade_reprovada,
       lote.quantidade_planejada,
       Number(lote.produto.percentual_ressalva),
     );
 
-    return AppDataSource.transaction(async (manager) => {
+    const resultadoParaStatus = InspecaoService.resultadoParaStatus;
+
+    const inspecaoSalva = await this.dataSource.transaction(async (manager) => {
       const inspecao = manager.create(Inspecao, {
         lote,
         inspetor,
         quantidade_reprovada: dto.quantidade_reprovada,
         resultado_calculado: resultado,
-        descricao_desvio: dto.descricao_desvio || '',
+        descricao_desvio: dto.descricao_desvio ?? null,
       });
 
-      const inspecaoSalva = await manager.save(inspecao);
+      const salva = await manager.save(inspecao);
 
-      /** Atualiza o status do lote para refletir o resultado */
       lote.status = resultadoParaStatus[resultado];
       await manager.save(lote);
 
-      return inspecaoSalva;
+      return salva;
     });
-  };
 
-  buscarPorLote = async (loteId: number, requisitante: Requisitante): Promise<Inspecao> => {
+    this.sseService.emitir('lote:status_alterado', {
+      id: lote.id,
+      status: lote.status,
+    });
+
+    return inspecaoSalva;
+  }
+
+  public async buscarPorLote(
+    loteId: number,
+    requisitante: Requisitante,
+  ): Promise<Inspecao> {
     verificaPermissao(requisitante, [
       PerfilUsuario.OPERADOR,
       PerfilUsuario.INSPETOR,
       PerfilUsuario.GESTOR,
     ]);
 
-    const inspecao = await this.inspecaoRepo.findOne({
-      where: { lote: { id: loteId } },
-      relations: ['inspetor', 'lote'],
+    const inspecao = await this.buscarOuFalharInspecaoPorLote(loteId);
+
+    return inspecao;
+  }
+
+  // === FUNÇÕES BUSCADORAS ===
+
+  private async buscarEValidarLote(loteId: number): Promise<Lote> {
+    const lote = await findOneOrFail(
+      this.loteRepo,
+      { where: { id: loteId }, relations: ['produto'] },
+      'Lote',
+    );
+
+    if (lote.status !== LoteStatus.AGUARDANDO_INSPECAO) {
+      throw new AppError(
+        "Só é possível inspecionar lotes com status 'aguardando_inspecao'.",
+        400,
+      );
+    }
+
+    return lote;
+  }
+
+  private async buscarInspetor(inspetorId: number): Promise<Usuario> {
+    return findOneByOrFail(this.usuarioRepo, { id: inspetorId }, 'Inspetor');
+  }
+
+  private async buscarOuFalharInspecaoPorLote(loteId: number): Promise<Inspecao> {
+    return findOneOrFail(
+      this.inspecaoRepo,
+      { where: { lote: { id: loteId } }, relations: ['inspetor', 'lote'] },
+      'Inspeção',
+    );
+  }
+
+  // === FUNÇÕES VALIDADORAS ===
+
+  private async validarInspecaoDuplicada(loteId: number): Promise<void> {
+    const jaInspecionado = await this.inspecaoRepo.findOneBy({
+      lote: { id: loteId },
     });
 
-    if (!inspecao) throw new AppError('Inspeção não encontrada para este lote.', 404);
-    return inspecao;
-  };
+    if (jaInspecionado) {
+      throw new AppError('Este lote já foi inspecionado.', 409);
+    }
+  }
+
+  private validarQuantidadeReprovada(qtdReprovada: number, qtdPlanejada: number): void {
+    if (qtdReprovada > qtdPlanejada) {
+      throw new AppError(
+        `Quantidade reprovada (${qtdReprovada}) não pode exceder a planejada (${qtdPlanejada}).`,
+        400,
+      );
+    }
+  }
 }

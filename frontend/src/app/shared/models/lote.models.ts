@@ -1,7 +1,5 @@
-// ──────────────────────────────────────────────
-// Modelos compartilhados — tipagem explícita
+// Modelos compartilhados + tipagem explícita
 // Cada interface reflete exatamente o contrato da API
-// ──────────────────────────────────────────────
 
 export type LoteStatus =
   | 'em_producao'
@@ -12,13 +10,13 @@ export type LoteStatus =
 
 export type InsumoEstoqueStatus = 'a_caminho' | 'pendente' | 'disponivel';
 
-// ── Entidades Base ──
+// Entidades Base
 
 export interface MateriaPrima {
   id: number;
   nome: string;
   sku_interno: string;
-  unidade_medida: 'KG' | 'L' | 'M' | 'UN';
+  unidade_medida: 'UN' | 'G' | 'ML' | 'CM';
   categoria: string;
 }
 
@@ -38,7 +36,6 @@ export interface Produto {
   percentual_ressalva: number;
   ativo: boolean;
   receita: ReceitaItem[];
-  lotes?: any[];
   criadoPor?: { nome: string };
   criado_em: string;
   atualizado_em: string;
@@ -80,7 +77,7 @@ export interface Inspecao {
   inspetor: Operador;
 }
 
-// ── Lote de Produção ──
+// Lote de Produção
 
 export interface LoteDetalhe {
   id: number;
@@ -99,7 +96,7 @@ export interface LoteDetalhe {
   inspecao: Inspecao | null;
 }
 
-// ── Sugestão de Busca ──
+// Sugestão de Busca
 
 export interface SugestaoItem {
   tipo: 'lote' | 'produto';
@@ -109,9 +106,31 @@ export interface SugestaoItem {
   status?: LoteStatus;
 }
 
-// ──────────────────────────────────────────────
+// DTOs de Operação
+
+export interface CriarLoteConsumoDTO {
+  insumo_estoque_id: number;
+  quantidade_consumida: number;
+}
+
+export interface CriarLoteDTO {
+  produto_id: number;
+  data_producao: string;
+  turno: 'manha' | 'tarde' | 'noite';
+  quantidade_planejada: number;
+  data_validade: string | null;
+  observacoes?: string;
+  consumos: CriarLoteConsumoDTO[];
+}
+
+export interface RegistrarInspecaoDTO {
+  quantidade_reprovada: number;
+  descricao_desvio?: string;
+}
+
+//
 // Helpers de status
-// ──────────────────────────────────────────────
+//
 
 export interface StatusConfig {
   label: string;

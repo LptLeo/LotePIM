@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, type Relation } from 'typeorm';
 
 import { EntidadeBase } from './base.entity.js';
-import type { Lote } from './Lote.js';
-import type { Usuario } from './Usuario.js';
+import { Lote } from './Lote.js';
+import { Usuario } from './Usuario.js';
 
 export enum ResultadoInspecao {
   APROVADO = 'aprovado',
@@ -17,11 +17,11 @@ export enum ResultadoInspecao {
  */
 @Entity('inspecao')
 export class Inspecao extends EntidadeBase {
-  @OneToOne('Lote', 'inspecao')
+  @OneToOne(() => Lote, (lote) => lote.inspecao)
   @JoinColumn({ name: 'lote_id' })
   lote!: Relation<Lote>;
 
-  @ManyToOne('Usuario', 'inspecoes')
+  @ManyToOne(() => Usuario, (usuario) => usuario.inspecoes)
   @JoinColumn({ name: 'inspetor_id' })
   inspetor!: Relation<Usuario>;
 
@@ -32,5 +32,5 @@ export class Inspecao extends EntidadeBase {
   resultado_calculado!: ResultadoInspecao;
 
   @Column({ type: 'text', nullable: true })
-  descricao_desvio!: string;
+  descricao_desvio!: string | null;
 }

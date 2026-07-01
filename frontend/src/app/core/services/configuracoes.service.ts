@@ -1,7 +1,26 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 
-export type ComparacaoPeriodo = 'mes' | 'semana' | 'dia' | 'qualquer_momento';
-export type ProducaoPeriodo = 'qualquer_momento' | 'mes' | 'semana' | 'dia';
+// === ENUMS DE PERÍODO ===
+
+export enum PeriodoComparacao {
+  qualquer_momento = 'Qualquer Momento',
+  mes = 'Mês',
+  semana = 'Semana',
+  dia = 'Dia',
+}
+
+export type ComparacaoPeriodo = keyof typeof PeriodoComparacao;
+
+export enum PeriodoProducao {
+  qualquer_momento = 'Qualquer Momento',
+  mes = 'Mês',
+  semana = 'Semana',
+  dia = 'Dia',
+}
+
+export type ProducaoPeriodo = keyof typeof PeriodoProducao;
+
+// === INTERFACES ===
 
 export interface DashboardSettings {
   lotesComparacao: ComparacaoPeriodo;
@@ -19,7 +38,9 @@ export interface AppSettings {
   lote: LoteSettings;
 }
 
-const DEFAULT_SETTINGS: AppSettings = {
+// === CONFIGURAÇÕES PADRÃO ===
+
+const PADRAO: AppSettings = {
   dashboard: {
     lotesComparacao: 'mes',
     unidadesComparacao: 'mes',
@@ -37,38 +58,45 @@ const DEFAULT_SETTINGS: AppSettings = {
 export class ConfiguracoesService {
   private readonly STORAGE_KEY = 'lote_pim_settings';
 
-  settings = signal<AppSettings>(this.loadSettings());
+  // === ESTADO ===
 
-  private loadSettings(): AppSettings {
+  public settings = signal<AppSettings>(this.carregarSettings());
+
+  public dashboardSettings = computed(() => this.settings().dashboard);
+  public loteSettings = computed(() => this.settings().lote);
+
+  // === MÉTODOS PÚBLICOS ===
+
+  public saveSettings(novo: AppSettings): void {
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(novo));
+    this.settings.set(novo);
+  }
+
+  public updateDashboardSettings(dashboard: Partial<DashboardSettings>): void {
+    const atual = this.settings();
+    this.saveSettings({
+      ...atual,
+      dashboard: { ...atual.dashboard, ...dashboard },
+    });
+  }
+
+  public updateLoteSettings(lote: Partial<LoteSettings>): void {
+    const atual = this.settings();
+    this.saveSettings({
+      ...atual,
+      lote: { ...atual.lote, ...lote },
+    });
+  }
+
+  // === MÉTODOS PRIVADOS ===
+
+  private carregarSettings(): AppSettings {
     const stored = localStorage.getItem(this.STORAGE_KEY);
-    if (!stored) return DEFAULT_SETTINGS;
+    if (!stored) return PADRAO;
     try {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      return { ...PADRAO, ...JSON.parse(stored) };
     } catch {
-      return DEFAULT_SETTINGS;
+      return PADRAO;
     }
-  }
-
-  saveSettings(newSettings: AppSettings) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(newSettings));
-    this.settings.set(newSettings);
-  }
-
-  updateDashboardSettings(dashboard: Partial<DashboardSettings>) {
-    const current = this.settings();
-    const updated = {
-      ...current,
-      dashboard: { ...current.dashboard, ...dashboard },
-    };
-    this.saveSettings(updated);
-  }
-
-  updateLoteSettings(lote: Partial<LoteSettings>) {
-    const current = this.settings();
-    const updated = {
-      ...current,
-      lote: { ...current.lote, ...lote },
-    };
-    this.saveSettings(updated);
   }
 }

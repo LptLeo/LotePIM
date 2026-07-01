@@ -1,21 +1,9 @@
 import { Routes } from '@angular/router';
 import { Login } from './features/login/login.js';
-import { Dashboard } from './features/dashboard/dashboard.js';
-import { Lote } from './features/lote/lote.js';
-import { LoteDetail } from './features/lote/pages/lote-detail/lote-detail.js';
-import { LoteNovo } from './features/lote/pages/lote-novo/lote-novo.js';
-import { Produtos } from './features/produtos/produtos.js';
-import { ProdutoNovo } from './features/produtos/pages/produto-novo/produto-novo.js';
-import { Rastreabilidade } from './features/rastreabilidade/rastreabilidade.js';
-import { Configuracoes } from './features/configuracoes/configuracoes.js';
-import { Insumos } from './features/insumos/insumos.js';
-import { InsumoNovo } from './features/insumos/pages/insumo-novo/insumo-novo.js';
-import { Perfil } from './features/perfil/perfil.js';
-import { CadastroUsuarios } from './features/cadastro-usuarios/cadastro-usuarios.js';
+import { MainLayout } from './core/layouts/main-layout/main-layout.js';
 import { authGuard } from './core/guards/auth/auth-guard.js';
 import { guestGuard } from './core/guards/auth/guest-guard.js';
 import { roleGuard } from './core/guards/auth/role-guard.js';
-import { MainLayout } from './core/layouts/main-layout/main-layout.js';
 
 export const routes: Routes = [
   {
@@ -41,60 +29,88 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        component: Dashboard,
+        loadComponent: () =>
+          import('./features/dashboard/dashboard.js').then((c) => c.Dashboard),
       },
       {
         path: 'lote',
-        component: Lote,
+        loadComponent: () => import('./features/lote/lote.js').then((c) => c.Lote),
       },
       {
         path: 'lote/novo',
-        component: LoteNovo,
+        loadComponent: () =>
+          import('./features/lote/pages/lote-novo/lote-novo.js').then((c) => c.LoteNovo),
       },
       {
         path: 'lote/:id',
-        component: LoteDetail,
+        loadComponent: () =>
+          import('./features/lote/pages/lote-detail/lote-detail.js').then(
+            (c) => c.LoteDetail,
+          ),
       },
       {
         path: 'produtos',
-        component: Produtos,
+        loadComponent: () =>
+          import('./features/produtos/produtos.js').then((c) => c.Produtos),
       },
       {
         path: 'produtos/novo',
-        component: ProdutoNovo,
+        loadComponent: () =>
+          import('./features/produtos/pages/produto-novo/produto-novo.js').then(
+            (c) => c.ProdutoNovo,
+          ),
       },
       {
         path: 'produtos/:id',
         loadComponent: () =>
-          import('./features/produtos/pages/produto-detail/produto-detail').then(
+          import('./features/produtos/pages/produto-detail/produto-detail.js').then(
             (c) => c.ProdutoDetail,
           ),
       },
       {
         path: 'rastreabilidade',
-        component: Rastreabilidade,
+        loadComponent: () =>
+          import('./features/rastreabilidade/rastreabilidade.js').then(
+            (c) => c.Rastreabilidade,
+          ),
       },
       {
         path: 'insumos',
-        component: Insumos,
         canActivate: [roleGuard(['operador'])],
-      },
-      {
-        path: 'insumos/novo',
-        component: InsumoNovo,
-        canActivate: [roleGuard(['operador'])],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/insumos/insumos.js').then((c) => c.Insumos),
+            pathMatch: 'full',
+          },
+          {
+            path: 'novo',
+            loadComponent: () =>
+              import('./features/insumos/pages/insumo-novo/insumo-novo.js').then(
+                (c) => c.InsumoNovo,
+              ),
+          },
+        ],
       },
       {
         path: 'configuracoes',
-        component: Configuracoes,
+        loadComponent: () =>
+          import('./features/configuracoes/configuracoes.js').then(
+            (c) => c.Configuracoes,
+          ),
       },
       {
         path: 'cadastro-usuarios',
-        component: CadastroUsuarios,
+        loadComponent: () =>
+          import('./features/cadastro-usuarios/cadastro-usuarios.js').then(
+            (c) => c.CadastroUsuarios,
+          ),
+        canActivate: [roleGuard(['gestor'])],
       },
       {
         path: 'perfil',
-        component: Perfil,
+        loadComponent: () => import('./features/perfil/perfil.js').then((c) => c.Perfil),
       },
     ],
   },

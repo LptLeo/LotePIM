@@ -3,17 +3,22 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import type { Produto, MateriaPrima } from '../../../shared/models/lote.models.js';
+import type { RespostaPaginada } from '../../../shared/models/pagination.models.js';
 
 const API_URL = environment.apiUrl;
 
-export interface RespostaPaginada<T> {
-  itens: T[];
-  meta: {
-    totalItens: number;
-    itensPorPagina: number;
-    totalPaginas: number;
-    paginaAtual: number;
-  };
+export interface ContagemProdutos {
+  total: number;
+  ativos: number;
+  inativos: number;
+  sem_insumos: number;
+  mais_produzidos: number;
+}
+
+interface ReceitaItem {
+  materia_prima_id: number;
+  quantidade: number;
+  unidade: string;
 }
 
 export interface CriarProdutoPayload {
@@ -22,12 +27,26 @@ export interface CriarProdutoPayload {
   linha_padrao: string;
   percentual_ressalva: number;
   ativo: boolean;
-  receita: {
-    materia_prima_id: number;
-    quantidade: number;
-    unidade: string;
-  }[];
+  receita: ReceitaItem[];
 }
+
+// === FUNÇÕES PRIVADAS ===
+
+function montarParams(filtros?: Record<string, string | number>): HttpParams {
+  let params = new HttpParams();
+
+  if (filtros) {
+    Object.entries(filtros).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, String(value));
+      }
+    });
+  }
+
+  return params;
+}
+
+// === SERVIÇO ===
 
 @Injectable({
   providedIn: 'root',
@@ -35,56 +54,46 @@ export interface CriarProdutoPayload {
 export class ProdutosService {
   private http = inject(HttpClient);
 
-  getProdutos(filtros?: Record<string, string | number>): Observable<RespostaPaginada<Produto>> {
-    let params = new HttpParams();
-
-    if (filtros) {
-      Object.entries(filtros).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          params = params.set(key, String(value));
-        }
-      });
-    }
-
-    return this.http.get<RespostaPaginada<Produto>>(`${API_URL}/produtos`, { params });
+  public listar(
+    filtros?: Record<string, string | number>,
+  ): Observable<RespostaPaginada<Produto>> {
+    return this.http.get<RespostaPaginada<Produto>>(`${API_URL}/produtos`, {
+      params: montarParams(filtros),
+    });
   }
 
-  getContagem(): Observable<any> {
-    return this.http.get<any>(`${API_URL}/produtos/contagem`);
+  public obterContagem(): Observable<ContagemProdutos> {
+    return this.http.get<ContagemProdutos>(`${API_URL}/produtos/contagem`);
   }
 
-  getProdutoById(id: number): Observable<Produto> {
+  public buscarPorId(id: number): Observable<Produto> {
     return this.http.get<Produto>(`${API_URL}/produtos/${id}`);
   }
 
-  getCategorias(): Observable<string[]> {
+  public listarCategorias(): Observable<string[]> {
     return this.http.get<string[]>(`${API_URL}/produtos/categorias`);
   }
 
-  getLinhas(): Observable<string[]> {
+  public listarLinhas(): Observable<string[]> {
     return this.http.get<string[]>(`${API_URL}/produtos/linhas`);
   }
 
-  getMateriasPrimas(): Observable<MateriaPrima[]> {
-    // Para simplificar receitas, carregamos um limite alto para o catálogo.
+  public listarMateriasPrimas(): Observable<MateriaPrima[]> {
     const params = new HttpParams().set('limite', '1000');
     return this.http
       .get<RespostaPaginada<MateriaPrima>>(`${API_URL}/materias-primas`, { params })
       .pipe(map((res) => res.itens));
   }
 
-  criarProduto(payload: CriarProdutoPayload): Observable<Produto> {
+  public criar(payload: CriarProdutoPayload): Observable<Produto> {
     return this.http.post<Produto>(`${API_URL}/produtos`, payload);
   }
 
-  atualizarReceita(
-    id: number,
-    receita: { materia_prima_id: number; quantidade: number; unidade: string }[],
-  ): Observable<Produto> {
+  public atualizarReceita(id: number, receita: ReceitaItem[]): Observable<Produto> {
     return this.http.patch<Produto>(`${API_URL}/produtos/${id}/receita`, receita);
   }
 
-  alternarStatus(id: number, ativo: boolean): Observable<Produto> {
+  public alternarStatus(id: number, ativo: boolean): Observable<Produto> {
     return this.http.patch<Produto>(`${API_URL}/produtos/${id}/status`, { ativo });
   }
 }

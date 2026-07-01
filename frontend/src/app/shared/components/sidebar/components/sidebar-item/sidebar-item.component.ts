@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -8,6 +8,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './sidebar-item.component.html',
 })
 export class SidebarItemComponent {
-  @Input({ required: true }) link!: string;
-  @Input({ required: true }) label!: string;
+  link = input.required<string>();
+  label = input.required<string>();
 }

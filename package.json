@@ -6,8 +6,11 @@
   "scripts": {
     "format": "prettier --write .",
     "lint:back": "npm run lint --prefix backend",
+    "lint:back:fix": "npm run lint:fix --prefix backend",
     "lint:front": "npm run lint --prefix frontend",
+    "lint:front:fix": "npm run lint:fix --prefix frontend",
     "lint": "npm run lint:back && npm run lint:front",
+    "lint:fix": "npm run lint:back:fix && npm run lint:front:fix",
     "test:cov:back": "npm run test --prefix backend -- --coverage",
     "test:cov:front": "npm run test --prefix frontend -- --coverage",
     "test:coverage": "npm run test:cov:back && npm run test:cov:front"
@@ -25,6 +28,11 @@
   },
   "homepage": "https://github.com/LptLeo/LotePIM#readme",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.8.3"
   }
 }
