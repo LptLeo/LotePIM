@@ -1,27 +1,27 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, input } from '@angular/core';
+import { ReactiveFormsModule, type FormControl } from '@angular/forms';
+
+let uidCounter = 0;
 
 @Component({
   selector: 'app-text-input-field',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './text-input-field.html',
 })
 export class TextInputFieldComponent {
-  @Input({ required: true }) label!: string;
-  @Input({ required: true }) control!: FormControl<string>;
+  label = input.required<string>();
+  control = input.required<FormControl<string>>();
 
-  @Input() type: 'text' | 'email' = 'text';
-  @Input() placeholder = '';
-  @Input() submitted = false;
-  @Input() errorMessage = 'Campo inválido';
+  type = input<'text' | 'email'>('text');
+  placeholder = input('');
+  submitted = input(false);
+  errorMessage = input('Campo inválido');
+  inputId = input(`text-input-${uidCounter++}`);
 
-  showError(): boolean {
-    if (!this.control) return false;
-    return (
-      this.control.invalid &&
-      (this.control.dirty || this.control.touched || this.submitted)
-    );
+  public showError(): boolean {
+    const ctrl = this.control();
+    if (!ctrl) return false;
+    return ctrl.invalid && (ctrl.dirty || ctrl.touched || this.submitted());
   }
 }

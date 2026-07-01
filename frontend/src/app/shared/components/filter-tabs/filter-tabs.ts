@@ -1,5 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
 
 export interface FilterTab {
   id: string;
@@ -10,19 +9,18 @@ export interface FilterTab {
 @Component({
   selector: 'app-filter-tabs',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './filter-tabs.html',
   host: {
     class: 'block w-full min-w-0',
   },
 })
 export class FilterTabsComponent {
-  @Input({ required: true }) tabs!: FilterTab[];
-  @Input({ required: true }) filtroAtivo!: string;
-  @Input({ required: true }) contagem!: Record<string, number>;
-  @Output() filtroMudou = new EventEmitter<string>();
+  tabs = input.required<FilterTab[]>();
+  filtroAtivo = input.required<string>();
+  contagem = input.required<Record<string, number>>();
+  filtroMudou = output<string>();
 
-  onFiltroClick(id: string) {
+  public onFiltroClick(id: string): void {
     this.filtroMudou.emit(id);
   }
 }

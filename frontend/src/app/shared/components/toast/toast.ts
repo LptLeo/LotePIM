@@ -16,7 +16,7 @@ import { ToastService } from '../../../core/services/toast.service.js';
   templateUrl: './toast.html',
 })
 export class ToastComponent implements OnInit, OnDestroy {
-  toastService = inject(ToastService);
+  public toastService = inject(ToastService);
   private elementRef = inject(ElementRef);
   private router = inject(Router);
   private routerSub?: Subscription;

@@ -1,15 +1,13 @@
 import { Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-user-actions',
   standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="flex items-center justify-end gap-2">
       @if (ativo() && perfil() !== 'gestor') {
         <button
-          (click)="onDeactivate.emit(id())"
+          (click)="deactivate.emit(id())"
           [class]="buttonClass"
           title="Desativar Colaborador"
         >
@@ -38,7 +36,7 @@ import { CommonModule } from '@angular/common';
             >
           }
           <button
-            (click)="onReactivate.emit(id())"
+            (click)="reactivate.emit(id())"
             [class]="reactivateButtonClass"
             title="Reativar Colaborador"
           >
@@ -68,11 +66,11 @@ export class UserActionsComponent {
   perfil = input.required<string>();
   showText = input<boolean>(true);
 
-  onDeactivate = output<number>();
-  onReactivate = output<number>();
+  deactivate = output<number>();
+  reactivate = output<number>();
 
-  buttonClass =
+  public buttonClass =
     'p-1.5 md:p-2 text-red-400/60 hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer border border-red-400/10 md:border-red-400/20';
-  reactivateButtonClass =
+  public reactivateButtonClass =
     'p-1.5 md:p-2 text-[#00E5FF]/60 hover:text-[#00E5FF] hover:bg-[#00E5FF]/10 rounded transition-all cursor-pointer border border-[#00E5FF]/10 md:border-[#00E5FF]/20';
 }

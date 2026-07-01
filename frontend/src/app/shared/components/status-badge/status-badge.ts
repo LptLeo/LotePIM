@@ -1,10 +1,8 @@
 import { Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-status-badge',
   standalone: true,
-  imports: [CommonModule],
   template: `
     <span
       class="text-[11px] font-bold px-2 py-0.5 rounded border transition-all"

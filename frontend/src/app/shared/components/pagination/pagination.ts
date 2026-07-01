@@ -1,5 +1,4 @@
-import { Component, Input, Output, EventEmitter, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, computed } from '@angular/core';
 
 export interface PaginationMeta {
   totalItens: number;
@@ -11,19 +10,18 @@ export interface PaginationMeta {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './pagination.html',
 })
 export class PaginationComponent {
-  @Input({ required: true }) meta!: PaginationMeta;
-  @Output() pageChange = new EventEmitter<number>();
+  meta = input.required<PaginationMeta>();
+  pageChange = output<number>();
 
   protected readonly Math = Math;
 
-  pages = computed(() => {
-    const total = Number(this.meta.totalPaginas);
-    const current = Number(this.meta.paginaAtual);
-    const range = 2; // Quantas páginas mostrar antes/depois da atual
+  public pages = computed(() => {
+    const total = Number(this.meta().totalPaginas);
+    const current = Number(this.meta().paginaAtual);
+    const range = 2;
 
     const start = Math.max(1, current - range);
     const end = Math.min(total, current + range);
@@ -47,23 +45,23 @@ export class PaginationComponent {
     return pagesArr;
   });
 
-  onPageClick(page: number | string) {
+  public onPageClick(page: number | string): void {
     const pageNum = Number(page);
-    if (!isNaN(pageNum) && pageNum !== Number(this.meta.paginaAtual)) {
+    if (!isNaN(pageNum) && pageNum !== Number(this.meta().paginaAtual)) {
       this.pageChange.emit(pageNum);
     }
   }
 
-  prevPage() {
-    const current = Number(this.meta.paginaAtual);
+  public prevPage(): void {
+    const current = Number(this.meta().paginaAtual);
     if (current > 1) {
       this.pageChange.emit(current - 1);
     }
   }
 
-  nextPage() {
-    const current = Number(this.meta.paginaAtual);
-    const total = Number(this.meta.totalPaginas);
+  public nextPage(): void {
+    const current = Number(this.meta().paginaAtual);
+    const total = Number(this.meta().totalPaginas);
     if (current < total) {
       this.pageChange.emit(current + 1);
     }

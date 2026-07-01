@@ -32,7 +32,7 @@
           type="text"
           autocomplete="off"
           placeholder="PESQUISAR NO SISTEMA"
-          [value]="termoPesquisa"
+          [value]="termoPesquisa()"
           (input)="onInputChange($any($event.target).value)"
           (keydown)="onKeyDown($event)"
           (focus)="notificacoesAbertas.set(false)"
@@ -259,7 +259,6 @@
                   Nenhuma notificação no momento.
                 </div>
               }
-
               @for (
                 notificacao of notificacaoService.notificacoes();
                 track notificacao.id

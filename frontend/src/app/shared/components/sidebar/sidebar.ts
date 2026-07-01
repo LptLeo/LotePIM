@@ -10,10 +10,10 @@ import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.com
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
-  authService = inject(AuthService);
+  public authService = inject(AuthService);
   private router = inject(Router);
 
-  logout(): void {
+  public logout(): void {
     this.authService.logout();
   }
 }

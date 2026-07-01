@@ -4,14 +4,14 @@
   <div class="flex flex-1 justify-between sm:hidden">
     <button
       (click)="prevPage()"
-      [disabled]="meta.paginaAtual === 1"
+      [disabled]="meta().paginaAtual === 1"
       class="relative inline-flex items-center rounded-md border border-[#484847]/60 bg-[#131313] px-4 py-2 text-xs font-bold text-[#ADAAAA] hover:bg-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-all uppercase tracking-wider"
     >
       Anterior
     </button>
     <button
       (click)="nextPage()"
-      [disabled]="meta.paginaAtual === meta.totalPaginas"
+      [disabled]="meta().paginaAtual === meta().totalPaginas"
       class="relative ml-3 inline-flex items-center rounded-md border border-[#484847]/60 bg-[#131313] px-4 py-2 text-xs font-bold text-[#ADAAAA] hover:bg-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-all uppercase tracking-wider"
     >
       Próxima
@@ -22,13 +22,13 @@
       <p class="text-[11px] text-[#6B7280] uppercase tracking-wider">
         Mostrando
         <span class="font-bold text-white">{{
-          (meta.paginaAtual - 1) * meta.itensPorPagina + 1
+          (meta().paginaAtual - 1) * meta().itensPorPagina + 1
         }}</span>
         a
         <span class="font-bold text-white">{{
-          Math.min(meta.paginaAtual * meta.itensPorPagina, meta.totalItens)
+          Math.min(meta().paginaAtual * meta().itensPorPagina, meta().totalItens)
         }}</span>
-        de <span class="font-bold text-white">{{ meta.totalItens }}</span> resultados
+        de <span class="font-bold text-white">{{ meta().totalItens }}</span> resultados
       </p>
     </div>
     <div>
@@ -39,7 +39,7 @@
         <!-- Anterior -->
         <button
           (click)="prevPage()"
-          [disabled]="meta.paginaAtual === 1"
+          [disabled]="meta().paginaAtual === 1"
           class="relative inline-flex items-center rounded-l-md px-2 py-2 text-[#6B7280] ring-1 ring-inset ring-[#484847]/60 hover:bg-[#1a1a1a] focus:z-20 focus:outline-offset-0 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <span class="sr-only">Anterior</span>
@@ -61,13 +61,13 @@
           } @else {
             <button
               (click)="onPageClick(page)"
-              [class.bg-[#00E5FF]]="page === meta.paginaAtual"
-              [class.text-black]="page === meta.paginaAtual"
-              [class.font-bold]="page === meta.paginaAtual"
-              [class.text-[#ADAAAA]]="page !== meta.paginaAtual"
+              [class.bg-[#00E5FF]]="page === meta().paginaAtual"
+              [class.text-black]="page === meta().paginaAtual"
+              [class.font-bold]="page === meta().paginaAtual"
+              [class.text-[#ADAAAA]]="page !== meta().paginaAtual"
               [class.ring-1]="true"
               [class.ring-inset]="true"
-              [class.ring-[#484847]/60]="page !== meta.paginaAtual"
+              [class.ring-[#484847]/60]="page !== meta().paginaAtual"
               class="relative inline-flex items-center px-4 py-2 text-xs focus:z-20 focus:outline-offset-0 hover:bg-[#1a1a1a] transition-all"
             >
               {{ page }}
@@ -78,7 +78,7 @@
         <!-- Próxima -->
         <button
           (click)="nextPage()"
-          [disabled]="meta.paginaAtual === meta.totalPaginas"
+          [disabled]="meta().paginaAtual === meta().totalPaginas"
           class="relative inline-flex items-center rounded-r-md px-2 py-2 text-[#6B7280] ring-1 ring-inset ring-[#484847]/60 hover:bg-[#1a1a1a] focus:z-20 focus:outline-offset-0 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <span class="sr-only">Próxima</span>
