@@ -8,6 +8,7 @@ import { ConfiguracoesService } from '../../core/services/configuracoes.service.
 import { AuthService } from '../../core/services/auth.service.js';
 import { rxResource } from '@angular/core/rxjs-interop';
 import * as loteStatus from '../../shared/utils/lote-status.js';
+import { environment } from '../../../environments/environment.js';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,6 +17,8 @@ import * as loteStatus from '../../shared/utils/lote-status.js';
   styleUrl: './dashboard.css',
 })
 export class Dashboard {
+  public versaoApp = environment.appVersion;
+
   // === INJEÇÃO DE DEPENDÊNCIAS ===
 
   private dashboardService = inject(DashboardService);

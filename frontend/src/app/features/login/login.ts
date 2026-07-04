@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service.js';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../environments/environment.js';
 
 @Component({
   selector: 'app-login',
@@ -12,6 +13,8 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrl: './login.css',
 })
 export class Login {
+  public versaoApp = environment.appVersion;
+
   // === INJEÇÃO DE DEPENDÊNCIAS ===
 
   private authService = inject(AuthService);
