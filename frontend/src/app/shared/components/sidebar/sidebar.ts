@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service.js';
 import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.component.js';
+import { environment } from '../../../../environments/environment.js';
 
 @Component({
   selector: 'app-sidebar',
@@ -10,6 +11,7 @@ import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.com
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
+  public versaoApp = environment.appVersion;
   public authService = inject(AuthService);
   private router = inject(Router);
 
