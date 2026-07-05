@@ -4,5 +4,5 @@ const urlPort = '3000';
 export const environment = {
   production: false,
   apiUrl: `${baseUrl}:${urlPort}/api`,
-  appVersion: '1.3.2',
+  appVersion: '1.4.0',
 };
