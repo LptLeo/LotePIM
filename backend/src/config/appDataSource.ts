@@ -14,14 +14,15 @@ import { Usuario } from '../entities/Usuario.js';
 
 dotenv.config();
 
+const databaseUrl = process.env.DATABASE_URL;
 const isUrlConnection =
-  process.env.DATABASE_URL ||
-  (process.env.DB_HOST && process.env.DB_HOST.startsWith('postgres'));
+  !!databaseUrl ||
+  (!!process.env.DB_HOST && process.env.DB_HOST.startsWith('postgres'));
 
 export const appDataSource = new DataSource({
   type: 'postgres',
   ...(isUrlConnection
-    ? { url: (process.env.DATABASE_URL || process.env.DB_HOST) as string }
+    ? { url: (databaseUrl || process.env.DB_HOST) as string }
     : {
         host: process.env.DB_HOST || 'localhost',
         port: Number(process.env.DB_PORT) || 5432,
@@ -30,7 +31,7 @@ export const appDataSource = new DataSource({
         database: process.env.DB_NAME || 'postgres',
       }),
   ssl:
-    process.env.NODE_ENV === 'production' || isUrlConnection
+    isUrlConnection || process.env.NODE_ENV === 'production'
       ? { rejectUnauthorized: false }
       : false,
   entities: [
