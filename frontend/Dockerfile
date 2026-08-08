@@ -11,6 +11,7 @@ RUN npm run build
 # ================= Fase 2: Servidor web =================
 # Imagem final: nginx servindo os arquivos estáticos (com SPA fallback)
 FROM nginx:1.27-alpine AS server
+WORKDIR /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 EXPOSE 80
