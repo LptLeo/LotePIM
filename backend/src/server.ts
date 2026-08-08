@@ -1,3 +1,6 @@
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -31,6 +34,20 @@ app.use(express.json());
 app.use(cookieParser());
 app.set('trust proxy', 1);
 app.use('/api', routes);
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const publicDir = path.resolve(currentDir, '../public');
+
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      return res.sendFile(path.join(publicDir, 'index.html'));
+    }
+    next();
+  });
+}
+
 app.use(errorHandler);
 
 async function inicializarServidor(): Promise<void> {
